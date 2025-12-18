@@ -1,0 +1,152 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Montserrat", "Poppins", "Tahoma", sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-white text-gray-800 font-sans leading-relaxed antialiased selection:bg-red-100 selection:text-red-700;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-semibold text-gray-900 tracking-tight;
+  }
+  h1 {
+    @apply text-4xl sm:text-5xl lg:text-6xl mb-4;
+  }
+
+  h2 {
+    @apply text-3xl sm:text-4xl mb-3;
+  }
+  h3 {
+    @apply text-2xl sm:text-3xl mb-2;
+  }
+
+  a {
+    @apply text-red-500 hover:text-red-600 transition-colors duration-200 underline-offset-2;
+  }
+
+  button {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 active:scale-[0.98];
+  }
+
+  input,
+  textarea,
+  select {
+    @apply border border-gray-200 dark:border-gray-400/40 bg-white dark:bg-neutral-600 text-gray-500 dark:text-gray-200 rounded-md px-3 py-2 shadow-sm focus:ring-2 outline-0 focus:ring-red-400 focus:border-red-400
+           transition-colors duration-200 text-sm;
+  }
+
+  ::placeholder {
+    @apply text-gray-400;
+  }
+
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 8px;
+    padding: 6px;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-red-400 hover:bg-red-500 rounded-full transition-colors duration-200;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-500/20;
+  }
+}
+
+/* -----------------------------------
+   🧩 Components Layer
+----------------------------------- */
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-md font-medium
+           transition-all duration-200 gap-2 disabled:opacity-60 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply bg-red-500 text-white hover:bg-red-600 active:bg-red-700 focus-visible:ring-2 focus-visible:ring-red-400;
+  }
+
+  .btn-outline {
+    @apply border border-red-400 text-red-500 hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-400;
+  }
+
+  .btn-light {
+    @apply bg-red-50 text-red-600 hover:bg-red-100;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100;
+  }
+
+  .card-hover {
+    @apply hover:-translate-y-1 hover:shadow-lg transition-transform duration-300;
+  }
+
+  .badge {
+    @apply inline-block text-xs font-semibold px-2 py-1 rounded-full bg-red-100 text-red-600 uppercase tracking-wide;
+  }
+
+  .input-group {
+    @apply flex items-center border border-gray-200 dark:border-gray-400/50 rounded-lg overflow-hidden focus-within:ring-1 outline-0 focus-within:ring-red-400 focus-within:border-red-400 transition-colors duration-200;
+  }
+
+  .input-group input {
+    @apply flex-1 px-3 py-2 border-0 rounded-l-md focus:ring-0;
+  }
+
+  .input-group button {
+    @apply px-3 bg-red-500 text-white hover:bg-red-600;
+  }
+}
+
+/* -----------------------------------
+   ⚡ Utilities Layer
+----------------------------------- */
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-linear-to-r from-red-400 to-pink-500;
+  }
+
+  .section {
+    @apply py-16 px-4 sm:px-6 lg:px-8;
+  }
+
+  .container-lg {
+    @apply max-w-7xl mx-auto;
+  }
+
+  .shadow-soft {
+    @apply shadow-[0_2px_10px_rgba(0,0,0,0.06)];
+  }
+
+  .transition-base {
+    @apply transition-all duration-300 ease-in-out;
+  }
+}
+
+.swiper-pagination-bullet {
+  background: rgba(255, 255, 255, 0.5);
+  width: 10px;
+  height: 10px;
+  opacity: 1;
+}
+.swiper-pagination-bullet-active {
+  background: white;
+  width: 24px;
+  border-radius: 5px;
+}
+.swiper-pagination {
+  bottom: 100px !important;
+}
