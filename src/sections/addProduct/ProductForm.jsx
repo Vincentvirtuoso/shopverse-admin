@@ -18,7 +18,6 @@ import {
 } from "react-icons/fi";
 import { FaNairaSign, FaStar } from "react-icons/fa6";
 import { LuRefreshCcw } from "react-icons/lu";
-import FileUpload from "../../components/common/FileUpload";
 import { useProductForm } from "../../hooks/useProduct";
 import WrapperHeader from "../../components/common/WrapperHeader";
 import CardWrapper from "../../components/ui/CardWrapper";
@@ -27,8 +26,17 @@ import {
   dimensionUnitOptions,
   unitOptions,
   sections,
-  generateSKU,
 } from "../../assets/addProducts";
+import Inventory from "./steps/Inventory";
+import ScrollToTop from "../../components/common/ScrollToTop";
+import MediaUploadSection from "./steps/MediaUploadSection";
+import MultiInput from "../../components/common/MultiInput";
+
+const getErrorMessage = (errors) => {
+  if (!errors || typeof errors !== "object") return "";
+
+  return Object.values(errors).join("\n");
+};
 
 const ProductForm = ({
   loading,
@@ -38,18 +46,12 @@ const ProductForm = ({
   isEdit = false,
 }) => {
   const [activeSection, setActiveSection] = useState("basic");
-  const [mainImage, setMainImage] = useState([]);
-  const [additionalImages, setAdditionalImages] = useState([]);
 
   const {
     form,
     setForm,
     errors,
-    tagInput,
-    featureInput,
     keywordInput,
-    setTagInput,
-    setFeatureInput,
     setKeywordInput,
     handleChange,
     addTag,
@@ -63,22 +65,31 @@ const ProductForm = ({
     removeVariant,
     resetForm,
     validateForm,
+    mainImage,
+    setAdditionalImages,
+    setMainImage,
+    additionalImages,
   } = useProductForm(initialData);
+
+  const currentIndex = sections.findIndex((s) => s.id === activeSection);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm(null, true)) {
+    if (!validateForm(null, true)) return;
+
+    if (!mainImage || !mainImage[0]) {
+      alert("Please select a main image!");
       return;
     }
 
-    // Prepare form data for file upload
     const formData = new FormData();
 
-    // Add product data as JSON
     const productJson = { ...form };
+    delete productJson.image;
+    delete productJson.images;
+    delete productJson.id;
 
-    // Remove empty fields
     Object.keys(productJson).forEach((key) => {
       if (
         productJson[key] === "" ||
@@ -89,20 +100,22 @@ const ProductForm = ({
       }
     });
 
-    formData.append("product", JSON.stringify(productJson));
-
-    // Add files
-    if (mainImage[0]) {
-      formData.append("mainImage", mainImage[0]);
+    if (productJson.shippingInfo) {
+      delete productJson.shippingInfo.weight;
+      delete productJson.shippingInfo.dimensions;
     }
 
-    additionalImages.forEach((image) => {
-      formData.append("additionalImages", image);
-    });
+    formData.append("product", JSON.stringify(productJson));
+    formData.append("mainImage", mainImage[0]);
 
-    onSubmit(formData);
+    if (additionalImages && additionalImages.length > 0) {
+      additionalImages.forEach((img) => {
+        if (img instanceof File) formData.append("additionalImages", img);
+      });
+    }
+
+    onSubmit({ formData, setActiveSection, resetForm });
   };
-
   const renderSection = () => {
     switch (activeSection) {
       case "basic":
@@ -622,208 +635,21 @@ const ProductForm = ({
 
       case "inventory":
         return (
-          <motion.div
-            key="inventory"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            className="space-y-6"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Stock Count
-                </label>
-                <input
-                  type="number"
-                  name="stockCount"
-                  value={form.stockCount}
-                  onChange={handleChange}
-                  min="0"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 
-                    bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-                  placeholder="0"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  SKU (Stock Keeping Unit)
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    name="sku"
-                    value={form.sku}
-                    onChange={handleChange}
-                    className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 
-        bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-                    placeholder="e.g., PROD-001"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setForm({ ...form, sku: generateSKU() })}
-                    className="px-4 py-3 rounded-lg bg-red-700 hover:bg-red-600 
-        text-white font-medium transition-colors whitespace-nowrap"
-                  >
-                    Generate SKU
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-linear-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div className="flex items-start">
-                <div className="relative flex items-center h-5 mt-0.5">
-                  <input
-                    type="checkbox"
-                    id="isBestSeller"
-                    name="isBestSeller"
-                    checked={form.isBestSeller}
-                    onChange={handleChange}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer peer z-10"
-                  />
-                  <div
-                    className="w-5 h-5 rounded border-2 border-gray-300 dark:border-gray-600 
-        bg-white dark:bg-gray-800 peer-checked:border-red-500 peer-checked:bg-red-500 
-        peer-focus:ring-4 peer-focus:ring-red-500/20 transition-all duration-200 
-        flex items-center justify-center"
-                  >
-                    <svg
-                      className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity duration-200"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="3"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </div>
-                </div>
-
-                <div className="ml-3 flex-1">
-                  <label
-                    htmlFor="isBestSeller"
-                    className="text-sm font-semibold text-gray-900 dark:text-white cursor-pointer flex items-center gap-2"
-                  >
-                    <span className="flex items-center gap-1">
-                      Mark as Best Seller
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
-                        Premium
-                      </span>
-                    </span>
-                  </label>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    This product will be highlighted with a "Best Seller" badge
-                    across the platform.
-                  </p>
-
-                  {form.isBestSeller && (
-                    <div className="mt-3 p-2 bg-linear-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/10 dark:to-amber-900/10 rounded-lg border border-yellow-100 dark:border-yellow-800/30">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          className="w-4 h-4 text-yellow-600 dark:text-yellow-400"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <span className="text-xs font-medium text-yellow-700 dark:text-yellow-300">
-                          This product is now marked as a Best Seller
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="ml-2">
-                  <div className="w-10 h-6 flex items-center justify-center">
-                    <FaStar
-                      className={`w-6 h-6 transition-all duration-300 ${
-                        form.isBestSeller
-                          ? "text-yellow-500"
-                          : "text-gray-300 dark:text-gray-600"
-                      }`}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Warranty Information
-              </label>
-              <input
-                type="text"
-                name="warranty"
-                value={form.warranty}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 
-                  bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-                placeholder="e.g., 2 years manufacturer warranty"
-              />
-            </div>
-          </motion.div>
+          <Inventory
+            form={form}
+            handleChange={handleChange}
+            setForm={setForm}
+          />
         );
 
       case "media":
         return (
-          <motion.div
-            key="media"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            className="space-y-8"
-          >
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                Main Product Image
-              </h3>
-              <FileUpload
-                name="mainImage"
-                value={mainImage}
-                onChange={(file) => {
-                  setForm((prev) => ({ ...prev, image: file }));
-                  setMainImage(file);
-                }}
-                multiple={false}
-                maxSizeMB={5}
-                error={errors.mainImage}
-              />
-              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                This will be the primary image displayed for your product
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                Additional Images
-              </h3>
-              <FileUpload
-                name="additionalImages"
-                value={additionalImages}
-                onChange={(files) => {
-                  setForm((prev) => ({ ...prev, images: files }));
-                  setAdditionalImages(files);
-                }}
-                multiple={true}
-                maxFiles={5}
-                maxSizeMB={5}
-              />
-              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                Add up to 5 additional images to showcase different angles or
-                features
-              </p>
-            </div>
-          </motion.div>
+          <MediaUploadSection
+            mainImage={mainImage}
+            setAdditionalImages={setAdditionalImages}
+            setMainImage={setMainImage}
+            additionalImages={additionalImages}
+          />
         );
 
       case "attributes":
@@ -835,250 +661,66 @@ const ProductForm = ({
             exit={{ opacity: 0, x: 20 }}
             className="space-y-8"
           >
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
-                Product Tags
-              </label>
-              <div className="flex space-x-2 mb-3">
-                <input
-                  type="text"
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && (e.preventDefault(), addTag())
-                  }
-                  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
-                    bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  placeholder="Enter a tag and press Enter or click Add"
-                />
-                <button
-                  type="button"
-                  onClick={addTag}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                >
-                  <FiPlus className="w-4 h-4" />
-                </button>
-              </div>
+            <MultiInput
+              label="Product Tags"
+              name="tags"
+              value={form.tags}
+              addItem={addTag}
+              removeItem={removeTag}
+              placeholder="Add tags (comma-separated)..."
+              mode="comma-separated"
+              allowModeSwitch={true}
+              maxItems={15}
+              minItems={0}
+              maxLength={30}
+              minLength={2}
+              helperText="Tags help customers find your product. Use comma-separated values for bulk entry."
+              suggestions={[
+                "electronics",
+                "gadget",
+                "tech",
+                "innovative",
+                "bestseller",
+                "new-arrival",
+              ]}
+              icon="tag"
+              allowDuplicates={false}
+              styling={{
+                primaryColor: "purple",
+                numberBadgeGradient: "from-purple-500 to-purple-600",
+              }}
+            />
 
-              <AnimatePresence>
-                {form.tags?.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="flex flex-wrap gap-2"
-                  >
-                    {form.tags.map((tag, index) => (
-                      <motion.div
-                        key={tag + "-" + index}
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0, opacity: 0 }}
-                        className="inline-flex items-center px-3 py-1.5 rounded-full bg-red-100 dark:bg-red-900/30 
-                          text-red-800 dark:text-red-300"
-                      >
-                        <FiTag className="w-3 h-3 mr-1" />
-                        {tag}
-                        <button
-                          type="button"
-                          onClick={() => removeTag(tag)}
-                          className="ml-2 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200"
-                        >
-                          <FiX className="w-3 h-3" />
-                        </button>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-base font-semibold text-gray-900 dark:text-white mb-1">
-                  Key Features
-                </label>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Add 3-5 key features that highlight your product's main
-                  benefits
-                </p>
-              </div>
-
-              {/* Input Section */}
-              <div className="relative">
-                <div className="flex items-stretch shadow-sm rounded-lg overflow-hidden">
-                  <input
-                    type="text"
-                    value={featureInput}
-                    onChange={(e) => setFeatureInput(e.target.value)}
-                    onKeyDown={(e) =>
-                      e.key === "Enter" && (e.preventDefault(), addFeature())
-                    }
-                    className="flex-1 px-4 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 
-          border border-r-0 border-gray-200 dark:border-gray-700 focus:outline-none 
-          focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                    placeholder="Type a feature and press Enter..."
-                  />
-                  <button
-                    type="button"
-                    onClick={addFeature}
-                    disabled={!featureInput.trim()}
-                    className={`px-6 font-medium transition-all duration-200 border
-          ${
-            featureInput.trim()
-              ? "bg-red-500 border-red-500 text-white hover:bg-red-600 hover:border-red-600"
-              : "bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-          }`}
-                  >
-                    Add
-                  </button>
-                </div>
-
-                {/* Character counter and tips */}
-                <div className="flex items-center justify-between mt-2 px-1">
-                  <div className="flex items-center gap-3 text-xs">
-                    <span
-                      className={`px-2 py-1 rounded ${
-                        featureInput.length > 100
-                          ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
-                          : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
-                      }`}
-                    >
-                      {featureInput.length}/120 characters
-                    </span>
-                    <span className="text-gray-500 dark:text-gray-400">
-                      Keep features concise and scannable
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setFeatureInput("")}
-                    className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                  >
-                    Clear
-                  </button>
-                </div>
-              </div>
-
-              {/* Features List */}
-              <div className="space-y-2">
-                {form.features?.filter((f) => f.trim()).length > 0 ? (
-                  <AnimatePresence>
-                    {form.features
-                      ?.filter((f) => f.trim())
-                      ?.map((feature, index) => (
-                        <motion.div
-                          key={index}
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="flex items-center justify-between p-3 rounded-lg bg-linear-to-r from-white to-gray-50 dark:from-gray-800/50 dark:to-gray-900/30 border border-gray-100 dark:border-gray-700 hover:border-red-100 dark:hover:border-red-800 transition-colors">
-                            <div className="flex items-center gap-3">
-                              <div className="shrink-0 w-6 h-6 rounded-md bg-linear-to-br from-red-500 to-pink-500 flex items-center justify-center">
-                                <span className="text-xs font-bold text-white">
-                                  {index + 1}
-                                </span>
-                              </div>
-                              <span className="text-gray-800 dark:text-gray-200">
-                                {feature}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setFeatureInput(feature);
-                                  removeFeature(index);
-                                }}
-                                className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
-                                title="Edit feature"
-                              >
-                                <svg
-                                  className="w-4 h-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2"
-                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                  />
-                                </svg>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => removeFeature(index)}
-                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
-                                title="Remove feature"
-                              >
-                                <svg
-                                  className="w-4 h-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2"
-                                    d="M6 18L18 6M6 6l12 12"
-                                  />
-                                </svg>
-                              </button>
-                            </div>
-                          </div>
-                        </motion.div>
-                      ))}
-                  </AnimatePresence>
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-center py-8 rounded-lg"
-                  >
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">
-                      No features added. Add your first one above.
-                    </p>
-                  </motion.div>
-                )}
-              </div>
-
-              {/* Suggested Features */}
-              {form.features?.filter((f) => f.trim()).length === 0 && (
-                <div className="pt-4 border-t border-gray-100 dark:border-gray-500/60">
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Need inspiration? Here are some examples:
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      "Long battery life",
-                      "Water resistant",
-                      "Easy to use",
-                      "Premium materials",
-                      "Fast charging",
-                    ].map((example, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => {
-                          setFeatureInput(example);
-                        }}
-                        className="px-3 py-1.5 text-sm rounded-full border border-gray-200 dark:border-gray-700 
-              text-gray-600 dark:text-gray-400 hover:border-red-300 hover:text-red-600 
-              dark:hover:border-red-700 dark:hover:text-red-400 transition-colors"
-                      >
-                        {example}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <MultiInput
+              label="Product Features"
+              name="features"
+              value={form.features}
+              addItem={addFeature}
+              removeItem={removeFeature}
+              placeholder="Enter a product feature..."
+              mode="individual"
+              allowModeSwitch={true}
+              maxItems={8}
+              minItems={3}
+              maxLength={100}
+              helperText="Add 3-8 key features that highlight your product's main benefits"
+              suggestions={[
+                "Long battery life",
+                "Water resistant",
+                "Easy to use",
+                "Premium materials",
+                "Fast charging",
+                "Lightweight design",
+                "Durable construction",
+                "Energy efficient",
+              ]}
+              required={true}
+              icon="list"
+              styling={{
+                primaryColor: "blue",
+                numberBadgeGradient: "from-blue-500 to-blue-600",
+              }}
+            />
           </motion.div>
         );
 
@@ -1738,6 +1380,7 @@ const ProductForm = ({
 
   return (
     <div className="min-h-screen p-4">
+      <ScrollToTop shouldScroll={activeSection} />
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -1836,11 +1479,10 @@ const ProductForm = ({
                 })()}
                 iconBgColor="bg-linear-to-r from-red-100 to-red-50 dark:from-red-900/30 dark:to-red-800/20"
                 title={sections.find((s) => s.id === activeSection)?.label}
-                description={`Fill in the 
-                      ${sections
-                        .find((s) => s.id === activeSection)
-                        ?.label.toLowerCase()} 
-                      details`}
+                description={
+                  sections.find((s) => s.id === activeSection)?.description
+                }
+                descriptionClassName="text-sm"
               >
                 <div className="flex gap-2 flex-wrap">
                   <button
@@ -1896,33 +1538,45 @@ const ProductForm = ({
                     <span>Previous</span>
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const currentIndex = sections.findIndex(
-                        (s) => s.id === activeSection
-                      );
-                      console.log(form);
-
-                      if (!validateForm(currentIndex)) {
-                        setNotification({
-                          type: "error",
-                          title: "Failed to Create Product",
-                          message: "Please check your inputs and try again.",
-                        });
-                        return;
-                      }
-                      if (currentIndex < sections.length - 1) {
-                        setActiveSection(sections[currentIndex + 1].id);
-                      }
-                    }}
-                    className="px-6 py-3 bg-linear-to-r from-red-500 to-red-600 text-white rounded-xl 
+                  {currentIndex === 7 ? (
+                    <button
+                      type="submit"
+                      onClick={handleSubmit}
+                      disabled={loading}
+                      className="px-6 py-3 bg-linear-to-r from-red-500 to-red-600 text-white rounded-xl 
                       hover:from-red-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed 
                       transition-all flex items-center space-x-2"
-                  >
-                    <span>Next</span>
-                    <FiChevronRight className="w-4 h-4" />
-                  </button>
+                    >
+                      <span>Submit</span>
+                      <FiChevronRight className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!validateForm(currentIndex)) {
+                          setNotification({
+                            type: "error",
+                            title: "You can't proceed to the next step",
+                            message:
+                              getErrorMessage(errors) ||
+                              "Please check your inputs and try again.",
+                          });
+                          return;
+                        }
+
+                        if (currentIndex < sections.length - 1) {
+                          setActiveSection(sections[currentIndex + 1].id);
+                        }
+                      }}
+                      className="px-6 py-3 bg-linear-to-r from-red-500 to-red-600 text-white rounded-xl 
+                      hover:from-red-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed 
+                      transition-all flex items-center space-x-2"
+                    >
+                      <span>Next</span>
+                      <FiChevronRight className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             </motion.div>

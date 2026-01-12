@@ -10,18 +10,9 @@ export const useProduct = () => {
   const handleProductMutation = useCallback(
     async (endpoint, method, payload) => {
       setSuccess(false);
-      let headers = {};
-      let dataToSend = payload;
 
-      if (payload instanceof FormData) {
-        headers = {};
-      } else {
-        headers = { "Content-Type": "application/json" };
-      }
+      const response = await callApi(endpoint, method, payload);
 
-      const response = await callApi(endpoint, method, dataToSend, {
-        headers,
-      });
       setSuccess(true);
       return response;
     },
@@ -31,6 +22,7 @@ export const useProduct = () => {
   const createProduct = useCallback(
     async (productData, formData = null) => {
       const payload = formData || productData;
+
       return handleProductMutation("/products", "POST", payload);
     },
     [handleProductMutation]
@@ -43,7 +35,6 @@ export const useProduct = () => {
     },
     [handleProductMutation]
   );
-
   const getProducts = useCallback(
     async (params = {}) => {
       const queryString = new URLSearchParams(params).toString();
@@ -109,9 +100,9 @@ export const useProductForm = (initialValues = {}) => {
     }
   });
   const [errors, setErrors] = useState({});
-  const [tagInput, setTagInput] = useState("");
-  const [featureInput, setFeatureInput] = useState("");
   const [keywordInput, setKeywordInput] = useState("");
+  const [mainImage, setMainImage] = useState([]);
+  const [additionalImages, setAdditionalImages] = useState([]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -152,37 +143,31 @@ export const useProductForm = (initialValues = {}) => {
     }
   };
 
-  const addTag = () => {
-    if (tagInput.trim() && !form.tags.includes(tagInput.trim().toLowerCase())) {
-      setForm((prev) => ({
-        ...prev,
-        tags: [...prev.tags, tagInput.trim().toLowerCase()],
-      }));
-      setTagInput("");
+  const addTag = (tag) => {
+    if (tag && !form.tags.includes(tag.toLowerCase())) {
+      setForm((prev) => ({ ...prev, tags: [...prev.tags, tag.toLowerCase()] }));
     }
   };
-
-  const removeTag = (tagToRemove) => {
+  const removeTag = (tag) => {
     setForm((prev) => ({
       ...prev,
-      tags: prev.tags.filter((tag) => tag !== tagToRemove),
+      tags: prev.tags.filter((t) => t !== tag),
     }));
   };
 
-  const addFeature = () => {
-    if (featureInput.trim()) {
-      setForm((prev) => ({
-        ...prev,
-        features: [...prev.features, featureInput.trim()],
-      }));
-      setFeatureInput("");
-    }
-  };
+  const addFeature = (feature) => {
+    if (!feature) return;
 
-  const removeFeature = (index) => {
     setForm((prev) => ({
       ...prev,
-      features: prev.features.filter((_, i) => i !== index),
+      features: [...(prev.features || []), feature],
+    }));
+  };
+
+  const removeFeature = (featureToRemove) => {
+    setForm((prev) => ({
+      ...prev,
+      features: (prev.features || []).filter((f) => f !== featureToRemove),
     }));
   };
 
@@ -248,8 +233,6 @@ export const useProductForm = (initialValues = {}) => {
   const resetForm = () => {
     setForm(initialForm);
     setErrors({});
-    setTagInput("");
-    setFeatureInput("");
     setKeywordInput("");
     localStorage.removeItem(STORAGE_KEY);
   };
@@ -260,8 +243,6 @@ export const useProductForm = (initialValues = {}) => {
     const shouldValidate = (s) => general || step === s;
 
     const trim = (v) => v?.trim?.() ?? "";
-
-    const isEmpty = (v) => !trim(v);
 
     const isNumber = (v) => !isNaN(parseFloat(v));
 
@@ -363,12 +344,18 @@ export const useProductForm = (initialValues = {}) => {
     }
 
     if (shouldValidate(3)) {
-      if (!form.image) addError("images", "Main image is required");
+      if (!mainImage || mainImage.length === 0)
+        addError("images", "Main image is required");
 
-      if (!form.images || form.images.length === 0)
+      if (!additionalImages || additionalImages.length === 0)
         addError("images", "At least one product image is required");
-      else if (form.images.length > 10)
+      else if (additionalImages.length > 10)
         addError("images", "Maximum of 10 images allowed");
+    }
+    if (shouldValidate(4)) {
+      if (form.features?.length === 0) {
+        addError("features", "Minimum of 3 features allowed");
+      }
     }
 
     setErrors(errors);
@@ -398,11 +385,7 @@ export const useProductForm = (initialValues = {}) => {
   return {
     form,
     errors,
-    tagInput,
-    featureInput,
     keywordInput,
-    setTagInput,
-    setFeatureInput,
     setKeywordInput,
     handleChange,
     addTag,
@@ -418,5 +401,9 @@ export const useProductForm = (initialValues = {}) => {
     validateForm,
     setForm,
     setErrors,
+    additionalImages,
+    setAdditionalImages,
+    mainImage,
+    setMainImage,
   };
 };

@@ -65,7 +65,7 @@ const WrapperHeader = ({
 
           {/* Main content */}
           <div className="flex flex-col min-w-0 flex-1">
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center flex-wrap -mb-1">
               <h2
                 className={`text-xl font-bold text-gray-900 dark:text-gray-200 ${titleClassName} line-clamp-1`}
               >
@@ -74,7 +74,7 @@ const WrapperHeader = ({
             </div>
             {description && (
               <p
-                className={`mt-1 text-gray-900 dark:text-white ${descriptionClassName} truncate`}
+                className={`text-gray-900 dark:text-white ${descriptionClassName}`}
               >
                 {description}
               </p>

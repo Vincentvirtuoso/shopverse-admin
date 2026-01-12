@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
-const ScrollToTop = () => {
+const ScrollToTop = ({ shouldScroll = null }) => {
   const { pathname } = useLocation();
+  const scroll = shouldScroll ? shouldScroll : pathname;
 
   useEffect(() => {
     window.scrollTo({
@@ -10,7 +11,7 @@ const ScrollToTop = () => {
       left: 0,
       behavior: "instant",
     });
-  }, [pathname]);
+  }, [scroll]);
 
   return null;
 };

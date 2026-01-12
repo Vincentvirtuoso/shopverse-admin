@@ -25,12 +25,13 @@ const initialProduct = {
   subCategory: "",
   inStock: true,
   stockCount: 0,
-  availabilityType: "inStock",
+  availabilityType: "in-stock",
   unit: "piece",
   sku: `SKU-${Date.now().toString(36).toUpperCase()}`,
   isBestSeller: false,
   isFeatured: false,
   isNewArrival: true,
+  features: [],
   tags: [],
   weight: { value: "", unit: "g" },
   specifications: {
@@ -41,10 +42,10 @@ const initialProduct = {
     connectivity: "",
     batteryLife: "",
   },
-  dimensions: { length: "", width: "", height: "" },
+  dimensions: { length: 0, width: 0, height: 0, unit: "cm" },
   shippingInfo: {
-    dimensions: { length: "", width: "", height: "" },
-    weight: "",
+    dimensions: { length: 0, width: 0, height: 0 },
+    weight: 0,
     isFreeShipping: false,
     deliveryTime: "3-5 business days",
     shippingClass: "",
@@ -52,19 +53,67 @@ const initialProduct = {
   meta: {
     title: "",
     description: "",
-    slug: "",
+    keywords: "",
   },
 };
 
 const sections = [
-  { id: "basic", label: "Basic Info", icon: FiInfo },
-  { id: "pricing", label: "Pricing", icon: FiDollarSign },
-  { id: "inventory", label: "Inventory", icon: FiPackage },
-  { id: "media", label: "Media", icon: FiImage },
-  { id: "attributes", label: "Attributes", icon: FiTag },
-  { id: "shipping", label: "Shipping", icon: FiTruck },
-  { id: "seo", label: "SEO", icon: FiSettings },
-  { id: "variants", label: "Variants", icon: FiLayers },
+  {
+    id: "basic",
+    label: "Basic Info",
+    icon: FiInfo,
+    description:
+      "Enter general information about the product, such as name, brand, category, sub-category, and a detailed description.",
+  },
+  {
+    id: "pricing",
+    label: "Pricing",
+    icon: FiDollarSign,
+    description:
+      "Set the product price, original price, discounts, and any special pricing rules or offers.",
+  },
+  {
+    id: "inventory",
+    label: "Inventory",
+    icon: FiPackage,
+    description:
+      "Manage stock levels, SKU codes, availability status, and track how many items are currently in stock.",
+  },
+  {
+    id: "media",
+    label: "Media",
+    icon: FiImage,
+    description:
+      "Upload product images and videos, set the main image, and manage image galleries for better visual representation.",
+  },
+  {
+    id: "attributes",
+    label: "Attributes",
+    icon: FiTag,
+    description:
+      "Add product features, tags, and other custom attributes that describe this product in detail.",
+  },
+  {
+    id: "shipping",
+    label: "Shipping",
+    icon: FiTruck,
+    description:
+      "Configure shipping options including delivery time, shipping class, free shipping eligibility, and packaging details.",
+  },
+  {
+    id: "seo",
+    label: "SEO",
+    icon: FiSettings,
+    description:
+      "Optimize your product for search engines by setting meta title, description, and keywords.",
+  },
+  {
+    id: "variants",
+    label: "Variants",
+    icon: FiLayers,
+    description:
+      "Manage product variants such as different sizes, colors, or models, including their prices, SKUs, and stock levels.",
+  },
 ];
 
 const unitOptions = [

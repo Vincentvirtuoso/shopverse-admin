@@ -5,27 +5,31 @@ export const useApi = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const callApi = useCallback(async (endpoint, method = "GET", body = null) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await api({
-        url: endpoint,
-        method,
-        data: body,
-      });
+  const callApi = useCallback(
+    async (endpoint, method = "GET", body = null, config = {}) => {
+      setLoading(true);
+      setError(null);
 
-      setLoading(false);
-      return response.data;
-    } catch (err) {
-      setLoading(false);
-      const errorData = err.response?.data || { ...err };
-      setError(errorData);
-      throw errorData;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      try {
+        const response = await api({
+          url: endpoint,
+          method,
+          data: body,
+          ...config,
+        });
 
+        setLoading(false);
+        return response.data;
+      } catch (err) {
+        setLoading(false);
+        const errorData = err.response?.data || { ...err };
+        setError(errorData);
+        throw errorData;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
   return { loading, error, callApi };
 };

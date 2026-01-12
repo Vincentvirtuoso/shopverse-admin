@@ -11,6 +11,7 @@ const Link = ({ item, index, isSidebarOpen }) => {
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.1 }}
       to={item.href}
+      title={item.label}
       className={({ isActive }) =>
         `flex items-center justify-between p-3 rounded-lg transition-all text-gray-600 dark:text-white ${
           isActive

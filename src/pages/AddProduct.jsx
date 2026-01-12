@@ -5,13 +5,14 @@ import { useNavigate } from "react-router-dom";
 import { useProduct } from "../hooks/useProduct";
 import ProductForm from "../sections/addProduct/ProductForm";
 import initialProduct from "../assets/addProducts";
+import { useEffect } from "react";
 
 const AddProduct = () => {
   const navigate = useNavigate();
   const { createProduct, loading } = useProduct();
   const [notification, setNotification] = useState(null);
 
-  const handleSubmit = async (formData) => {
+  const handleSubmit = async ({ formData, setActiveSection, resetForm }) => {
     try {
       const result = await createProduct(null, formData);
 
@@ -21,10 +22,9 @@ const AddProduct = () => {
         message: "Your product has been added to the store.",
         productId: result.data._id,
       });
-
-      setTimeout(() => {
-        setNotification(null);
-      }, 5000);
+      resetForm?.();
+      setActiveSection("basic");
+      navigate("/products");
     } catch (err) {
       setNotification({
         type: "error",
@@ -33,6 +33,13 @@ const AddProduct = () => {
       });
     }
   };
+
+  useEffect(() => {
+    if (!notification) return;
+    setTimeout(() => {
+      setNotification(null);
+    }, 5000);
+  }, [notification]);
 
   return (
     <div className="relative">
@@ -49,7 +56,7 @@ const AddProduct = () => {
               className={`rounded-xl shadow-2xl p-6 ${
                 notification.type === "success"
                   ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white"
-                  : "bg-gradient-to-r from-red-500 to-pink-600 text-white"
+                  : "bg-red-50 border border-red-500  text-red-500"
               }`}
             >
               <div className="flex items-start space-x-4">
@@ -61,10 +68,18 @@ const AddProduct = () => {
                   )}
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-lg mb-1">
+                  <h3 className="font-bold text-lg mb-1 text-red-700">
                     {notification.title}
                   </h3>
-                  <p className="text-sm opacity-90">{notification.message}</p>
+                  {notification.message?.includes("\n") ? (
+                    <ul className="text-sm opacity-90 list-disc pl-5 space-y-1">
+                      {notification.message.split("\n").map((msg, i) => (
+                        <li key={i}>{msg}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm opacity-90">{notification.message}</p>
+                  )}
                   {notification.productId && (
                     <div className="mt-3 pt-3 border-t border-white/20">
                       <p className="text-xs opacity-75">
