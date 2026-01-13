@@ -14,7 +14,7 @@ import {
   FiSettings,
 } from "react-icons/fi";
 import { MdStore } from "react-icons/md";
-import useBodyScrollLock from "../../../client/src/hooks/useBodyScrollLock";
+import useBodyScrollLock from "../hooks/useBodyScrollLock";
 
 const CustomerDetailsModal = ({ customer, isOpen, onClose }) => {
   useBodyScrollLock(isOpen);
