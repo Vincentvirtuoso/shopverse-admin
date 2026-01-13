@@ -15,6 +15,7 @@ import {
   FiPackage,
   FiChevronDown,
   FiArrowDown,
+  FiAlertCircle,
 } from "react-icons/fi";
 import { FaNairaSign, FaStar } from "react-icons/fa6";
 import { LuRefreshCcw } from "react-icons/lu";
