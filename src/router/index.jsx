@@ -5,6 +5,7 @@ import NotFound from "../pages/NotFound";
 import ManageProducts from "../pages/ManageProducts";
 import AddProduct from "../pages/AddProduct";
 import CustomerList from "../pages/CustomerList";
+import EditProduct from "../pages/EditProduct";
 
 const router = createBrowserRouter([
   {
@@ -15,7 +16,7 @@ const router = createBrowserRouter([
       { path: "/dashboard", element: <Home /> },
       { path: "/manage-products", element: <ManageProducts /> },
       { path: "/add-product", element: <AddProduct /> },
-      { path: "/edit-product", element: <AddProduct /> },
+      { path: "/edit-product/:id", element: <EditProduct /> },
       { path: "/customers", element: <CustomerList /> },
       {
         path: "*",
