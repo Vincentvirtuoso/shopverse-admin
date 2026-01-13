@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { FaStar } from "react-icons/fa";
+import { FiAlertCircle } from "react-icons/fi";
 import { generateSKU } from "../../../assets/addProducts";
 
 const Inventory = ({ form, handleChange, setForm }) => {
