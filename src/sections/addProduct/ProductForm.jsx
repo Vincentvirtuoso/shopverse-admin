@@ -17,7 +17,7 @@ import {
   FiArrowDown,
 } from "react-icons/fi";
 import { FaNairaSign, FaStar } from "react-icons/fa6";
-import { LuRefreshCcw } from "react-icons/lu";
+import { LuRefreshCcw, LuX } from "react-icons/lu";
 import { useProductForm } from "../../hooks/useProduct";
 import WrapperHeader from "../../components/common/WrapperHeader";
 import CardWrapper from "../../components/ui/CardWrapper";
@@ -47,6 +47,8 @@ const ProductForm = ({
   isEdit = false,
 }) => {
   const [activeSection, setActiveSection] = useState("basic");
+  const [productObject, setProductObject] = useState("");
+  const [isProductObject, setIsProductObject] = useState(false);
 
   const {
     form,
@@ -1451,6 +1453,45 @@ const ProductForm = ({
               ? "Update your product information and settings"
               : "Fill in the details below to add a new product to your store"}
           </p>
+          {import.meta.env.VITE_NODE_ENV === "development" && (
+            <button
+              className="px-4 py-2 rounded-xl bg-emerald-500 text-amber-50"
+              onClick={() => setIsProductObject((p) => !p)}
+            >
+              {isProductObject ? "Close" : "Switch to"} auto mode
+            </button>
+          )}
+          {import.meta.env.VITE_NODE_ENV === "development" &&
+            isProductObject && (
+              <div className="flex mt-4 flex-col">
+                <textarea
+                  value={productObject}
+                  className="w-full h-30 text-xs p-3 border border-gray-300 dark:border-gray-600 rounded-lg mb-2"
+                  placeholder="paste product object"
+                  onChange={(e) => setProductObject(e.target.value)}
+                ></textarea>
+                <button
+                  className="px-8 py-2 bg-red-500 text-white rounded-xl place-self-end"
+                  onClick={() => {
+                    console.log(productObject);
+                    let parsed = {};
+
+                    try {
+                      parsed = JSON.parse(productObject);
+                      console.log(parsed);
+                      if (parsed) {
+                        setForm(parsed);
+                      }
+                      setProductObject("");
+                    } catch (error) {
+                      throw new Error(error);
+                    }
+                  }}
+                >
+                  Fill
+                </button>
+              </div>
+            )}
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">

@@ -11,7 +11,7 @@
   }
 
   body {
-    @apply bg-white text-gray-800 font-sans leading-relaxed antialiased selection:bg-red-100 selection:text-red-700;
+    @apply bg-white text-gray-800 font-sans leading-relaxed antialiased selection:bg-red-100 selection:text-red-700 text-sm;
   }
 
   h1,
@@ -44,24 +44,12 @@
   input,
   textarea,
   select {
-    @apply border border-gray-200 dark:border-gray-400/40 bg-white dark:bg-neutral-600 text-gray-500 dark:text-gray-200 rounded-md px-3 py-2 shadow-sm focus:ring-2 outline-0 focus:ring-red-400 focus:border-red-400
+    @apply border border-gray-200 dark:border-gray-400/40 bg-white dark:bg-neutral-600 text-gray-600 dark:text-gray-200 rounded-md px-3 py-2 shadow-sm focus:ring-2 outline-0 focus:ring-red-400 focus:border-red-400
            transition-colors duration-200 text-sm;
   }
 
   ::placeholder {
-    @apply text-gray-400;
-  }
-
-  ::-webkit-scrollbar {
-    width: 12px;
-    height: 8px;
-    padding: 6px;
-  }
-  ::-webkit-scrollbar-thumb {
-    @apply bg-red-400 hover:bg-red-500 rounded-full transition-colors duration-200;
-  }
-  ::-webkit-scrollbar-track {
-    @apply bg-gray-500/20;
+    @apply text-gray-300;
   }
 }
 

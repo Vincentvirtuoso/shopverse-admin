@@ -6,18 +6,34 @@ import ManageProducts from "../pages/ManageProducts";
 import AddProduct from "../pages/AddProduct";
 import CustomerList from "../pages/CustomerList";
 import EditProduct from "../pages/EditProduct";
+import Auth from "../pages/Auth";
+import ProtectedRoute from "../components/ProtectedRoute";
+import AdminLayout from "../layout/AdminLayout";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
     children: [
-      { index: true, element: <Navigate to="/dashboard" replace /> },
-      { path: "/dashboard", element: <Home /> },
-      { path: "/manage-products", element: <ManageProducts /> },
-      { path: "/add-product", element: <AddProduct /> },
-      { path: "/edit-product/:id", element: <EditProduct /> },
-      { path: "/customers", element: <CustomerList /> },
+      { index: true, element: <Navigate to="/auth" replace /> },
+      { path: "/auth", element: <Auth /> },
+      {
+        path: "/",
+        element: <ProtectedRoute />,
+        children: [
+          {
+            path: "/",
+            element: <AdminLayout />,
+            children: [
+              { path: "/dashboard", element: <Home /> },
+              { path: "/manage-products", element: <ManageProducts /> },
+              { path: "/add-product", element: <AddProduct /> },
+              { path: "/edit-product/:id", element: <EditProduct /> },
+              { path: "/customers", element: <CustomerList /> },
+            ],
+          },
+        ],
+      },
       {
         path: "*",
         element: <NotFound />,

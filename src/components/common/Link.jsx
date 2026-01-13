@@ -13,10 +13,10 @@ const Link = ({ item, index, isSidebarOpen }) => {
       to={item.href}
       title={item.label}
       className={({ isActive }) =>
-        `flex items-center justify-between p-3 rounded-lg transition-all text-gray-600 dark:text-white ${
+        `flex items-center justify-between p-3 rounded-lg transition-all text-gray-600 dark:text-white text-sm ${
           isActive
             ? "bg-red-500 text-white"
-            : "dark:hover:bg-gray-800 hover:bg-gray-200 hover:text-red-500"
+            : "dark:hover:bg-gray-800 hover:bg-gray-50 hover:text-red-500"
         }`
       }
     >
