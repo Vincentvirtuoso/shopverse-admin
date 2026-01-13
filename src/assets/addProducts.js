@@ -158,15 +158,36 @@ const isValidCategory = (category) => {
   return validCategories.includes(category.toLowerCase());
 };
 
-const generateSKU = (prefix = "PROD") => {
+const generateSKU = ({
+  prefix = "PROD",
+  isVariant = false,
+  title = "",
+} = {}) => {
   const timestamp = Date.now();
-  const randomInt = [20, 36, 16, 22, 8, 10];
-  const random = Math.floor(Math.random() * 1000);
-  const uniquePart = timestamp
-    .toString(randomInt[Math.floor(Math.random() * randomInt.length)])
-    .toUpperCase()
-    .slice(-6);
-  return `${prefix}-${uniquePart}-${random.toString().padStart(3, "0")}`;
+  const randomBases = [20, 36, 16, 22, 8, 10];
+  const randomBase =
+    randomBases[Math.floor(Math.random() * randomBases.length)];
+  const randomInt = Math.floor(Math.random() * 1000);
+
+  const uniquePart = timestamp.toString(randomBase).toUpperCase().slice(-6);
+
+  const titlePart = title
+    ? title.replace(/\s+/g, "").slice(0, 3).toUpperCase()
+    : "";
+
+  const variantPrefix = isVariant ? "VAR" : "";
+
+  const skuParts = [
+    prefix,
+    variantPrefix,
+    titlePart,
+    uniquePart,
+    randomInt.toString().padStart(3, "0"),
+  ]
+    .filter(Boolean)
+    .join("-");
+
+  return skuParts;
 };
 
 export {

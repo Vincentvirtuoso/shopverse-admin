@@ -8,9 +8,10 @@ const MediaUploadSection = ({
   setMainImage,
   additionalImages,
   setAdditionalImages,
+  errors,
 }) => {
   // const [videos, setVideos] = useState([]);
-  const [errors, setErrors] = useState({});
+  // const [, setErrors] = useState({});
 
   return (
     <motion.div

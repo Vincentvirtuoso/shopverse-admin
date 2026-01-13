@@ -24,7 +24,7 @@ const AddProduct = () => {
       });
       resetForm?.();
       setActiveSection("basic");
-      navigate("/products");
+      navigate("/manage-products");
     } catch (err) {
       setNotification({
         type: "error",

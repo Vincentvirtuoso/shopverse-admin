@@ -26,6 +26,7 @@ import {
   dimensionUnitOptions,
   unitOptions,
   sections,
+  generateSKU,
 } from "../../assets/addProducts";
 import Inventory from "./steps/Inventory";
 import ScrollToTop from "../../components/common/ScrollToTop";
@@ -76,12 +77,32 @@ const ProductForm = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm(null, true)) return;
-
     if (!mainImage || !mainImage[0]) {
-      alert("Please select a main image!");
+      setNotification({
+        type: "error",
+        title: "You can't proceed to the next step",
+        message: " Main image is required",
+      });
       return;
     }
+
+    if (!additionalImages || additionalImages.length === 0) {
+      setNotification({
+        type: "error",
+        title: "You can't proceed to the next step",
+        message: "At least one additional product image is required",
+      });
+      return;
+    } else if (additionalImages.length > 10) {
+      setNotification({
+        type: "error",
+        title: "You can't proceed to the next step",
+        message: " Maximum of 10 images allowed",
+      });
+      return;
+    }
+
+    if (!validateForm(null, true)) return;
 
     const formData = new FormData();
 
@@ -646,9 +667,10 @@ const ProductForm = ({
         return (
           <MediaUploadSection
             mainImage={mainImage}
-            setAdditionalImages={setAdditionalImages}
-            setMainImage={setMainImage}
             additionalImages={additionalImages}
+            setMainImage={setMainImage}
+            setAdditionalImages={setAdditionalImages}
+            errors={errors}
           />
         );
 
@@ -698,7 +720,8 @@ const ProductForm = ({
               addItem={addFeature}
               removeItem={removeFeature}
               placeholder="Enter a product feature..."
-              mode="individual"
+              // mode="individual"
+              mode="comma-separated"
               allowModeSwitch={true}
               maxItems={8}
               minItems={3}
@@ -1221,7 +1244,7 @@ const ProductForm = ({
                           </label>
                           <div className="relative">
                             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                              $
+                              ₦
                             </div>
                             <input
                               type="number"
@@ -1248,19 +1271,36 @@ const ProductForm = ({
                           <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                             SKU Code
                           </label>
-                          <input
-                            type="text"
-                            value={variant.sku}
-                            onChange={(e) =>
-                              updateVariant(index, "sku", e.target.value)
-                            }
-                            className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 
-                    bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono
-                    focus:ring-2 focus:ring-red-500/30 focus:border-red-500
-                    placeholder:text-gray-400 dark:placeholder:text-gray-500
-                    transition-all duration-200"
-                            placeholder="SHOPV-001-RED"
-                          />
+                          <div className="flex items-center">
+                            <input
+                              type="text"
+                              value={variant.sku}
+                              onChange={(e) =>
+                                updateVariant(index, "sku", e.target.value)
+                              }
+                              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 
+      bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono
+      focus:ring-2 focus:ring-red-500/30 focus:border-red-500
+      placeholder:text-gray-400 rounded-r-none border-r-0 dark:placeholder:text-gray-500 transition-all duration-200"
+                              placeholder="PROD-RED-001"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateVariant(
+                                  index,
+                                  "sku",
+                                  generateSKU({
+                                    isVariant: true,
+                                    title: variant.name,
+                                  })
+                                )
+                              }
+                              className="p-3 rounded-l-none rounded-xl border border-red-500 border-l-0 bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors"
+                            >
+                              Generate
+                            </button>
+                          </div>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
                             Unique stock identifier
                           </p>
@@ -1296,17 +1336,33 @@ const ProductForm = ({
                         <motion.div
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
-                          className="mt-6 pt-5 border-t border-gray-100 dark:border-gray-700/50"
+                          className="mt-6 pt-5 border-t border-gray-100 dark:border-gray-700/50 space-y-2"
                         >
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">
-                              Variant Total Value
-                            </span>
-                            <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                              $
+                          {/* Header */}
+                          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                            Variant Summary
+                          </h4>
+
+                          {/* Price per unit */}
+                          <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                            <span>Price per unit:</span>
+                            <span>₦{variant.price.toLocaleString()}</span>
+                          </div>
+
+                          {/* Stock count */}
+                          <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                            <span>Stock count:</span>
+                            <span>{variant.stockCount}</span>
+                          </div>
+
+                          {/* Total value */}
+                          <div className="flex items-center justify-between text-lg font-semibold text-gray-900 dark:text-gray-100 border-t border-gray-200 dark:border-gray-700 pt-2">
+                            <span>Total Value:</span>
+                            <span>
+                              ₦
                               {parseFloat(
                                 variant.price * variant.stockCount
-                              ).toFixed(2)}
+                              ).toLocaleString()}
                             </span>
                           </div>
                         </motion.div>

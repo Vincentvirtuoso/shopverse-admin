@@ -1,5 +1,5 @@
 // ManageProducts.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiPlus,
@@ -17,149 +17,20 @@ import {
 import { useNavigate } from "react-router-dom";
 import StatsCard from "../components/common/StatsCard";
 import CardWrapper from "../components/ui/CardWrapper";
-
-const initialProducts = [
-  {
-    id: 1,
-    name: "Premium Wireless Headphones",
-    brand: "SonicPro",
-    price: 79000.99,
-    originalPrice: 129000.99,
-    discount: 38,
-    rating: 4.5,
-    reviewCount: 328,
-    description:
-      "Experience immersive sound with these noise-cancelling wireless headphones featuring 40-hour battery life, touch controls, and comfortable ear cushions.",
-    image:
-      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80",
-    images: [
-      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80",
-      "https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=600&q=80",
-      "https://images.unsplash.com/photo-1618365908648-5f3c1d0f48b3?auto=format&fit=crop&w=600&q=80",
-    ],
-    category: "Electronics",
-    subCategory: "Audio",
-    inStock: true,
-    stockCount: 5,
-    availabilityType: "limited",
-    unit: "piece",
-    isBestSeller: true,
-    tags: ["wireless", "headphones", "bluetooth", "noise-cancelling"],
-  },
-  {
-    id: 2,
-    name: "Ultra-Thin Laptop Pro",
-    brand: "TechMaster",
-    price: 224999.99,
-    originalPrice: 299999.99,
-    discount: 25,
-    rating: 4.8,
-    reviewCount: 512,
-    description:
-      "Professional laptop with 4K display, 16GB RAM, 1TB SSD, and 10-hour battery life. Perfect for creative professionals.",
-    image:
-      "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=600&q=80",
-    category: "Electronics",
-    subCategory: "Computers",
-    inStock: true,
-    stockCount: 12,
-    availabilityType: "in-stock",
-    unit: "piece",
-    isBestSeller: true,
-    tags: ["laptop", "professional", "4k", "portable"],
-  },
-  {
-    id: 3,
-    name: "Smart Fitness Watch",
-    brand: "FitGear",
-    price: 45999.99,
-    originalPrice: 59999.99,
-    discount: 23,
-    rating: 4.3,
-    reviewCount: 189,
-    description:
-      "Track your fitness with heart rate monitoring, sleep tracking, and 7-day battery life. Water-resistant and compatible with iOS/Android.",
-    image:
-      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80",
-    category: "Wearables",
-    subCategory: "Fitness",
-    inStock: true,
-    stockCount: 25,
-    availabilityType: "in-stock",
-    unit: "piece",
-    isBestSeller: false,
-    tags: ["smartwatch", "fitness", "health", "tracking"],
-  },
-  {
-    id: 4,
-    name: "Professional DSLR Camera",
-    brand: "PhotoPro",
-    price: 189999.99,
-    originalPrice: 249999.99,
-    discount: 24,
-    rating: 4.7,
-    reviewCount: 421,
-    description:
-      "24MP full-frame sensor with 4K video recording and advanced autofocus system. Includes kit lens and accessories.",
-    image:
-      "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=600&q=80",
-    category: "Electronics",
-    subCategory: "Photography",
-    inStock: false,
-    stockCount: 0,
-    availabilityType: "out-of-stock",
-    unit: "piece",
-    isBestSeller: false,
-    tags: ["camera", "photography", "dslr", "professional"],
-  },
-  {
-    id: 5,
-    name: "Wireless Gaming Mouse",
-    brand: "GameMaster",
-    price: 12999.99,
-    originalPrice: 19999.99,
-    discount: 35,
-    rating: 4.4,
-    reviewCount: 156,
-    description:
-      "High-precision gaming mouse with customizable RGB lighting, 6 programmable buttons, and 50-hour battery life.",
-    image:
-      "https://images.unsplash.com/photo-1527814050087-3793815479db?auto=format&fit=crop&w=600&q=80",
-    category: "Gaming",
-    subCategory: "Accessories",
-    inStock: true,
-    stockCount: 8,
-    availabilityType: "limited",
-    unit: "piece",
-    isBestSeller: true,
-    tags: ["gaming", "mouse", "wireless", "rgb"],
-  },
-  {
-    id: 6,
-    name: "Bluetooth Portable Speaker",
-    brand: "AudioSphere",
-    price: 8999.99,
-    originalPrice: 14999.99,
-    discount: 40,
-    rating: 4.2,
-    reviewCount: 234,
-    description:
-      "Waterproof portable speaker with 360° sound, 12-hour battery, and built-in microphone for hands-free calls.",
-    image:
-      "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80",
-    category: "Electronics",
-    subCategory: "Audio",
-    inStock: true,
-    stockCount: 15,
-    availabilityType: "in-stock",
-    unit: "piece",
-    isBestSeller: false,
-    tags: ["speaker", "portable", "bluetooth", "waterproof"],
-  },
-];
+import { useProduct } from "../hooks/useProduct";
 
 const ManageProducts = () => {
-  const [products, setProducts] = useState(initialProducts);
+  const {
+    getProducts,
+    loading,
+    error,
+    products = [],
+    getProductStats,
+    deleteProduct,
+  } = useProduct();
+
+  const navigate = useNavigate();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [stockFilter, setStockFilter] = useState("all");
@@ -167,11 +38,34 @@ const ManageProducts = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showProductModal, setShowProductModal] = useState(false);
+  const [statsData, setStatsData] = useState({
+    total: 0,
+    inStock: 0,
+    bestSellers: 0,
+    outOfStock: 0,
+  });
+
+  // Fetch products on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await getProducts({ limit: 100 }); // Fetch more products for management
+        const statsRes = await getProductStats();
+        if (statsRes?.data) {
+          setStatsData(statsRes.data);
+        }
+      } catch (err) {
+        console.error("Error fetching products:", err);
+      }
+    };
+
+    fetchData();
+  }, [getProducts, getProductStats]);
 
   const stats = [
     {
       label: "Total Products",
-      value: products.length,
+      value: statsData.total || products.length,
       icon: FiPackage,
       iconColor: {
         bg: "red-100",
@@ -180,7 +74,7 @@ const ManageProducts = () => {
     },
     {
       label: "In Stock",
-      value: products.filter((p) => p.inStock).length,
+      value: statsData.inStock || products.filter((p) => p.inStock).length,
       icon: FiCheckCircle,
       iconColor: {
         bg: "green-100",
@@ -189,7 +83,8 @@ const ManageProducts = () => {
     },
     {
       label: "Best Sellers",
-      value: products.filter((p) => p.isBestSeller).length,
+      value:
+        statsData.bestSellers || products.filter((p) => p.isBestSeller).length,
       icon: FiTrendingUp,
       iconColor: {
         bg: "orange-100",
@@ -198,7 +93,7 @@ const ManageProducts = () => {
     },
     {
       label: "Out of Stock",
-      value: products.filter((p) => !p.inStock).length,
+      value: statsData.outOfStock || products.filter((p) => !p.inStock).length,
       icon: FiAlertCircle,
       iconColor: {
         bg: "blue-100",
@@ -207,15 +102,17 @@ const ManageProducts = () => {
     },
   ];
 
-  const navigate = useNavigate();
-  const categories = [
-    "all",
-    "Electronics",
-    "Wearables",
-    "Gaming",
-    "Home",
-    "Fashion",
-  ];
+  // Extract unique categories from products
+  const categories = useMemo(() => {
+    const uniqueCategories = ["all"];
+    products.forEach((product) => {
+      if (product.category && !uniqueCategories.includes(product.category)) {
+        uniqueCategories.push(product.category);
+      }
+    });
+    return uniqueCategories;
+  }, [products]);
+
   const stockOptions = [
     { value: "all", label: "All Stock" },
     { value: "in-stock", label: "In Stock" },
@@ -223,46 +120,87 @@ const ManageProducts = () => {
     { value: "out-of-stock", label: "Out of Stock" },
   ];
 
-  const filteredProducts = products
-    .filter((product) => {
-      const matchesSearch =
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory =
-        selectedCategory === "all" || product.category === selectedCategory;
-      const matchesStock =
-        stockFilter === "all" ||
-        (stockFilter === "in-stock" &&
-          product.inStock &&
-          product.stockCount > 10) ||
-        (stockFilter === "limited" &&
-          product.inStock &&
-          product.stockCount <= 10) ||
-        (stockFilter === "out-of-stock" && !product.inStock);
+  // Filter and sort products
+  const filteredProducts = useMemo(() => {
+    return products
+      .filter((product) => {
+        const matchesSearch =
+          product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.description
+            ?.toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          product.sku?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      return matchesSearch && matchesCategory && matchesStock;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "name":
-          return a.name.localeCompare(b.name);
-        case "price":
-          return b.price - a.price;
-        case "stock":
-          return b.stockCount - a.stockCount;
-        case "rating":
-          return b.rating - a.rating;
-        default:
-          return 0;
-      }
-    });
+        const matchesCategory =
+          selectedCategory === "all" || product.category === selectedCategory;
+
+        const matchesStock =
+          stockFilter === "all" ||
+          (stockFilter === "in-stock" &&
+            product.inStock &&
+            product.stockCount > 10) ||
+          (stockFilter === "limited" &&
+            product.inStock &&
+            product.stockCount <= 10) ||
+          (stockFilter === "out-of-stock" && !product.inStock);
+
+        return matchesSearch && matchesCategory && matchesStock;
+      })
+      .sort((a, b) => {
+        switch (sortBy) {
+          case "name":
+            return (a.name || "").localeCompare(b.name || "");
+          case "price":
+            return (b.price || 0) - (a.price || 0);
+          case "stock":
+            return (b.stockCount || 0) - (a.stockCount || 0);
+          case "rating":
+            return (b.rating || 0) - (a.rating || 0);
+          default:
+            return 0;
+        }
+      });
+  }, [products, searchTerm, selectedCategory, stockFilter, sortBy]);
 
   // Handle product deletion
-  const handleDelete = (productId) => {
-    setProducts(products.filter((p) => p.id !== productId));
-    setShowDeleteModal(false);
-    setSelectedProduct(null);
+  const handleDelete = async (productId) => {
+    try {
+      if (!productId) return;
+
+      // Call the API to delete the product
+      const res = await deleteProduct(productId);
+
+      // Optionally, you can check for success in the response
+      if (res?.status === 200 || res?.success) {
+        // Close modal and reset selected product
+        setShowDeleteModal(false);
+        setSelectedProduct(null);
+
+        // Refresh the products list
+        await getProducts({ limit: 100 });
+
+        alert({
+          type: "success",
+          title: "Product deleted",
+          message: `Product with ID ${productId} has been successfully deleted.`,
+        });
+      } else {
+        alert({
+          type: "error",
+          title: "Delete failed",
+          message: `Could not delete product with ID ${productId}.`,
+        });
+      }
+    } catch (err) {
+      console.error("Error deleting product:", err);
+      alert({
+        type: "error",
+        title: "Delete failed",
+        message:
+          err?.message || "An error occurred while deleting the product.",
+      });
+    }
   };
 
   // Handle product view
@@ -279,10 +217,8 @@ const ManageProducts = () => {
   };
 
   // Handle edit product
-  const handleEditProduct = (e, product) => {
-    e.stopPropagation();
-    e.preventDefault();
-    navigate("/edit-product", { state: { id: product._id } });
+  const handleEditProduct = (product) => {
+    navigate(`/edit-product/${product._id}`);
   };
 
   // Get stock status
@@ -295,6 +231,81 @@ const ManageProducts = () => {
       return { label: "Limited", color: "bg-orange-100 text-orange-800" };
     return { label: "In Stock", color: "bg-green-100 text-green-800" };
   };
+
+  // Loading state
+  if (loading && products.length === 0) {
+    return (
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <div className="h-10 w-64 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-4 w-80 bg-gray-200 rounded animate-pulse"></div>
+          </div>
+          <div className="h-12 w-48 bg-gray-200 rounded-lg animate-pulse"></div>
+        </div>
+
+        {/* Stats Cards Skeleton */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="h-24 bg-gray-200 rounded-xl animate-pulse"
+            ></div>
+          ))}
+        </div>
+
+        {/* Filters Skeleton */}
+        <div className="h-20 bg-gray-200 rounded-xl animate-pulse"></div>
+
+        {/* Table Skeleton */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-6 space-y-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center justify-between py-4">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-gray-200 rounded-lg animate-pulse"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-3 w-24 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <FiAlertCircle className="w-12 h-12 text-red-500" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            Error Loading Products
+          </h3>
+          <p className="text-gray-600 mb-4">
+            {error.message || "Unable to load products at this time"}
+          </p>
+          <button
+            onClick={() => getProducts({ limit: 100 })}
+            className="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -320,19 +331,19 @@ const ManageProducts = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {stats.map((stat, index) => (
-          <StatsCard {...stat} index={index} showIconBackground />
+          <StatsCard {...stat} index={index} key={index} showIconBackground />
         ))}
       </div>
 
       {/* Filters Section */}
-      <CardWrapper className=" shadow-sm border p-6">
+      <CardWrapper className="shadow-sm border p-6">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           {/* Search */}
           <div className="relative flex-1 input-group">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search products by name, brand, or description..."
+              placeholder="Search products by name, brand, description, or SKU..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 pr-4 py-3 w-full"
@@ -365,7 +376,7 @@ const ManageProducts = () => {
               <select
                 value={stockFilter}
                 onChange={(e) => setStockFilter(e.target.value)}
-                className="appearance-none pl-4 pr-10 py-2 "
+                className="appearance-none pl-4 pr-10 py-2"
               >
                 {stockOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -381,7 +392,7 @@ const ManageProducts = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="appearance-none pl-4 pr-10 py-2 "
+                className="appearance-none pl-4 pr-10 py-2"
               >
                 <option value="name">Sort by Name</option>
                 <option value="price">Sort by Price</option>
@@ -425,7 +436,7 @@ const ManageProducts = () => {
                 const stockStatus = getStockStatus(product);
                 return (
                   <motion.tr
-                    key={product.id}
+                    key={product._id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
@@ -436,7 +447,7 @@ const ManageProducts = () => {
                       <div className="flex items-center space-x-4">
                         <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                           <img
-                            src={product.image}
+                            src={product.image || product.images?.[0]}
                             alt={product.name}
                             className="w-full h-full object-cover"
                           />
@@ -447,6 +458,9 @@ const ManageProducts = () => {
                           </p>
                           <p className="text-sm text-gray-400">
                             {product.brand}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            SKU: {product.sku || "N/A"}
                           </p>
                         </div>
                       </div>
@@ -466,15 +480,21 @@ const ManageProducts = () => {
                     <td className="py-4 px-6">
                       <div>
                         <p className="font-semibold text-gray-900 dark:text-gray-200">
-                          ${product.price.toLocaleString()}
+                          ₦{product.price?.toLocaleString() || "0"}
                         </p>
-                        {product.discount > 0 && (
+                        {product.originalPrice > product.price && (
                           <div className="flex items-center space-x-2 mt-1">
                             <span className="text-sm text-gray-400 line-through">
-                              ${product.originalPrice.toLocaleString()}
+                              ₦{product.originalPrice.toLocaleString()}
                             </span>
                             <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
-                              -{product.discount}%
+                              {product.discount ||
+                                Math.round(
+                                  ((product.originalPrice - product.price) /
+                                    product.originalPrice) *
+                                    100
+                                )}
+                              %
                             </span>
                           </div>
                         )}
@@ -489,22 +509,22 @@ const ManageProducts = () => {
                               : "text-gray-900 dark:text-gray-200"
                           }`}
                         >
-                          {product.stockCount} {product.unit}
+                          {product.stockCount || 0} {product.unit || "units"}
                         </p>
                         <div className="w-full bg-gray-200 rounded-full h-1.5">
                           <div
                             className={`h-1.5 rounded-full ${
-                              product.stockCount > 20
+                              (product.stockCount || 0) > 20
                                 ? "bg-green-500"
-                                : product.stockCount > 10
+                                : (product.stockCount || 0) > 10
                                 ? "bg-yellow-500"
-                                : product.stockCount > 5
+                                : (product.stockCount || 0) > 5
                                 ? "bg-orange-500"
                                 : "bg-red-500"
                             }`}
                             style={{
                               width: `${Math.min(
-                                (product.stockCount / 30) * 100,
+                                ((product.stockCount || 0) / 30) * 100,
                                 100
                               )}%`,
                             }}
@@ -524,12 +544,18 @@ const ManageProducts = () => {
                             Best Seller
                           </span>
                         )}
+                        {product.isNewArrival && (
+                          <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium w-fit">
+                            New Arrival
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center space-x-3">
                         <button
                           onClick={(e) => {
+                            e.stopPropagation();
                             handleEditProduct(product);
                           }}
                           className="p-2 hover:bg-blue-50 rounded-lg transition-colors"
@@ -538,7 +564,8 @@ const ManageProducts = () => {
                           <FiEdit2 className="text-blue-400" />
                         </button>
                         <button
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setSelectedProduct(product);
                             setShowDeleteModal(true);
                           }}
@@ -593,12 +620,15 @@ const ManageProducts = () => {
               className="bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-gray-50 rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between p-6 border-b  border-gray-200 dark:border-gray-400/60">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-400/60">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-200">
                     {selectedProduct.name}
                   </h2>
                   <p className="text-gray-400 mt-1">{selectedProduct.brand}</p>
+                  <p className="text-sm text-gray-500">
+                    SKU: {selectedProduct.sku}
+                  </p>
                 </div>
                 <button
                   onClick={() => setShowProductModal(false)}
@@ -615,7 +645,9 @@ const ManageProducts = () => {
                   <div>
                     <div className="rounded-xl overflow-hidden bg-gray-100 mb-4">
                       <img
-                        src={selectedProduct.image}
+                        src={
+                          selectedProduct.image || selectedProduct.images?.[0]
+                        }
                         alt={selectedProduct.name}
                         className="w-full h-64 object-cover"
                       />
@@ -623,18 +655,20 @@ const ManageProducts = () => {
                     {selectedProduct.images &&
                       selectedProduct.images.length > 0 && (
                         <div className="grid grid-cols-4 gap-2">
-                          {selectedProduct.images.map((img, index) => (
-                            <div
-                              key={index}
-                              className="rounded-lg overflow-hidden bg-gray-100"
-                            >
-                              <img
-                                src={img}
-                                alt={`${selectedProduct.name} ${index + 1}`}
-                                className="w-full h-20 object-cover"
-                              />
-                            </div>
-                          ))}
+                          {selectedProduct.images
+                            .slice(0, 4)
+                            .map((img, index) => (
+                              <div
+                                key={index}
+                                className="rounded-lg overflow-hidden bg-gray-100"
+                              >
+                                <img
+                                  src={img}
+                                  alt={`${selectedProduct.name} ${index + 1}`}
+                                  className="w-full h-20 object-cover"
+                                />
+                              </div>
+                            ))}
                         </div>
                       )}
                   </div>
@@ -646,16 +680,25 @@ const ManageProducts = () => {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-3xl font-bold text-gray-900 dark:text-gray-200">
-                            ${selectedProduct.price.toLocaleString()}
+                            ₦{selectedProduct.price?.toLocaleString() || "0"}
                           </p>
-                          {selectedProduct.discount > 0 && (
+                          {selectedProduct.originalPrice >
+                            selectedProduct.price && (
                             <div className="flex items-center space-x-2 mt-1">
                               <span className="text-lg text-gray-400 line-through">
-                                $
+                                ₦
                                 {selectedProduct.originalPrice.toLocaleString()}
                               </span>
                               <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
-                                -{selectedProduct.discount}%
+                                -
+                                {selectedProduct.discount ||
+                                  Math.round(
+                                    ((selectedProduct.originalPrice -
+                                      selectedProduct.price) /
+                                      selectedProduct.originalPrice) *
+                                      100
+                                  )}
+                                %
                               </span>
                             </div>
                           )}
@@ -664,10 +707,10 @@ const ManageProducts = () => {
                           <div className="flex items-center space-x-2">
                             <span className="text-yellow-500">★</span>
                             <span className="font-medium">
-                              {selectedProduct.rating}
+                              {selectedProduct.rating?.toFixed(1) || "0.0"}
                             </span>
                             <span className="text-gray-400">
-                              ({selectedProduct.reviewCount} reviews)
+                              ({selectedProduct.reviewCount || 0} reviews)
                             </span>
                           </div>
                         </div>
@@ -680,7 +723,8 @@ const ManageProducts = () => {
                         Description
                       </h3>
                       <p className="text-gray-400">
-                        {selectedProduct.description}
+                        {selectedProduct.description ||
+                          "No description available"}
                       </p>
                     </div>
 
@@ -712,11 +756,17 @@ const ManageProducts = () => {
                             }`}
                           >
                             {getStockStatus(selectedProduct).label} -{" "}
-                            {selectedProduct.stockCount} {selectedProduct.unit}
+                            {selectedProduct.stockCount || 0}{" "}
+                            {selectedProduct.unit || "units"}
                           </span>
                           {selectedProduct.isBestSeller && (
                             <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium block w-fit">
                               Best Seller
+                            </span>
+                          )}
+                          {selectedProduct.isNewArrival && (
+                            <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium block w-fit">
+                              New Arrival
                             </span>
                           )}
                         </div>
@@ -742,6 +792,27 @@ const ManageProducts = () => {
                           </div>
                         </div>
                       )}
+
+                    {/* Specifications */}
+                    {selectedProduct.specifications &&
+                      Object.keys(selectedProduct.specifications).length >
+                        0 && (
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200 mb-2">
+                            Specifications
+                          </h3>
+                          <div className="grid grid-cols-2 gap-2">
+                            {Object.entries(selectedProduct.specifications)
+                              .filter(([_, value]) => value)
+                              .map(([key, value], index) => (
+                                <div key={index} className="text-sm">
+                                  <span className="text-gray-600">{key}: </span>
+                                  <span className="font-medium">{value}</span>
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      )}
                   </div>
                 </div>
               </div>
@@ -750,7 +821,7 @@ const ManageProducts = () => {
               <div className="flex items-center justify-end space-x-4 p-6 border-t border-gray-200">
                 <button
                   onClick={() => setShowProductModal(false)}
-                  className="px-6 py-2 border border-gray-300 rounded-lg  text-gray-900 dark:text-gray-50  hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-900 dark:text-gray-50 hover:bg-gray-50 hover:text-gray-900 transition-colors"
                 >
                   Close
                 </button>
@@ -800,7 +871,7 @@ const ManageProducts = () => {
                     Cancel
                   </button>
                   <button
-                    onClick={() => handleDelete(selectedProduct.id)}
+                    onClick={() => handleDelete(selectedProduct._id)}
                     className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                   >
                     Delete Product

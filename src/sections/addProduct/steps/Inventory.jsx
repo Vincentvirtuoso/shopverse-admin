@@ -91,10 +91,10 @@ const Inventory = ({ form, handleChange, setForm }) => {
       </div>
 
       {/* Status Checkboxes */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* New Arrival */}
         <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-sm hover:shadow-md transition-shadow duration-300">
-          <div className="flex items-start">
+          <div className="flex items-start flex-wrap">
             <div className="relative flex items-center h-5 mt-0.5">
               <input
                 type="checkbox"
@@ -131,12 +131,7 @@ const Inventory = ({ form, handleChange, setForm }) => {
                 htmlFor="isNewArrival"
                 className="text-sm font-semibold text-gray-900 dark:text-white cursor-pointer flex items-center gap-2"
               >
-                <span className="flex items-center gap-1">
-                  New Arrival
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                    New
-                  </span>
-                </span>
+                <span className="flex items-center gap-1">New Arrival</span>
               </label>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Mark this product as a new arrival. Will be highlighted in new
@@ -169,7 +164,7 @@ const Inventory = ({ form, handleChange, setForm }) => {
 
         {/* Featured Product */}
         <div className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-sm hover:shadow-md transition-shadow duration-300">
-          <div className="flex items-start">
+          <div className="flex items-start flex-wrap">
             <div className="relative flex items-center h-5 mt-0.5">
               <input
                 type="checkbox"
@@ -208,9 +203,6 @@ const Inventory = ({ form, handleChange, setForm }) => {
               >
                 <span className="flex items-center gap-1">
                   Featured Product
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
-                    Featured
-                  </span>
                 </span>
               </label>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -274,12 +266,7 @@ const Inventory = ({ form, handleChange, setForm }) => {
                 htmlFor="isBestSeller"
                 className="text-sm font-semibold text-gray-900 dark:text-white cursor-pointer flex items-center gap-2"
               >
-                <span className="flex items-center gap-1">
-                  Best Seller
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
-                    Premium
-                  </span>
-                </span>
+                <span className="flex items-center gap-1">Best Seller</span>
               </label>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Highlight with a "Best Seller" badge across the platform.

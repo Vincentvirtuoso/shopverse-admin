@@ -6,79 +6,101 @@ import { useEffect } from "react";
 export const useProduct = () => {
   const { loading, error, callApi } = useApi();
   const [success, setSuccess] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [pagination, setPagination] = useState(null);
 
+  // Generic API handler
   const handleProductMutation = useCallback(
-    async (endpoint, method, payload) => {
+    async (endpoint, method, payload = null) => {
       setSuccess(false);
-
-      const response = await callApi(endpoint, method, payload);
-
-      setSuccess(true);
-      return response;
+      try {
+        const response = await callApi(endpoint, method, payload);
+        setSuccess(true);
+        return response;
+      } catch (err) {
+        setSuccess(false);
+        throw err;
+      }
     },
     [callApi]
   );
 
+  // Create a product
   const createProduct = useCallback(
-    async (productData, formData = null) => {
-      const payload = formData || productData;
-
-      return handleProductMutation("/products", "POST", payload);
-    },
+    (productData, formData = null) =>
+      handleProductMutation("/products", "POST", formData || productData),
     [handleProductMutation]
   );
 
+  // Update a product
   const updateProduct = useCallback(
-    async (id, productData, formData = null) => {
-      const payload = formData || productData;
-      return handleProductMutation(`/products/${id}`, "PUT", payload);
-    },
+    (id, productData, formData = null) =>
+      handleProductMutation(`/products/${id}`, "PUT", formData || productData),
     [handleProductMutation]
   );
+
+  // Delete a product
+  const deleteProduct = useCallback(
+    (id) => handleProductMutation(`/products/${id}`, "DELETE"),
+    [handleProductMutation]
+  );
+
+  // Fetch all products with optional query params
   const getProducts = useCallback(
     async (params = {}) => {
-      const queryString = new URLSearchParams(params).toString();
-      const endpoint = `/products${queryString ? `?${queryString}` : ""}`;
-      return await callApi(endpoint, "GET");
+      try {
+        const queryString = new URLSearchParams(params).toString();
+        const endpoint = `/products${queryString ? `?${queryString}` : ""}`;
+        const res = await callApi(endpoint, "GET");
+
+        const data = res?.data || {};
+        setProducts(data.products || []);
+        setPagination(data.pagination || null);
+        setSuccess(true);
+
+        return res;
+      } catch (err) {
+        setProducts([]);
+        setPagination(null);
+        setSuccess(false);
+        throw err;
+      }
     },
     [callApi]
   );
 
+  // Fetch single product by ID
   const getProductById = useCallback(
-    async (id) => {
-      return await callApi(`/products/${id}`, "GET");
-    },
+    (id) => callApi(`/products/${id}`, "GET"),
     [callApi]
   );
 
-  const deleteProduct = useCallback(
-    async (id) => {
-      const response = await callApi(`/products/${id}`, "DELETE");
-      return response;
-    },
+  // Best sellers
+  const getBestSellers = useCallback(
+    () => callApi("/products/best-sellers", "GET"),
     [callApi]
   );
 
-  const getBestSellers = useCallback(async () => {
-    return await callApi("/products/best-sellers", "GET");
-  }, [callApi]);
-
-  const getProductStats = useCallback(async () => {
-    return await callApi("/products/stats", "GET");
-  }, [callApi]);
+  // Product stats
+  const getProductStats = useCallback(
+    () => callApi("/products/stats", "GET"),
+    [callApi]
+  );
 
   return {
     loading,
     error,
     success,
+    products,
+    pagination,
+    setSuccess,
     createProduct,
     updateProduct,
+    deleteProduct,
     getProducts,
     getProductById,
-    deleteProduct,
     getBestSellers,
     getProductStats,
-    setSuccess,
   };
 };
 
@@ -348,7 +370,7 @@ export const useProductForm = (initialValues = {}) => {
         addError("images", "Main image is required");
 
       if (!additionalImages || additionalImages.length === 0)
-        addError("images", "At least one product image is required");
+        addError("images", "At least additional one product image is required");
       else if (additionalImages.length > 10)
         addError("images", "Maximum of 10 images allowed");
     }
