@@ -13,11 +13,18 @@ import {
   FiPackage,
   FiAlertCircle,
   FiTrendingUp,
+  FiRefreshCw,
+  FiImage,
+  FiTag,
 } from "react-icons/fi";
+import {} from "react-icons/vsc";
 import { useNavigate } from "react-router-dom";
 import StatsCard from "../components/common/StatsCard";
 import CardWrapper from "../components/ui/CardWrapper";
 import { useProduct } from "../hooks/useProduct";
+import ProductDetail from "../sections/manageProduct/ProductDetail";
+import { getSmartUnit } from "../util/helpers";
+import Rating from "../components/ui/Rating";
 
 const ManageProducts = () => {
   const {
@@ -307,6 +314,111 @@ const ManageProducts = () => {
     );
   }
 
+  if (!loading && products.length === 0 && !error) {
+    return (
+      <div className="min-h-[calc(100vh-200px)] flex items-center justify-center px-4">
+        <div className="text-center">
+          {/* Illustration/Icon */}
+          <div className="w-32 h-32 mx-auto mb-6 relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-pink-500/10 rounded-full blur-xl"></div>
+            <div className="relative w-full h-full flex items-center justify-center bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800">
+              <FiPackage className="w-16 h-16 text-gray-300 dark:text-gray-600" />
+            </div>
+          </div>
+
+          {/* Title & Description */}
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">
+            No Products Yet
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 text-lg mb-2">
+            Your product catalog is empty
+          </p>
+          <p className="text-gray-500 dark:text-gray-500 mb-8 max-w-md mx-auto">
+            Start by adding your first product to showcase in your store. Add
+            descriptions, images, pricing, and inventory details.
+          </p>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button
+              onClick={handleAddProduct}
+              className="group px-8 py-3.5 bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold rounded-xl 
+                       hover:from-red-700 hover:to-red-800 active:scale-[0.98] transition-all duration-200 
+                       shadow-lg hover:shadow-xl shadow-red-200/50 dark:shadow-red-900/30
+                       flex items-center justify-center space-x-3"
+            >
+              <div className="p-1.5 bg-white/20 rounded-lg group-hover:bg-white/30 transition-colors">
+                <FiPlus className="w-5 h-5" />
+              </div>
+              <span className="text-lg">Add Your First Product</span>
+            </button>
+
+            <button
+              onClick={() => getProducts({ limit: 100 })}
+              className="px-6 py-3.5 text-gray-700 dark:text-gray-300 font-medium 
+                       hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors
+                       border border-gray-200 dark:border-gray-700
+                       flex items-center space-x-2"
+            >
+              <FiRefreshCw className="w-5 h-5" />
+              <span>Refresh</span>
+            </button>
+          </div>
+
+          {/* Quick Tips */}
+          <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800">
+            <h4 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
+              Quick Tips
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+              <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <FiImage className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h5 className="font-medium text-gray-900 dark:text-white">
+                    Add Images
+                  </h5>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Use high-quality images to showcase your products
+                </p>
+              </div>
+
+              <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <FiTag className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  </div>
+                  <h5 className="font-medium text-gray-900 dark:text-white">
+                    Set Pricing
+                  </h5>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Configure competitive pricing and discounts
+                </p>
+              </div>
+
+              <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <FiPackage className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <h5 className="font-medium text-gray-900 dark:text-white">
+                    Manage Inventory
+                  </h5>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Track stock levels and set up alerts for low inventory
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header Section */}
@@ -421,6 +533,9 @@ const ManageProducts = () => {
                   Price
                 </th>
                 <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900 dark:text-gray-200">
+                  Rating
+                </th>
+                <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900 dark:text-gray-200">
                   Stock
                 </th>
                 <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900 dark:text-gray-200">
@@ -445,7 +560,7 @@ const ManageProducts = () => {
                   >
                     <td className="py-4 px-6">
                       <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+                        <div className="w-12 h-full rounded-lg overflow-hidden bg-gray-100 shrink-0">
                           <img
                             src={product.image || product.images?.[0]}
                             alt={product.name}
@@ -501,36 +616,19 @@ const ManageProducts = () => {
                       </div>
                     </td>
                     <td className="py-4 px-6">
-                      <div className="space-y-1">
-                        <p
-                          className={`font-medium ${
-                            product.stockCount <= 5
-                              ? "text-red-600"
-                              : "text-gray-900 dark:text-gray-200"
-                          }`}
-                        >
-                          {product.stockCount || 0} {product.unit || "units"}
-                        </p>
-                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                          <div
-                            className={`h-1.5 rounded-full ${
-                              (product.stockCount || 0) > 20
-                                ? "bg-green-500"
-                                : (product.stockCount || 0) > 10
-                                ? "bg-yellow-500"
-                                : (product.stockCount || 0) > 5
-                                ? "bg-orange-500"
-                                : "bg-red-500"
-                            }`}
-                            style={{
-                              width: `${Math.min(
-                                ((product.stockCount || 0) / 30) * 100,
-                                100
-                              )}%`,
-                            }}
-                          ></div>
-                        </div>
-                      </div>
+                      <Rating selectedProduct={product} vertical />
+                    </td>
+                    <td className="py-4 px-6">
+                      <p
+                        className={`font-medium whitespace-nowrap ${
+                          product.stockCount <= 5
+                            ? "text-red-600"
+                            : "text-gray-900 dark:text-gray-200"
+                        }`}
+                      >
+                        {product.stockCount || 0}{" "}
+                        {getSmartUnit(product.stockCount, product.unit)}
+                      </p>
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex flex-wrap gap-2 whitespace-nowrap">
@@ -612,231 +710,12 @@ const ManageProducts = () => {
       {/* Product Details Modal */}
       <AnimatePresence>
         {showProductModal && selectedProduct && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-99">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-gray-50 rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
-            >
-              {/* Modal Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-400/60">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-200">
-                    {selectedProduct.name}
-                  </h2>
-                  <p className="text-gray-400 mt-1">{selectedProduct.brand}</p>
-                  <p className="text-sm text-gray-500">
-                    SKU: {selectedProduct.sku}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowProductModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
-                >
-                  <FiX size={24} />
-                </button>
-              </div>
-
-              {/* Modal Content */}
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Left Column - Images */}
-                  <div>
-                    <div className="rounded-xl overflow-hidden bg-gray-100 mb-4">
-                      <img
-                        src={
-                          selectedProduct.image || selectedProduct.images?.[0]
-                        }
-                        alt={selectedProduct.name}
-                        className="w-full h-64 object-cover"
-                      />
-                    </div>
-                    {selectedProduct.images &&
-                      selectedProduct.images.length > 0 && (
-                        <div className="grid grid-cols-4 gap-2">
-                          {selectedProduct.images
-                            .slice(0, 4)
-                            .map((img, index) => (
-                              <div
-                                key={index}
-                                className="rounded-lg overflow-hidden bg-gray-100"
-                              >
-                                <img
-                                  src={img}
-                                  alt={`${selectedProduct.name} ${index + 1}`}
-                                  className="w-full h-20 object-cover"
-                                />
-                              </div>
-                            ))}
-                        </div>
-                      )}
-                  </div>
-
-                  {/* Right Column - Details */}
-                  <div className="space-y-6">
-                    {/* Price & Rating */}
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-3xl font-bold text-gray-900 dark:text-gray-200">
-                            ₦{selectedProduct.price?.toLocaleString() || "0"}
-                          </p>
-                          {selectedProduct.originalPrice >
-                            selectedProduct.price && (
-                            <div className="flex items-center space-x-2 mt-1">
-                              <span className="text-lg text-gray-400 line-through">
-                                ₦
-                                {selectedProduct.originalPrice.toLocaleString()}
-                              </span>
-                              <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
-                                -
-                                {selectedProduct.discount ||
-                                  Math.round(
-                                    ((selectedProduct.originalPrice -
-                                      selectedProduct.price) /
-                                      selectedProduct.originalPrice) *
-                                      100
-                                  )}
-                                %
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-yellow-500">★</span>
-                            <span className="font-medium">
-                              {selectedProduct.rating?.toFixed(1) || "0.0"}
-                            </span>
-                            <span className="text-gray-400">
-                              ({selectedProduct.reviewCount || 0} reviews)
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Description */}
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200 mb-2">
-                        Description
-                      </h3>
-                      <p className="text-gray-400">
-                        {selectedProduct.description ||
-                          "No description available"}
-                      </p>
-                    </div>
-
-                    {/* Category & Stock */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200 mb-2">
-                          Category
-                        </h3>
-                        <div className="space-y-1">
-                          <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm inline-block">
-                            {selectedProduct.category}
-                          </span>
-                          {selectedProduct.subCategory && (
-                            <span className="px-3 py-1 bg-gray-50 text-gray-400 rounded-full text-sm inline-block ml-2">
-                              {selectedProduct.subCategory}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200 mb-2">
-                          Stock Status
-                        </h3>
-                        <div className="space-y-2">
-                          <span
-                            className={`px-3 py-1 rounded-full text-sm font-medium ${
-                              getStockStatus(selectedProduct).color
-                            }`}
-                          >
-                            {getStockStatus(selectedProduct).label} -{" "}
-                            {selectedProduct.stockCount || 0}{" "}
-                            {selectedProduct.unit || "units"}
-                          </span>
-                          {selectedProduct.isBestSeller && (
-                            <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium block w-fit">
-                              Best Seller
-                            </span>
-                          )}
-                          {selectedProduct.isNewArrival && (
-                            <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium block w-fit">
-                              New Arrival
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Tags */}
-                    {selectedProduct.tags &&
-                      selectedProduct.tags.length > 0 && (
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200 mb-2">
-                            Tags
-                          </h3>
-                          <div className="flex flex-wrap gap-2">
-                            {selectedProduct.tags.map((tag, index) => (
-                              <span
-                                key={index}
-                                className="px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm"
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                    {/* Specifications */}
-                    {selectedProduct.specifications &&
-                      Object.keys(selectedProduct.specifications).length >
-                        0 && (
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-200 mb-2">
-                            Specifications
-                          </h3>
-                          <div className="grid grid-cols-2 gap-2">
-                            {Object.entries(selectedProduct.specifications)
-                              .filter(([_, value]) => value)
-                              .map(([key, value], index) => (
-                                <div key={index} className="text-sm">
-                                  <span className="text-gray-600">{key}: </span>
-                                  <span className="font-medium">{value}</span>
-                                </div>
-                              ))}
-                          </div>
-                        </div>
-                      )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Modal Footer */}
-              <div className="flex items-center justify-end space-x-4 p-6 border-t border-gray-200">
-                <button
-                  onClick={() => setShowProductModal(false)}
-                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-900 dark:text-gray-50 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => {
-                    setShowProductModal(false);
-                    handleEditProduct(selectedProduct);
-                  }}
-                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  Edit Product
-                </button>
-              </div>
-            </motion.div>
-          </div>
+          <ProductDetail
+            selectedProduct={selectedProduct}
+            setShowProductModal={setShowProductModal}
+            getStockStatus={getStockStatus}
+            handleEditProduct={handleEditProduct}
+          />
         )}
       </AnimatePresence>
 

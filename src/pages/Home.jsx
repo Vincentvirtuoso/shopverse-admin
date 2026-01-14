@@ -8,7 +8,7 @@ const Home = () => {
   const statsCards = [
     {
       label: "Total Revenue",
-      value: "$45,231",
+      value: "₦45,231,090",
       change: "+20.1%",
       icon: <FiDollarSign />,
     },

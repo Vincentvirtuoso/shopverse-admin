@@ -165,8 +165,15 @@ export const useProductForm = (initialValues = {}) => {
     }
   };
 
-  const addTag = (tag) => {
+  const addTag = (tag, updateForm) => {
     if (tag && !form.tags.includes(tag.toLowerCase())) {
+      if (updateForm) {
+        updateForm((prev) => ({
+          ...prev,
+          tags: [...prev.tags, tag.toLowerCase()],
+        }));
+        return;
+      }
       setForm((prev) => ({ ...prev, tags: [...prev.tags, tag.toLowerCase()] }));
     }
   };
@@ -217,6 +224,13 @@ export const useProductForm = (initialValues = {}) => {
       },
     }));
   };
+
+  const handleSpecificationsChange = useCallback((newSpecs) => {
+    setForm((prev) => ({
+      ...prev,
+      specifications: newSpecs,
+    }));
+  }, []);
 
   const addVariant = () => {
     setForm((prev) => ({
@@ -427,5 +441,6 @@ export const useProductForm = (initialValues = {}) => {
     setAdditionalImages,
     mainImage,
     setMainImage,
+    handleSpecificationsChange,
   };
 };

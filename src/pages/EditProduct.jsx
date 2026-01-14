@@ -27,16 +27,17 @@ import {
   FiList,
   FiFileText,
 } from "react-icons/fi";
-import { useProduct } from "../hooks/useProduct";
+import { useProduct, useProductForm } from "../hooks/useProduct";
 import CardWrapper from "../components/ui/CardWrapper";
 import MultiInput from "../components/common/MultiInput";
+import SpecificationsInput from "../components/common/SpecificationsInput";
+import PhysicalAttributes from "../sections/editProduct/PhysicalAttributes";
 
 const EditProduct = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { getProductById, loading, error, updateProduct } = useProduct();
-
-  const [formData, setFormData] = useState({
+  const initialValue = {
     name: "",
     brand: "",
     description: "",
@@ -99,12 +100,23 @@ const EditProduct = () => {
     // Related Products & Variants
     relatedProducts: [],
     variants: [],
-  });
+  };
+  const {
+    form: formData,
+    setForm: setFormData,
+    addFeature,
+    addKeyword,
+    addTag,
+    addVariant,
+    removeFeature,
+    removeKeyword,
+    removeTag,
+    removeVariant,
+    handleSpecificationsChange,
+  } = useProductForm(initialValue);
 
   const [currentTab, setCurrentTab] = useState("basic");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [newTag, setNewTag] = useState("");
-  const [newFeature, setNewFeature] = useState("");
   const [newKeyword, setNewKeyword] = useState("");
   const [newVariant, setNewVariant] = useState({
     name: "",
@@ -226,105 +238,6 @@ const EditProduct = () => {
         ...prev[section],
         [field]: value,
       },
-    }));
-  };
-
-  const handleSpecificationChange = (key, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      specifications: {
-        ...prev.specifications,
-        [key]: value,
-      },
-    }));
-  };
-
-  const removeSpecification = (key) => {
-    const newSpecs = { ...formData.specifications };
-    delete newSpecs[key];
-    setFormData((prev) => ({
-      ...prev,
-      specifications: newSpecs,
-    }));
-  };
-
-  const addTag = () => {
-    if (newTag.trim()) {
-      setFormData((prev) => ({
-        ...prev,
-        tags: [...prev.tags, newTag.trim().toLowerCase()],
-      }));
-      setNewTag("");
-    }
-  };
-
-  const removeTag = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      tags: prev.tags.filter((_, i) => i !== index),
-    }));
-  };
-
-  const addFeature = () => {
-    if (newFeature.trim()) {
-      setFormData((prev) => ({
-        ...prev,
-        features: [...prev.features, newFeature.trim()],
-      }));
-      setNewFeature("");
-    }
-  };
-
-  const removeFeature = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      features: prev.features.filter((_, i) => i !== index),
-    }));
-  };
-
-  const addKeyword = () => {
-    if (newKeyword.trim()) {
-      setFormData((prev) => ({
-        ...prev,
-        meta: {
-          ...prev.meta,
-          keywords: [...prev.meta.keywords, newKeyword.trim()],
-        },
-      }));
-      setNewKeyword("");
-    }
-  };
-
-  const removeKeyword = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      meta: {
-        ...prev.meta,
-        keywords: prev.meta.keywords.filter((_, i) => i !== index),
-      },
-    }));
-  };
-
-  const addVariant = () => {
-    if (newVariant.name.trim()) {
-      setFormData((prev) => ({
-        ...prev,
-        variants: [...prev.variants, { ...newVariant }],
-      }));
-      setNewVariant({
-        name: "",
-        price: "",
-        sku: "",
-        stockCount: 0,
-        attributes: {},
-      });
-    }
-  };
-
-  const removeVariant = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      variants: prev.variants.filter((_, i) => i !== index),
     }));
   };
 
@@ -602,10 +515,10 @@ const EditProduct = () => {
                 {/* Tags */}
                 <div className="mt-6">
                   <MultiInput
-                    label="Tags"
+                    label="Product Tags"
                     name="tags"
                     value={formData.tags || []}
-                    addItem={(tag) => addTag(tag)}
+                    addItem={addTag}
                     removeItem={(tag) => removeTag(tag)}
                     placeholder="Add a tag and press Enter"
                     minItems={0}
@@ -1026,234 +939,54 @@ const EditProduct = () => {
             >
               {/* Features */}
               <CardWrapper className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                  <FiList />
-                  Features
-                </h2>
-                <div className="space-y-4">
-                  {formData.features.map((feature, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                      <span className="flex-1">{feature}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeFeature(index)}
-                        className="p-1 text-gray-400 hover:text-red-500"
-                      >
-                        <FiX />
-                      </button>
-                    </div>
-                  ))}
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newFeature}
-                      onChange={(e) => setNewFeature(e.target.value)}
-                      placeholder="Add a feature"
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
-                      onKeyPress={(e) =>
-                        e.key === "Enter" && (e.preventDefault(), addFeature())
-                      }
-                    />
-                    <button
-                      type="button"
-                      onClick={addFeature}
-                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-                    >
-                      Add
-                    </button>
-                  </div>
-                </div>
+                <MultiInput
+                  label="Product Features"
+                  name="features"
+                  value={formData.features}
+                  addItem={addFeature}
+                  removeItem={removeFeature}
+                  placeholder="Enter a product feature..."
+                  mode="comma-separated"
+                  allowModeSwitch={true}
+                  maxItems={8}
+                  minItems={3}
+                  maxLength={100}
+                  helperText="Add 3-8 key features that highlight your product's main benefits"
+                  suggestions={[
+                    "Long battery life",
+                    "Water resistant",
+                    "Easy to use",
+                    "Premium materials",
+                    "Fast charging",
+                    "Lightweight design",
+                    "Durable construction",
+                    "Energy efficient",
+                    "Noise cancelling",
+                    "Multi-device connectivity",
+                    "Voice assistant compatible",
+                    "Touch screen display",
+                  ]}
+                  required={true}
+                  icon="list"
+                  styling={{
+                    primaryColor: "blue",
+                    nimberBadgelunear: "from-blue-500 to-blue-600",
+                  }}
+                />
               </CardWrapper>
 
               {/* Specifications */}
-              <CardWrapper className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                  <FiLayers />
-                  Specifications
-                </h2>
-                <div className="space-y-4">
-                  {Object.entries(formData.specifications).map(
-                    ([key, value]) => (
-                      <div
-                        key={key}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
-                      >
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-gray-700">
-                            {key}
-                          </div>
-                          <div className="text-gray-600">{value}</div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeSpecification(key)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                        >
-                          <FiTrash2 />
-                        </button>
-                      </div>
-                    )
-                  )}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <input
-                      type="text"
-                      placeholder="Specification name"
-                      id="specKey"
-                      className="px-4 py-2 border border-gray-300 rounded-lg"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Value"
-                      id="specValue"
-                      className="px-4 py-2 border border-gray-300 rounded-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const key = document.getElementById("specKey").value;
-                        const value =
-                          document.getElementById("specValue").value;
-                        if (key.trim() && value.trim()) {
-                          handleSpecificationChange(key.trim(), value.trim());
-                          document.getElementById("specKey").value = "";
-                          document.getElementById("specValue").value = "";
-                        }
-                      }}
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                    >
-                      Add Specification
-                    </button>
-                  </div>
-                </div>
-              </CardWrapper>
+              <SpecificationsInput
+                specifications={formData.specifications}
+                onSpecificationsChange={handleSpecificationsChange}
+              />
 
               {/* Physical Attributes */}
-              <CardWrapper className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                  <FiBox />
-                  Physical Attributes
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Weight
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="number"
-                        value={formData.weight.value}
-                        onChange={(e) =>
-                          handleNestedChange("weight", "value", e.target.value)
-                        }
-                        min="0"
-                        step="0.01"
-                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg"
-                      />
-                      <select
-                        value={formData.weight.unit}
-                        onChange={(e) =>
-                          handleNestedChange("weight", "unit", e.target.value)
-                        }
-                        className="px-4 py-3 border border-gray-300 rounded-lg"
-                      >
-                        {weightUnits.map((unit) => (
-                          <option key={unit} value={unit}>
-                            {unit}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Dimensions (L × W × H)
-                    </label>
-                    <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <input
-                          type="number"
-                          value={formData.dimensions.length}
-                          onChange={(e) =>
-                            handleNestedChange(
-                              "dimensions",
-                              "length",
-                              e.target.value
-                            )
-                          }
-                          min="0"
-                          step="0.01"
-                          placeholder="Length"
-                          className="flex-1 px-4 py-3 border border-gray-300 rounded-lg"
-                        />
-                        <input
-                          type="number"
-                          value={formData.dimensions.width}
-                          onChange={(e) =>
-                            handleNestedChange(
-                              "dimensions",
-                              "width",
-                              e.target.value
-                            )
-                          }
-                          min="0"
-                          step="0.01"
-                          placeholder="Width"
-                          className="flex-1 px-4 py-3 border border-gray-300 rounded-lg"
-                        />
-                        <input
-                          type="number"
-                          value={formData.dimensions.height}
-                          onChange={(e) =>
-                            handleNestedChange(
-                              "dimensions",
-                              "height",
-                              e.target.value
-                            )
-                          }
-                          min="0"
-                          step="0.01"
-                          placeholder="Height"
-                          className="flex-1 px-4 py-3 border border-gray-300 rounded-lg"
-                        />
-                      </div>
-                      <select
-                        value={formData.dimensions.unit}
-                        onChange={(e) =>
-                          handleNestedChange(
-                            "dimensions",
-                            "unit",
-                            e.target.value
-                          )
-                        }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                      >
-                        {dimensionUnits.map((unit) => (
-                          <option key={unit} value={unit}>
-                            {unit}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Warranty */}
-                <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Warranty
-                  </label>
-                  <input
-                    type="text"
-                    name="warranty"
-                    value={formData.warranty}
-                    onChange={handleInputChange}
-                    placeholder="e.g., 2 years manufacturer warranty"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg"
-                  />
-                </div>
-              </CardWrapper>
+              <PhysicalAttributes
+                formData={formData}
+                handleNestedChange={handleNestedChange}
+                handleInputChange={handleInputChange} 
+              />
             </motion.div>
           )}
 
@@ -1706,4 +1439,4 @@ const EditProduct = () => {
   );
 };
 
-export default EditProduct;
+export default React.memo(EditProduct);

@@ -34,14 +34,7 @@ const initialProduct = {
   features: [],
   tags: [],
   weight: { value: "", unit: "g" },
-  specifications: {
-    color: "",
-    weight: "",
-    dimensions: "",
-    warranty: "1 year",
-    connectivity: "",
-    batteryLife: "",
-  },
+  specifications: new Map(),
   dimensions: { length: 0, width: 0, height: 0, unit: "cm" },
   shippingInfo: {
     dimensions: { length: 0, width: 0, height: 0 },

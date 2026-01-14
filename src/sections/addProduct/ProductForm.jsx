@@ -16,22 +16,18 @@ import {
   FiChevronDown,
   FiArrowDown,
 } from "react-icons/fi";
-import { FaNairaSign, FaStar } from "react-icons/fa6";
-import { LuRefreshCcw, LuX } from "react-icons/lu";
+import { FaNairaSign } from "react-icons/fa6";
+import { LuRefreshCcw } from "react-icons/lu";
 import { useProductForm } from "../../hooks/useProduct";
 import WrapperHeader from "../../components/common/WrapperHeader";
 import CardWrapper from "../../components/ui/CardWrapper";
-import {
-  weightUnitOptions,
-  dimensionUnitOptions,
-  unitOptions,
-  sections,
-  generateSKU,
-} from "../../assets/addProducts";
+import { unitOptions, sections } from "../../assets/addProducts";
 import Inventory from "./steps/Inventory";
 import ScrollToTop from "../../components/common/ScrollToTop";
 import MediaUploadSection from "./steps/MediaUploadSection";
-import MultiInput from "../../components/common/MultiInput";
+import AttributesSection from "./steps/AttributesSection";
+import ShippingSection from "./steps/ShippingSection";
+import VariantSection from "./VariantSection";
 
 const getErrorMessage = (errors) => {
   if (!errors || typeof errors !== "object") return "";
@@ -72,6 +68,7 @@ const ProductForm = ({
     setAdditionalImages,
     setMainImage,
     additionalImages,
+    handleSpecificationsChange,
   } = useProductForm(initialData);
 
   const currentIndex = sections.findIndex((s) => s.id === activeSection);
@@ -108,7 +105,10 @@ const ProductForm = ({
 
     const formData = new FormData();
 
-    const productJson = { ...form };
+    const productJson = {
+      ...form,
+      specifications: Object.fromEntries(form.specifications),
+    };
     delete productJson.image;
     delete productJson.images;
     delete productJson.id;
@@ -678,267 +678,23 @@ const ProductForm = ({
 
       case "attributes":
         return (
-          <motion.div
-            key="attributes"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            className="space-y-8"
-          >
-            <MultiInput
-              label="Product Tags"
-              name="tags"
-              value={form.tags}
-              addItem={addTag}
-              removeItem={removeTag}
-              placeholder="Add tags (comma-separated)..."
-              mode="comma-separated"
-              allowModeSwitch={true}
-              maxItems={15}
-              minItems={0}
-              maxLength={30}
-              minLength={2}
-              helperText="Tags help customers find your product. Use comma-separated values for bulk entry."
-              suggestions={[
-                "electronics",
-                "gadget",
-                "tech",
-                "innovative",
-                "bestseller",
-                "new-arrival",
-              ]}
-              icon="tag"
-              allowDuplicates={false}
-              styling={{
-                primaryColor: "purple",
-                numberBadgeGradient: "from-purple-500 to-purple-600",
-              }}
-            />
-
-            <MultiInput
-              label="Product Features"
-              name="features"
-              value={form.features}
-              addItem={addFeature}
-              removeItem={removeFeature}
-              placeholder="Enter a product feature..."
-              // mode="individual"
-              mode="comma-separated"
-              allowModeSwitch={true}
-              maxItems={8}
-              minItems={3}
-              maxLength={100}
-              helperText="Add 3-8 key features that highlight your product's main benefits"
-              suggestions={[
-                "Long battery life",
-                "Water resistant",
-                "Easy to use",
-                "Premium materials",
-                "Fast charging",
-                "Lightweight design",
-                "Durable construction",
-                "Energy efficient",
-              ]}
-              required={true}
-              icon="list"
-              styling={{
-                primaryColor: "blue",
-                numberBadgeGradient: "from-blue-500 to-blue-600",
-              }}
-            />
-          </motion.div>
+          <AttributesSection
+            addFeature={addFeature}
+            form={form}
+            addTag={addTag}
+            removeFeature={removeFeature}
+            removeTag={removeTag}
+            onSpecificationsChange={handleSpecificationsChange}
+          />
         );
 
       case "shipping":
         return (
-          <motion.div
-            key="shipping"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            className="space-y-8"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Weight
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="col-span-2">
-                    <input
-                      type="number"
-                      name="weight.value"
-                      value={form.weight.value}
-                      onChange={handleChange}
-                      min="0"
-                      step="0.01"
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 
-                        bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="Weight value"
-                    />
-                  </div>
-                  <div>
-                    <select
-                      name="weight.unit"
-                      value={form.weight.unit}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 
-                        bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    >
-                      {weightUnitOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Dimensions
-                </label>
-                <div className="space-y-3">
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <input
-                        type="number"
-                        name="dimensions.length"
-                        value={form.dimensions.length}
-                        onChange={handleChange}
-                        min="0"
-                        step="0.1"
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
-                          bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-red-500 focus:border-transparent"
-                        placeholder="L"
-                      />
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Length
-                      </p>
-                    </div>
-                    <div>
-                      <input
-                        type="number"
-                        name="dimensions.width"
-                        value={form.dimensions.width}
-                        onChange={handleChange}
-                        min="0"
-                        step="0.1"
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
-                          bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-red-500 focus:border-transparent"
-                        placeholder="W"
-                      />
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Width
-                      </p>
-                    </div>
-                    <div>
-                      <input
-                        type="number"
-                        name="dimensions.height"
-                        value={form.dimensions.height}
-                        onChange={handleChange}
-                        min="0"
-                        step="0.1"
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
-                          bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-red-500 focus:border-transparent "
-                        placeholder="H"
-                      />
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Height
-                      </p>
-                    </div>
-                  </div>
-                  <div>
-                    <select
-                      name="dimensions.unit"
-                      value={form.dimensions.unit}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
-                        bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    >
-                      {dimensionUnitOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Shipping Class
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  {
-                    label: "Standard",
-                    value: "Standard",
-                    color: "from-gray-500 to-gray-600",
-                  },
-                  {
-                    label: "Express",
-                    value: "Express",
-                    color: "from-blue-500 to-cyan-500",
-                  },
-                  {
-                    label: "Free Shipping",
-                    value: "Free Shipping",
-                    color: "from-green-500 to-emerald-500",
-                  },
-                  {
-                    label: "Heavy Item",
-                    value: "Heavy Item",
-                    color: "from-amber-500 to-orange-500",
-                  },
-                  {
-                    label: "Fragile",
-                    value: "Fragile",
-                    color: "from-red-500 to-pink-500",
-                  },
-                ].map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() =>
-                      setForm({
-                        ...form,
-                        shippingInfo: {
-                          ...form.shippingInfo,
-                          shippingClass: option.value,
-                        },
-                      })
-                    }
-                    className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2
-              ${
-                form.shippingInfo.shippingClass === option.value
-                  ? `bg-linear-to-r ${option.color} text-white shadow-lg`
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
-              }`}
-                  >
-                    {option.label}
-                    {form.shippingInfo.shippingClass === option.value && (
-                      <svg
-                        className="w-4 h-4"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </motion.div>
+          <ShippingSection
+            form={form}
+            handleChange={handleChange}
+            setForm={setForm}
+          />
         );
 
       case "seo":
@@ -1044,391 +800,12 @@ const ProductForm = ({
 
       case "variants":
         return (
-          <motion.div
-            key="variants"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="space-y-6"
-          >
-            {/* Header Section */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-linear-to-r from-white to-gray-50 dark:from-gray-800/30 dark:to-gray-800/10 rounded-2xl border border-gray-100 dark:border-gray-700/50">
-              <div className="flex items-start space-x-3">
-                <div className="p-2.5 bg-linear-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 rounded-xl">
-                  <FiLayers className="w-5 h-5 text-red-500 dark:text-red-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                    Product Variants
-                    <span className="px-2 py-0.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 rounded-full">
-                      {form.variants.length} variant
-                      {form.variants.length !== 1 ? "s" : ""}
-                    </span>
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 max-w-2xl">
-                    Create different versions of your product. Each variant can
-                    have unique pricing, SKU, and inventory levels.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={addVariant}
-                className="px-4 py-2.5 bg-linear-to-r from-red-500 to-red-600 text-white font-medium rounded-xl 
-        hover:from-red-600 hover:to-red-700 active:scale-[0.98] transition-all duration-200 
-        shadow-md hover:shadow-lg shadow-red-200/50 dark:shadow-red-900/20
-        flex items-center justify-center space-x-2 min-w-[140px] group"
-              >
-                <div className="p-1 bg-white/20 rounded-lg group-hover:bg-white/30 transition-colors">
-                  <FiPlus className="w-4 h-4" />
-                </div>
-                <span>Add Variant</span>
-              </button>
-            </div>
-
-            {/* Empty State */}
-            <AnimatePresence mode="wait">
-              {form.variants.length === 0 ? (
-                <motion.div
-                  key="empty-state"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="text-center py-12 px-6 border-2 border-dashed border-gray-200 dark:border-gray-700 
-          rounded-2xl bg-gradient-to-b from-gray-50/50 to-transparent dark:from-gray-800/20"
-                >
-                  <div className="relative inline-block mb-5">
-                    <div className="absolute inset-0 bg-linear-to-r from-red-500/10 to-pink-500/10 blur-xl rounded-full"></div>
-                    <div className="relative p-4 bg-linear-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-sm">
-                      <FiLayers className="w-16 h-16 text-gray-300 dark:text-gray-700" />
-                    </div>
-                  </div>
-                  <h4 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                    No variants yet
-                  </h4>
-                  <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                    Start by adding your first variant. You can create different
-                    options like sizes, colors, or materials.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={addVariant}
-                    className="inline-flex items-center space-x-2 px-5 py-2.5 text-sm font-medium 
-            bg-linear-to-r from-red-500 to-red-600 text-white rounded-lg
-            hover:from-red-600 hover:to-red-700 transition-all duration-200
-            shadow-sm hover:shadow-md"
-                  >
-                    <FiPlus className="w-4 h-4" />
-                    <span>Create First Variant</span>
-                  </button>
-                </motion.div>
-              ) : (
-                /* Variants List */
-                <motion.div
-                  key="variants-list"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-4"
-                >
-                  {form.variants.map((variant, index) => (
-                    <motion.div
-                      key={index}
-                      layout
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, x: -20, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="group relative p-5 border border-gray-200 dark:border-gray-700/50 
-              rounded-2xl bg-white dark:bg-gray-800/30 backdrop-blur-sm
-              hover:border-red-200 dark:hover:border-red-900/50
-              hover:shadow-lg hover:shadow-red-50/50 dark:hover:shadow-red-900/5
-              transition-all duration-300"
-                    >
-                      {/* Variant Header */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-                        <div className="flex items-center space-x-3">
-                          <div
-                            className="flex items-center justify-center w-8 h-8 rounded-lg 
-                  bg-linear-to-br from-red-500 to-red-600 text-white font-semibold text-sm"
-                          >
-                            {index + 1}
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                              {variant.name || `Variant ${index + 1}`}
-                              {variant.name && (
-                                <span className="text-xs font-normal text-gray-500 dark:text-gray-400">
-                                  (Variant {index + 1})
-                                </span>
-                              )}
-                            </h4>
-                            {variant.sku && (
-                              <p className="text-xs text-gray-500 dark:text-gray-400 font-mono mt-0.5">
-                                SKU: {variant.sku}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center space-x-2">
-                          {/* Stock Indicator */}
-                          {variant.stockCount > 0 ? (
-                            <div
-                              className="px-3 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 
-                    rounded-lg text-sm font-medium flex items-center space-x-1.5"
-                            >
-                              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                              <span>{variant.stockCount} in stock</span>
-                            </div>
-                          ) : (
-                            <div
-                              className="px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 
-                    rounded-lg text-sm font-medium flex items-center space-x-1.5"
-                            >
-                              <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                              <span>Out of stock</span>
-                            </div>
-                          )}
-
-                          {/* Delete Button */}
-                          <button
-                            type="button"
-                            onClick={() => removeVariant(index)}
-                            className="p-2 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 
-                    hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200
-                    group/delete"
-                            title="Delete variant"
-                          >
-                            <FiTrash2 className="w-4 h-4 group-hover/delete:scale-110 transition-transform" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Input Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                        {/* Name Field */}
-                        <div className="space-y-2">
-                          <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-                            Variant Name *
-                          </label>
-                          <div className="relative">
-                            <input
-                              type="text"
-                              value={variant.name}
-                              onChange={(e) =>
-                                updateVariant(index, "name", e.target.value)
-                              }
-                              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 
-                      bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 
-                      focus:ring-2 focus:ring-red-500/30 focus:border-red-500
-                      placeholder:text-gray-400 dark:placeholder:text-gray-500
-                      transition-all duration-200"
-                              placeholder="e.g., Red, Large"
-                              required
-                            />
-                            {!variant.name && (
-                              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                              </div>
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Customer-facing name
-                          </p>
-                        </div>
-
-                        {/* Price Field */}
-                        <div className="space-y-2">
-                          <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-                            Price
-                          </label>
-                          <div className="relative">
-                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">
-                              ₦
-                            </div>
-                            <input
-                              type="number"
-                              value={variant.price}
-                              onChange={(e) =>
-                                updateVariant(index, "price", e.target.value)
-                              }
-                              min="0"
-                              step="0.01"
-                              className="w-full pl-9 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 
-                      bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 
-                      focus:ring-2 focus:ring-red-500/30 focus:border-red-500
-                      transition-all duration-200"
-                              placeholder="0.00"
-                            />
-                          </div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Individual variant price
-                          </p>
-                        </div>
-
-                        {/* SKU Field */}
-                        <div className="space-y-2">
-                          <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-                            SKU Code
-                          </label>
-                          <div className="flex items-center">
-                            <input
-                              type="text"
-                              value={variant.sku}
-                              onChange={(e) =>
-                                updateVariant(index, "sku", e.target.value)
-                              }
-                              className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 
-      bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono
-      focus:ring-2 focus:ring-red-500/30 focus:border-red-500
-      placeholder:text-gray-400 rounded-r-none border-r-0 dark:placeholder:text-gray-500 transition-all duration-200"
-                              placeholder="PROD-RED-001"
-                            />
-                            <button
-                              type="button"
-                              onClick={() =>
-                                updateVariant(
-                                  index,
-                                  "sku",
-                                  generateSKU({
-                                    isVariant: true,
-                                    title: variant.name,
-                                  })
-                                )
-                              }
-                              className="p-3 rounded-l-none rounded-xl border border-red-500 border-l-0 bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors"
-                            >
-                              Generate
-                            </button>
-                          </div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Unique stock identifier
-                          </p>
-                        </div>
-
-                        {/* Stock Field */}
-                        <div className="space-y-2">
-                          <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-                            Stock Level
-                          </label>
-                          <input
-                            type="number"
-                            value={variant.stockCount}
-                            onChange={(e) =>
-                              updateVariant(index, "stockCount", e.target.value)
-                            }
-                            min="0"
-                            className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 
-                    bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 
-                    focus:ring-2 focus:ring-red-500/30 focus:border-red-500
-                    placeholder:text-gray-400 dark:placeholder:text-gray-500
-                    transition-all duration-200"
-                            placeholder="0"
-                          />
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Available quantity
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Price Summary */}
-                      {variant.price > 0 && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          className="mt-6 pt-5 border-t border-gray-100 dark:border-gray-700/50 space-y-2"
-                        >
-                          {/* Header */}
-                          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            Variant Summary
-                          </h4>
-
-                          {/* Price per unit */}
-                          <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-                            <span>Price per unit:</span>
-                            <span>₦{variant.price.toLocaleString()}</span>
-                          </div>
-
-                          {/* Stock count */}
-                          <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-                            <span>Stock count:</span>
-                            <span>{variant.stockCount}</span>
-                          </div>
-
-                          {/* Total value */}
-                          <div className="flex items-center justify-between text-lg font-semibold text-gray-900 dark:text-gray-100 border-t border-gray-200 dark:border-gray-700 pt-2">
-                            <span>Total Value:</span>
-                            <span>
-                              ₦
-                              {parseFloat(
-                                variant.price * variant.stockCount
-                              ).toLocaleString()}
-                            </span>
-                          </div>
-                        </motion.div>
-                      )}
-                    </motion.div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Quick Actions Footer */}
-            {form.variants.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex flex-wrap items-center justify-between gap-4 p-4 bg-linear-to-r from-gray-50 to-white dark:from-gray-800/20 dark:to-gray-800/10 rounded-2xl border border-gray-100 dark:border-gray-700/50"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">
-                      {form.variants.length}
-                    </span>{" "}
-                    variants added
-                  </div>
-                  <div className="h-4 w-px bg-gray-200 dark:bg-gray-700"></div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Total stock:{" "}
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">
-                      {form.variants.reduce(
-                        (sum, v) => sum + (parseInt(v.stockCount) || 0),
-                        0
-                      )}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3">
-                  <button
-                    type="button"
-                    onClick={addVariant}
-                    className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 
-            hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 
-            rounded-lg transition-colors duration-200 flex items-center space-x-2"
-                  >
-                    <FiPlus className="w-4 h-4" />
-                    <span>Add Another</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      form.variants.forEach((_, idx) => removeVariant(idx));
-                    }}
-                    className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 
-            hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 
-            rounded-lg transition-colors duration-200 flex items-center space-x-2"
-                  >
-                    <FiTrash2 className="w-4 h-4" />
-                    <span>Clear All</span>
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </motion.div>
+          <VariantSection
+            form={form}
+            addVariant={addVariant}
+            removeVariant={removeVariant}
+            updateVariant={updateVariant}
+          />
         );
 
       default:
@@ -1437,7 +814,7 @@ const ProductForm = ({
   };
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen">
       <ScrollToTop shouldScroll={activeSection} />
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -1478,7 +855,6 @@ const ProductForm = ({
 
                     try {
                       parsed = JSON.parse(productObject);
-                      console.log(parsed);
                       if (parsed) {
                         setForm(parsed);
                       }
@@ -1494,7 +870,7 @@ const ProductForm = ({
             )}
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-5">
           {/* Sidebar Navigation */}
           <CardWrapper className="lg:w-1/4 p-6">
             <div className="flex flex-col gap-2 sticky top-24">
@@ -1661,6 +1037,8 @@ const ProductForm = ({
                           });
                           return;
                         }
+
+                        console.log(form);
 
                         if (currentIndex < sections.length - 1) {
                           setActiveSection(sections[currentIndex + 1].id);

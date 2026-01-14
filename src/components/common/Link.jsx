@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import React from "react";
 import { NavLink } from "react-router-dom";
 
 const Link = ({ item, index, isSidebarOpen }) => {
@@ -41,4 +42,4 @@ const Link = ({ item, index, isSidebarOpen }) => {
   );
 };
 
-export default Link;
+export default React.memo(Link);

@@ -193,28 +193,23 @@ const MultiInput = ({
           </label>
 
           {allowModeSwitch && (
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-gray-500 dark:text-gray-400">Mode:</span>
-              <button
-                type="button"
-                onClick={() =>
-                  setCurrentMode(
-                    currentMode === "individual"
-                      ? "comma-separated"
-                      : "individual"
-                  )
-                }
-                className={`px-3 py-1 rounded-full font-medium transition-all ${
+            <button
+              type="button"
+              onClick={() =>
+                setCurrentMode(
                   currentMode === "individual"
-                    ? `bg-${defaultStyling.primaryColor}-100 text-${defaultStyling.primaryColor}-700 dark:bg-${defaultStyling.primaryColor}-900/30 dark:text-${defaultStyling.primaryColor}-300`
-                    : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
-                }`}
-              >
-                {currentMode === "individual"
-                  ? "Individual"
-                  : "Comma-Separated"}
-              </button>
-            </div>
+                    ? "comma-separated"
+                    : "individual"
+                )
+              }
+              className={`px-3 py-1 rounded-full font-medium transition-all text-xs ${
+                currentMode === "individual"
+                  ? `bg-${defaultStyling.primaryColor}-100 text-${defaultStyling.primaryColor}-700 dark:bg-${defaultStyling.primaryColor}-900/30 dark:text-${defaultStyling.primaryColor}-300`
+                  : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
+              }`}
+            >
+              {currentMode === "individual" ? "Single" : "Separated"}
+            </button>
           )}
         </div>
 
@@ -402,12 +397,8 @@ const MultiInput = ({
                       <span className="text-gray-800 dark:text-gray-200 truncate">
                         {item}
                       </span>
-                      <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto shrink-0">
-                        {item.length} chars
-                      </span>
                     </div>
-
-                    <div className="flex items-center gap-1 ml-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1 ml-2">
                       <button
                         type="button"
                         onClick={() => editItem(index)}
