@@ -58,25 +58,6 @@ const VariantSection = ({ form, addVariant, removeVariant, updateVariant }) => {
     });
   };
 
-  // Predefined attribute suggestions
-  const attributeSuggestions = [
-    {
-      key: "Color",
-      values: ["Red", "Blue", "Black", "White", "Green", "Gray"],
-    },
-    { key: "Size", values: ["XS", "S", "M", "L", "XL", "XXL"] },
-    {
-      key: "Material",
-      values: ["Cotton", "Polyester", "Leather", "Silk", "Wool"],
-    },
-    { key: "Storage", values: ["64GB", "128GB", "256GB", "512GB", "1TB"] },
-    { key: "RAM", values: ["4GB", "8GB", "12GB", "16GB", "32GB"] },
-    {
-      key: "Style",
-      values: ["Modern", "Classic", "Sport", "Casual", "Formal"],
-    },
-  ];
-
   return (
     <motion.div
       key="variants"
@@ -114,51 +95,6 @@ const VariantSection = ({ form, addVariant, removeVariant, updateVariant }) => {
           <span>Add Variant</span>
         </button>
       </div>
-
-      {/* Attribute Suggestions */}
-      {form.variants.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/30"
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <FiTag className="w-4 h-4 text-blue-500" />
-            <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-              Common Attributes
-            </h4>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {attributeSuggestions.map((attr, idx) => (
-              <div
-                key={idx}
-                className="flex items-center gap-1 bg-white dark:bg-gray-800 rounded-lg px-3 py-1.5 border border-gray-200 dark:border-gray-700"
-              >
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  {attr.key}:
-                </span>
-                <div className="flex gap-1">
-                  {attr.values.map((value, vIdx) => (
-                    <button
-                      key={vIdx}
-                      type="button"
-                      onClick={() => {
-                        // Add this attribute to all variants
-                        form.variants.forEach((_, index) => {
-                          handleAttributeChange(index, attr.key, value);
-                        });
-                      }}
-                      className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-colors"
-                    >
-                      {value}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      )}
 
       {/* Variants List */}
       <AnimatePresence mode="wait">
@@ -431,10 +367,6 @@ const VariantSection = ({ form, addVariant, removeVariant, updateVariant }) => {
                     <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                       <FiTag className="w-4 h-4 text-gray-400" />
                       Variant Attributes
-                      <span className="text-xs font-normal text-gray-500 dark:text-gray-400">
-                        (e.g., Color: Red, Size: Large) (e.g., Color: Red, Size:
-                        Large)
-                      </span>
                     </label>
 
                     <button
