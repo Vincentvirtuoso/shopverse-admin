@@ -985,7 +985,7 @@ const EditProduct = () => {
               <PhysicalAttributes
                 formData={formData}
                 handleNestedChange={handleNestedChange}
-                handleInputChange={handleInputChange} 
+                handleInputChange={handleInputChange}
               />
             </motion.div>
           )}

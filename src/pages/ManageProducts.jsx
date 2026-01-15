@@ -712,8 +712,8 @@ const ManageProducts = () => {
         {showProductModal && selectedProduct && (
           <ProductDetail
             selectedProduct={selectedProduct}
-            setShowProductModal={setShowProductModal}
             getStockStatus={getStockStatus}
+            onClose={() => setShowProductModal(false)}
             handleEditProduct={handleEditProduct}
           />
         )}

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FiBox, FiPackage, FiShield, FiInfo } from "react-icons/fi";
-import { LuRuler, LuScale, LuCalculator } from "react-icons/lu";
+import { LuRuler, LuScale, LuCalculator, LuPencilRuler } from "react-icons/lu";
 
 const PhysicalAttributes = ({
   formData,
@@ -82,8 +82,8 @@ const PhysicalAttributes = ({
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-linear-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl">
-            <FiPackage className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          <div className="p-3 bg-linear-to-br from-red-50 to-cyan-50 dark:from-red-900/20 dark:to-cyan-900/20 rounded-xl">
+            <FiPackage className="w-6 h-6 text-red-600 dark:text-red-400" />
           </div>
           <div>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -94,30 +94,15 @@ const PhysicalAttributes = ({
             </p>
           </div>
         </div>
-
-        {volume && (
-          <button
-            type="button"
-            onClick={() => setShowVolume(!showVolume)}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 
-                     hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 
-                     rounded-lg transition-colors"
-          >
-            <LuCalculator className="w-4 h-4" />
-            {showVolume ? "Hide Volume" : "Show Volume"}
-          </button>
-        )}
       </div>
 
       <div className="space-y-8">
         {/* Weight Section */}
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-5">
+        <div className="pb-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-linear-to-r from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30 rounded-lg">
-                <LuScale className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <h3 className="font-semibold text-gray-900 dark:text-white">
+              <LuScale className="w-5 h-5 text-red-600 dark:text-red-400" />
+              <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
                 Weight
               </h3>
             </div>
@@ -135,8 +120,8 @@ const PhysicalAttributes = ({
                           handleUnitConversion("weight", unit);
                         }}
                         className="text-xs px-2 py-1 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 
-                               rounded border border-gray-200 dark:border-gray-700 hover:border-blue-300 
-                               dark:hover:border-blue-700 hover:text-blue-600 dark:hover:text-blue-400"
+                               rounded border border-gray-200 dark:border-gray-700 hover:border-red-300 
+                               dark:hover:border-red-700 hover:text-red-600 dark:hover:text-red-400"
                       >
                         Convert to {unit}
                       </button>
@@ -146,8 +131,8 @@ const PhysicalAttributes = ({
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Weight Value
               </label>
@@ -161,9 +146,9 @@ const PhysicalAttributes = ({
                   min="0"
                   step="0.01"
                   placeholder="Enter weight"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 
+                  className="w-full text-xs pl-10 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 
                            bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 
-                           focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                           focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                 />
                 <LuScale className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               </div>
@@ -173,15 +158,15 @@ const PhysicalAttributes = ({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Unit
               </label>
-              <div className="relative">
+              <div className=" relative group">
                 <select
                   value={formData.weight.unit}
                   onChange={(e) =>
                     handleNestedChange("weight", "unit", e.target.value)
                   }
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 
+                  className="text-xs px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 
                            bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 
-                           focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
+                           focus:ring-2 focus:ring-red-500 focus:border-transparent appearance-none"
                 >
                   {weightUnits.map((unit) => (
                     <option key={unit} value={unit}>
@@ -196,43 +181,11 @@ const PhysicalAttributes = ({
                   ))}
                 </select>
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                  <div className="w-2 h-2 border-b-2 border-r-2 border-gray-400 transform rotate-45"></div>
+                  <div className="w-2 h-2 border-b-2 border-r-2 border-gray-400 transform rotate-45 group-focus:rotate-90"></div>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Weight Conversion Preview */}
-          {formData.weight.value && (
-            <div className="mt-4 p-3 bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-lg">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Equivalent to:{" "}
-                {weightUnits
-                  .filter((u) => u !== formData.weight.unit)
-                  .map((unit, index) => {
-                    const conversions = {
-                      g: { kg: 0.001, lb: 0.00220462, oz: 0.035274 },
-                      kg: { g: 1000, lb: 2.20462, oz: 35.274 },
-                      lb: { g: 453.592, kg: 0.453592, oz: 16 },
-                      oz: { g: 28.3495, kg: 0.0283495, lb: 0.0625 },
-                    };
-
-                    const value =
-                      parseFloat(formData.weight.value) *
-                      (conversions[formData.weight.unit]?.[unit] || 0);
-
-                    return (
-                      <span key={unit} className="ml-2">
-                        <span className="font-medium text-gray-900 dark:text-white">
-                          {value.toFixed(2)} {unit}
-                        </span>
-                        {index < 2 && <span className="mx-1">•</span>}
-                      </span>
-                    );
-                  })}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Dimensions Section */}
@@ -249,44 +202,37 @@ const PhysicalAttributes = ({
           </div>
 
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                Length × Width × Height
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {[
-                  { label: "Length", field: "length", icon: LuRuler },
-                  { label: "Width", field: "width", icon: LuRuler },
-                  { label: "Height", field: "height", icon: LuRuler },
-                ].map((dim) => {
-                  const Icon = dim.icon;
-                  return (
-                    <div key={dim.field} className="relative">
-                      <input
-                        type="number"
-                        value={formData.dimensions[dim.field] || ""}
-                        onChange={(e) =>
-                          handleNestedChange(
-                            "dimensions",
-                            dim.field,
-                            e.target.value
-                          )
-                        }
-                        min="0"
-                        step="0.01"
-                        placeholder={dim.label}
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 
-                                 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 
-                                 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      />
-                      <Icon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
-                        {dim.label}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: "Length", field: "length", icon: LuRuler },
+                { label: "Width", field: "width", icon: LuRuler },
+                { label: "Height", field: "height", icon: LuRuler },
+              ].map((dim) => {
+                const Icon = dim.icon;
+                return (
+                  <div key={dim.field} className="relative">
+                    <input
+                      type="number"
+                      value={formData.dimensions[dim.field] || ""}
+                      onChange={(e) =>
+                        handleNestedChange(
+                          "dimensions",
+                          dim.field,
+                          e.target.value
+                        )
+                      }
+                      min="0"
+                      step="0.01"
+                      placeholder={dim.label}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600  bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 text-xs focus:border-transparent"
+                    />
+                    <Icon className="absolute left-3 top-1/2 transform -translate-y-4.5 text-gray-400" />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
+                      {dim.label}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
 
             <div>
@@ -315,6 +261,7 @@ const PhysicalAttributes = ({
                     </option>
                   ))}
                 </select>
+                <LuRuler className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
                   <div className="w-2 h-2 border-b-2 border-r-2 border-gray-400 transform rotate-45"></div>
                 </div>

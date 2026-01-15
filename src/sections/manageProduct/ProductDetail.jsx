@@ -6,10 +6,8 @@ import {
   FiTag,
   FiPackage,
   FiStar,
-  FiDollarSign,
   FiGrid,
   FiInfo,
-  FiCheckCircle,
   FiClock,
 } from "react-icons/fi";
 import useBodyScrollLock from "../../hooks/useBodyScrollLock";
@@ -68,7 +66,7 @@ const TagsSection = ({ selectedProduct }) => {
         {visibleTags.map((tag, index) => (
           <span
             key={index}
-            className="px-3 py-1.5 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 text-red-700 dark:text-red-300 rounded-lg text-sm font-medium border border-red-100 dark:border-red-800/30 hover:scale-105 transition-transform duration-200 cursor-default"
+            className="px-3 py-1.5 bg-linear-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 text-red-700 dark:text-red-300 rounded-lg text-sm font-medium border border-red-100 dark:border-red-800/30 hover:scale-105 transition-transform duration-200 cursor-default"
           >
             {tag}
           </span>
@@ -96,7 +94,6 @@ const TagsSection = ({ selectedProduct }) => {
 
 const ProductDetail = ({
   selectedProduct,
-  setShowProductModal,
   getStockStatus,
   handleEditProduct,
   onClose,
@@ -179,7 +176,7 @@ const ProductDetail = ({
                   SKU: {selectedProduct.sku}
                 </span>
                 {selectedProduct.isBestSeller && (
-                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-semibold rounded-full">
+                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-linear-to-r from-yellow-500 to-orange-500 text-white text-xs font-semibold rounded-full">
                     <FiStar size={10} /> Best Seller
                   </span>
                 )}
@@ -195,7 +192,7 @@ const ProductDetail = ({
               </p>
             </div>
             <button
-              onClick={onClose || (() => setShowProductModal(false))}
+              onClick={onClose}
               className="ml-4 p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
               aria-label="Close modal"
             >
@@ -208,7 +205,7 @@ const ProductDetail = ({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Left Column - Images */}
               <div className="space-y-4">
-                <div className="relative rounded-xl overflow-hidden h-[500px] ">
+                <div className="relative rounded-xl overflow-hidden h-[400px] ">
                   <img
                     src={
                       selectedProduct.image ||
@@ -356,8 +353,8 @@ const ProductDetail = ({
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
                     Specifications
                   </h3>
-                  <div className="p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 overflow-hidden gap-x-2">
+                  <div className="">
+                    <div className="grid grid-cols-1 md:grid-cols-2 overflow-hidden border border-gray-200 dark:border-neutral-700 rounded-lg">
                       {Object.entries(selectedProduct.specifications).map(
                         ([key, value], index) => {
                           const row = Math.floor(index / cols);
@@ -393,17 +390,17 @@ const ProductDetail = ({
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={onClose || (() => setShowProductModal(false))}
-                className="px-6 py-2 border border-gray-300 dark:border-neutral-700 text-gray-900 dark:text-gray-100 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 text-xs"
+                onClick={onClose}
+                className="px-6 py-3 border border-gray-300 dark:border-neutral-700 text-gray-900 dark:text-gray-100 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 text-xs"
               >
                 Close
               </button>
               <button
                 onClick={() => {
-                  (onClose || (() => setShowProductModal(false)))();
+                  onClose();
                   handleEditProduct(selectedProduct);
                 }}
-                className="flex items-center gap-2 px-6 py-2 text-xs bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 shadow-lg hover:shadow-xl"
+                className="flex items-center gap-2 px-6 py-3 text-xs bg-linear-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 shadow-lg hover:shadow-xl"
               >
                 <FiEdit2 size={18} />
                 Edit Product

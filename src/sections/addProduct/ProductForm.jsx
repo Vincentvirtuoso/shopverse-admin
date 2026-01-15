@@ -28,6 +28,7 @@ import MediaUploadSection from "./steps/MediaUploadSection";
 import AttributesSection from "./steps/AttributesSection";
 import ShippingSection from "./steps/ShippingSection";
 import VariantSection from "./VariantSection";
+import MultiInput from "../../components/common/MultiInput";
 
 const getErrorMessage = (errors) => {
   if (!errors || typeof errors !== "object") return "";

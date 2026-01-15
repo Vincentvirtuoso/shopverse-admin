@@ -153,7 +153,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
           width: isMobile ? "256px" : isSidebarOpen ? "256px" : "80px",
         }}
         transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
-        className={`fixed top-0 left-0 h-screen bg-white dark:bg-neutral-900 shadow-lg text-gray-800 dark:text-white z-50 ${
+        className={`fixed top-0 left-0 h-dvh bg-white dark:bg-neutral-900 shadow-lg text-gray-800 dark:text-white z-50 ${
           isMobile && "z-60"
         } overflow-hidden`}
       >
