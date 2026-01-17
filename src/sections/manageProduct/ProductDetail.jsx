@@ -15,6 +15,8 @@ import useBodyScrollLock from "../../hooks/useBodyScrollLock";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import Rating from "../../components/ui/Rating";
 import useGridColumns from "../../hooks/useGridColumns";
+import { separateCamelCase } from "../../util/helpers";
+import TruncatedTextWithTooltip from "../../components/common/TruncatedTextWithTooltip";
 
 const TagsSection = ({ selectedProduct }) => {
   const [showAllTags, setShowAllTags] = useState(false);
@@ -356,7 +358,7 @@ const ProductDetail = ({
                   <div className="">
                     <div className="grid grid-cols-1 md:grid-cols-2 overflow-hidden border border-gray-200 dark:border-neutral-700 rounded-lg">
                       {Object.entries(selectedProduct.specifications).map(
-                        ([key, value], index) => {
+                        ([key = "", value], index) => {
                           const row = Math.floor(index / cols);
                           return (
                             <div
@@ -367,12 +369,10 @@ const ProductDetail = ({
                                   : ""
                               } px-3 gap-6`}
                             >
-                              <span className="text-gray-500 dark:text-gray-400">
-                                {key}
+                              <span className="text-gray-500 dark:text-gray-400 capitalize">
+                                {separateCamelCase(key)}
                               </span>
-                              <span className="font-medium text-gray-900 dark:text-white text-right truncate">
-                                {value}
-                              </span>
+                              <TruncatedTextWithTooltip value={value} />
                             </div>
                           );
                         }
@@ -411,14 +411,6 @@ const ProductDetail = ({
       </motion.div>
     </AnimatePresence>
   );
-};
-
-ProductDetail.defaultProps = {
-  selectedProduct: null,
-  setShowProductModal: () => {},
-  getStockStatus: () => ({ label: "Unknown", color: "text-gray-500" }),
-  handleEditProduct: () => {},
-  onClose: null,
 };
 
 export default React.memo(ProductDetail);

@@ -326,8 +326,6 @@ export const useProductForm = (initialValues = {}) => {
       else if (!isNumber(form.price))
         addError("price", "Price must be a valid number");
       else if (price <= 0) addError("price", "Price must be greater than 0");
-      else if (price > 1_000_000)
-        addError("price", "Price cannot exceed 1,000,000");
       else if (!/^\d+(\.\d{1,2})?$/.test(form.price.toString()))
         addError("price", "Price must have at most 2 decimal places");
 

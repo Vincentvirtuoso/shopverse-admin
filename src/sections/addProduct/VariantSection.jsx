@@ -494,46 +494,6 @@ const VariantSection = ({ form, addVariant, removeVariant, updateVariant }) => {
                     </div>
                   )}
                 </div>
-
-                {/* Price Summary */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="pt-5 border-t border-gray-100 dark:border-gray-700/50 space-y-3"
-                >
-                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    Variant Summary
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                        Price per unit
-                      </p>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                        ₦{parseFloat(variant.price || 0).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                        Stock value
-                      </p>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                        ₦
-                        {parseFloat(
-                          (variant.price || 0) * (variant.stockCount || 0)
-                        ).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                        Attributes
-                      </p>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {variant.attributes?.size || 0} set
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
               </motion.div>
             ))}
           </motion.div>

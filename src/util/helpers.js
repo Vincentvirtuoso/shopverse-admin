@@ -107,4 +107,188 @@ export const getSmartUnit = (quantity, unit) => {
   }
 };
 
-export { calculateShippingEstimate };
+const formatNaira = (value) => {
+  if (!value && value !== 0) return "";
+  const num = parseFloat(value);
+  if (isNaN(num)) return value;
+
+  // Format with Nigerian-style commas (no decimals for large amounts)
+  if (num >= 1000) {
+    return num.toLocaleString("en-NG", {
+      maximumFractionDigits: 0,
+      minimumFractionDigits: 0,
+    });
+  }
+  return num.toString();
+};
+
+const convertToNairaWords = (amount) => {
+  if (!amount && amount !== 0) return "";
+
+  const num = parseFloat(amount);
+  if (isNaN(num) || num < 0) return "";
+  if (num === 0) return "Zero Naira";
+
+  const units = ["", "Thousand", "Million", "Billion"];
+  const ones = [
+    "",
+    "One",
+    "Two",
+    "Three",
+    "Four",
+    "Five",
+    "Six",
+    "Seven",
+    "Eight",
+    "Nine",
+  ];
+  const teens = [
+    "Ten",
+    "Eleven",
+    "Twelve",
+    "Thirteen",
+    "Fourteen",
+    "Fifteen",
+    "Sixteen",
+    "Seventeen",
+    "Eighteen",
+    "Nineteen",
+  ];
+  const tens = [
+    "",
+    "",
+    "Twenty",
+    "Thirty",
+    "Forty",
+    "Fifty",
+    "Sixty",
+    "Seventy",
+    "Eighty",
+    "Ninety",
+  ];
+
+  const convertChunk = (chunk) => {
+    let words = "";
+    const hundred = Math.floor(chunk / 100);
+    const remainder = chunk % 100;
+
+    if (hundred > 0) {
+      words += ones[hundred] + " Hundred";
+      if (remainder > 0) words += " and ";
+    }
+
+    if (remainder >= 10 && remainder <= 19) {
+      words += teens[remainder - 10];
+    } else {
+      const ten = Math.floor(remainder / 10);
+      const one = remainder % 10;
+
+      if (ten > 0) {
+        words += tens[ten];
+        if (one > 0) words += "-";
+      }
+
+      if (one > 0) {
+        words += ones[one];
+      }
+    }
+
+    return words.trim();
+  };
+
+  let words = "";
+  let tempAmount = Math.floor(num);
+  let chunkIndex = 0;
+
+  while (tempAmount > 0) {
+    const chunk = tempAmount % 1000;
+    if (chunk > 0) {
+      let chunkWords = convertChunk(chunk);
+      if (units[chunkIndex]) {
+        chunkWords += " " + units[chunkIndex];
+      }
+      words = chunkWords + (words ? " " + words : "");
+    }
+    tempAmount = Math.floor(tempAmount / 1000);
+    chunkIndex++;
+  }
+
+  // Add "Naira" and handle kobo
+  const kobo = Math.round((num - Math.floor(num)) * 100);
+  let result = words + (words ? " Naira" : "");
+
+  if (kobo > 0) {
+    result += " and " + convertChunk(kobo) + " Kobo";
+  } else if (words) {
+    result += " Only";
+  }
+
+  return result;
+};
+
+function separateCamelCase(str, options = {}) {
+  if (!str || typeof str !== "string") return str || "";
+
+  const {
+    separator = " ",
+    preserveAcronyms = true,
+    capitalizeFirst = false,
+    lowercaseFirst = false,
+  } = options;
+
+  if (str.length <= 1) return str;
+
+  let result = str.replace(/([a-z])([A-Z])/g, `$1${separator}$2`);
+
+  if (preserveAcronyms) {
+    result = result.replace(/([A-Z]+)([A-Z][a-z])/g, `$1${separator}$2`);
+  } else {
+    result = result.replace(/([A-Z]+)/g, (match) =>
+      match.split("").join(separator)
+    );
+  }
+
+  result = result.replace(/([a-zA-Z])(\d)/g, `$1${separator}$2`);
+  result = result.replace(/(\d)([a-zA-Z])/g, `$1${separator}$2`);
+
+  if (capitalizeFirst) {
+    result = result
+      .split(separator)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(separator);
+  } else if (lowercaseFirst) {
+    result = result
+      .split(separator)
+      .map((word) => word.charAt(0).toLowerCase() + word.slice(1))
+      .join(separator);
+  }
+
+  result = result.replace(new RegExp(`${separator}+`, "g"), separator);
+
+  return result.trim();
+}
+
+// Alternative: Simple one-liner version
+// function simpleSeparate(str, separator = ' ') {
+//   if (!str) return '';
+//   return str
+//     .replace(/([a-z])([A-Z])/g, `$1${separator}$2`)
+//     .replace(/([A-Z]+)([A-Z][a-z])/g, `$1${separator}$2`)
+//     .replace(/([a-zA-Z])(\d)/g, `$1${separator}$2`)
+//     .replace(/(\d)([a-zA-Z])/g, `$1${separator}$2`);
+// }
+
+// // Examples and test cases:
+// const examples = [
+//   'phoneCamera',
+//   'iPhone15ProMax',
+//   'getUserData',
+//   'HTMLParser',
+//   'JSONData
+
+export {
+  calculateShippingEstimate,
+  convertToNairaWords,
+  formatNaira,
+  separateCamelCase,
+};

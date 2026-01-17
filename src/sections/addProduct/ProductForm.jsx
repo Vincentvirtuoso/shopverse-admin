@@ -15,6 +15,7 @@ import {
   FiPackage,
   FiChevronDown,
   FiArrowDown,
+  FiAlertCircle,
 } from "react-icons/fi";
 import { FaNairaSign } from "react-icons/fa6";
 import { LuRefreshCcw } from "react-icons/lu";
@@ -29,6 +30,7 @@ import AttributesSection from "./steps/AttributesSection";
 import ShippingSection from "./steps/ShippingSection";
 import VariantSection from "./VariantSection";
 import MultiInput from "../../components/common/MultiInput";
+import PriceInput from "../../components/common/PriceInput";
 
 const getErrorMessage = (errors) => {
   if (!errors || typeof errors !== "object") return "";
@@ -102,13 +104,22 @@ const ProductForm = ({
       return;
     }
 
-    if (!validateForm(null, true)) return;
+    if (!validateForm(null, true)) {
+      setNotification({
+        type: "error",
+        title: "You can't submit",
+        message:
+          getErrorMessage(errors) || "Please check your inputs and try again.",
+      });
+      return;
+    }
 
     const formData = new FormData();
 
+    console.log(form);
+
     const productJson = {
       ...form,
-      specifications: Object.fromEntries(form.specifications),
     };
     delete productJson.image;
     delete productJson.images;
@@ -326,122 +337,25 @@ const ProductForm = ({
             {/* Pricing Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Current Price */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    Selling Price *
-                    <span className="inline-flex items-center justify-center w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>
-                  </label>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                    Required
-                  </span>
-                </div>
-
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaNairaSign
-                      className={`w-5 h-5 ${
-                        errors.price
-                          ? "text-red-500"
-                          : "text-gray-400 group-focus-within:text-red-500 transition-colors"
-                      }`}
-                    />
-                  </div>
-                  <input
-                    type="number"
-                    name="price"
-                    value={form.price}
-                    onChange={handleChange}
-                    step="0.01"
-                    min="0"
-                    className={`w-full pl-11 pr-4 py-3.5 rounded-xl border ${
-                      errors.price
-                        ? "border-red-500 bg-red-50/50 dark:bg-red-900/10"
-                        : "border-gray-300 dark:border-gray-600 hover:border-red-300 dark:hover:border-red-700/50"
-                    } 
-            bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 
-            focus:ring-2 focus:ring-red-500/40 focus:border-red-500
-            placeholder:text-gray-400 dark:placeholder:text-gray-500
-            transition-all duration-200`}
-                    placeholder="0.00"
-                    aria-invalid={!!errors.price}
-                    aria-describedby={errors.price ? "price-error" : undefined}
-                  />
-                </div>
-
-                {errors.price && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    id="price-error"
-                    className="flex items-start space-x-2 text-sm text-red-600 dark:text-red-400"
-                  >
-                    <FiAlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                    <span>{errors.price}</span>
-                  </motion.div>
-                )}
-
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  This is the price customers will pay
-                </p>
-              </div>
-
-              {/* Original Price */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    Original Price
-                  </label>
-                  {form.originalPrice > form.price && (
-                    <span className="text-xs font-medium text-red-600 dark:text-red-400">
-                      Discount Active
-                    </span>
-                  )}
-                </div>
-
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaNairaSign className="w-5 h-5 text-gray-400 group-focus-within:text-red-500 transition-colors" />
-                  </div>
-                  <input
-                    type="number"
-                    name="originalPrice"
-                    value={form.originalPrice}
-                    onChange={handleChange}
-                    step="0.01"
-                    min="0"
-                    className={`w-full pl-11 pr-4 py-3.5 rounded-xl border ${
-                      errors.originalPrice
-                        ? "border-red-500 bg-red-50/50 dark:bg-red-900/10"
-                        : "border-gray-300 dark:border-gray-600 hover:border-red-300 dark:hover:border-red-700/50"
-                    } 
-            bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 
-            focus:ring-2 focus:ring-red-500/40 focus:border-red-500
-            placeholder:text-gray-400 dark:placeholder:text-gray-500
-            transition-all duration-200`}
-                    placeholder="0.00"
-                    aria-describedby={
-                      errors.originalPrice ? "original-price-error" : undefined
-                    }
-                  />
-                </div>
-
-                {errors.originalPrice && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    id="original-price-error"
-                    className="flex items-start space-x-2 text-sm text-red-600 dark:text-red-400"
-                  >
-                    <FiAlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                    <span>{errors.originalPrice}</span>
-                  </motion.div>
-                )}
-
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Original price before discount (optional)
-                </p>
-              </div>
+              <PriceInput
+                value={form.price}
+                onChange={handleChange}
+                error={errors.price}
+                name="price"
+                required
+              />
+              <PriceInput
+                label="Original Price"
+                value={form.originalPrice}
+                onChange={handleChange}
+                error={errors.originalPrice}
+                name="originalPrice"
+                // currency="USD"
+                step={0.01}
+                min={0}
+                max={1000000}
+                description="The original price before discount"
+              />
 
               {/* Unit Selection */}
               <div className="space-y-3">
@@ -512,7 +426,7 @@ const ProductForm = ({
 
                   <div
                     className="relative p-6 bg-linear-to-r from-white to-gray-50/80 dark:from-gray-800/60 dark:to-gray-900/60 
-        border border-red-200/50 dark:border-red-900/30 backdrop-blur-sm"
+        border border-red-200/50 dark:border-red-900/30 backdrop-blur-sm overflow-hidden"
                   >
                     <div className="">
                       {/* Left Section */}
