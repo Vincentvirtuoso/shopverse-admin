@@ -75,7 +75,7 @@ export const AuthProvider = ({ children }) => {
       await authApi.logout();
       setUser(null);
       setIsAuthenticated(false);
-      window.location.href = "/auth";
+      // window.location.href = "/auth";
     } catch (error) {
       console.error("Logout error:", error);
       throw error;
