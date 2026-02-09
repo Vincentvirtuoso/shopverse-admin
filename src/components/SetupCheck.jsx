@@ -1,33 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
-import { FiLoader, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
-import api from "../api/axiosInstance";
+import { FiAlertCircle } from "react-icons/fi";
 import SetupSuperAdmin from "../pages/SetupSuperAdmin";
+import { useCheckAdmin } from "../hooks/useCheckAdmin";
 
 const SetupCheck = ({ children }) => {
-  const [checking, setChecking] = useState(true);
-  const [superAdminExists, setSuperAdminExists] = useState(false);
-  const [error, setError] = useState(null);
+  const { checkSetupStatus, checking, error, superAdminExists } =
+    useCheckAdmin();
 
   useEffect(() => {
     checkSetupStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const checkSetupStatus = async () => {
-    try {
-      setChecking(true);
-      const response = await api.get("/setup/check");
-
-      if (response.data.success) {
-        setSuperAdminExists(response.data.data.superAdminExists);
-      }
-    } catch (err) {
-      console.error("Setup check failed:", err);
-      setError("Unable to check setup status. Please refresh the page.");
-    } finally {
-      setChecking(false);
-    }
-  };
 
   if (checking) {
     return (

@@ -52,7 +52,7 @@ const Auth = () => {
       setError(
         err.response?.data?.message ||
           err.message ||
-          "Login failed. Please try again."
+          "Login failed. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -114,9 +114,9 @@ const Auth = () => {
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
-          className="hidden lg:flex lg:w-7/12 xl:w-8/12 p-6 md:p-8 lg:p-12 flex-col justify-between"
+          className="hidden lg:flex lg:w-7/12 xl:w-8/12 p-6 md:p-8 lg:p-12 flex-col justify-between items-center flex-1"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between w-full">
             <div className="flex items-center space-x-3">
               <FiShield className="w-8 h-8 text-red-500 dark:text-red-500" />
               <span className="text-xl font-bold text-gray-900 dark:text-white">
@@ -124,16 +124,16 @@ const Auth = () => {
               </span>
             </div>
             <div className="hidden xl:block text-sm text-gray-600 dark:text-gray-400">
-              v2.0 • Secure Portal
+              v1.0 • Secure Portal
             </div>
           </div>
 
-          <div className="max-w-2xl mx-auto lg:mx-0">
+          <div className="max-w-3xl mx-auto lg:mx-0 text-center">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6"
+              className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6 text-center"
             >
               Command Your{" "}
               <span className="text-red-600 dark:text-red-500">E-commerce</span>{" "}
@@ -144,10 +144,10 @@ const Auth = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-8 sm:mb-12"
+              className="text-md sm:text-lg text-gray-600 dark:text-gray-300 mb-8 sm:mb-12"
             >
-              Access the most powerful e-commerce management platform designed
-              for super administrators.
+              Access your e-commerce management platform designed for your super
+              administrator needs.
             </motion.p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12">
@@ -157,7 +157,7 @@ const Auth = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 + index * 0.1 }}
-                  className="flex items-start space-x-3 sm:space-x-4 p-3 sm:p-4 bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-lg sm:rounded-xl border border-gray-200 dark:border-white/10 shadow-sm dark:shadow-none"
+                  className="flex items-start space-x-3 sm:space-x-4 p-3 sm:p-4 bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-lg sm:rounded-xl border border-gray-200 dark:border-white/10 shadow-sm dark:shadow-none text-start"
                 >
                   <div className="p-2 sm:p-3 bg-red-100 dark:bg-red-500/10 rounded-lg shrink-0">
                     <item.icon className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 dark:text-red-400" />
@@ -178,7 +178,7 @@ const Auth = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8 }}
-              className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-gray-500 dark:text-gray-400"
+              className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-gray-500 dark:text-gray-400 justify-center"
             >
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -193,15 +193,6 @@ const Auth = () => {
                 <span>Real-time Monitoring</span>
               </div>
             </motion.div>
-          </div>
-
-          <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-500 mt-8 sm:mt-0">
-            <p>
-              © {new Date().getFullYear()} Shopverse Inc. All rights reserved.
-            </p>
-            <p className="mt-1">
-              Restricted access for authorized personnel only.
-            </p>
           </div>
         </motion.div>
 

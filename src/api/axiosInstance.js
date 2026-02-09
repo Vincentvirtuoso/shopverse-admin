@@ -7,6 +7,8 @@ const api = axios.create({
   withCredentials: true,
 });
 
+api.defaults.headers.common["X-App-Type"] = "admin";
+
 // ---- Global handlers (connected by AuthContext) ----
 let onUnauthorizedLogout = null;
 let onTryRefresh = null;
@@ -78,6 +80,6 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(err);
-  }
+  },
 );
 export default api;
