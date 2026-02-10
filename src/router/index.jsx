@@ -9,6 +9,7 @@ import EditProduct from "../pages/EditProduct";
 import Auth from "../pages/Auth";
 import ProtectedRoute from "../components/ProtectedRoute";
 import AdminLayout from "../layout/AdminLayout";
+import Orders from "../pages/Orders";
 
 const router = createBrowserRouter([
   {
@@ -30,6 +31,7 @@ const router = createBrowserRouter([
               { path: "/add-product", element: <AddProduct /> },
               { path: "/edit-product/:id", element: <EditProduct /> },
               { path: "/customers", element: <CustomerList /> },
+              { path: "/orders", element: <Orders /> },
             ],
           },
         ],

@@ -17,6 +17,7 @@ import Rating from "../../components/ui/Rating";
 import useGridColumns from "../../hooks/useGridColumns";
 import { separateCamelCase } from "../../util/helpers";
 import TruncatedTextWithTooltip from "../../components/common/TruncatedTextWithTooltip";
+import ProductVariants from "../../components/ui/ProductVariants";
 
 const TagsSection = ({ selectedProduct }) => {
   const [showAllTags, setShowAllTags] = useState(false);
@@ -57,7 +58,7 @@ const TagsSection = ({ selectedProduct }) => {
             ) : (
               <>
                 <FiChevronDown size={14} />
-                Show {hiddenTagsCount} More
+                Show More
               </>
             )}
           </button>
@@ -102,7 +103,7 @@ const ProductDetail = ({
 }) => {
   const stockStatus = useMemo(
     () => (selectedProduct ? getStockStatus(selectedProduct) : null),
-    [selectedProduct, getStockStatus]
+    [selectedProduct, getStockStatus],
   );
 
   const discountPercentage = useMemo(() => {
@@ -110,7 +111,7 @@ const ProductDetail = ({
     return Math.round(
       ((selectedProduct.originalPrice - selectedProduct.price) /
         selectedProduct.originalPrice) *
-        100
+        100,
     );
   }, [selectedProduct]);
 
@@ -123,7 +124,7 @@ const ProductDetail = ({
         handleEditProduct(selectedProduct);
       }
     },
-    [onClose, handleEditProduct, selectedProduct]
+    [onClose, handleEditProduct, selectedProduct],
   );
 
   // Close modal on background click
@@ -133,7 +134,7 @@ const ProductDetail = ({
         onClose();
       }
     },
-    [onClose]
+    [onClose],
   );
 
   React.useEffect(() => {
@@ -234,7 +235,7 @@ const ProductDetail = ({
                           className="relative rounded-lg overflow-hidden aspect-square focus:outline-none focus:ring-2 focus:ring-red-500"
                           onClick={() => {
                             const imgElement = document.querySelector(
-                              ".main-product-image"
+                              ".main-product-image",
                             );
                             if (imgElement) {
                               imgElement.src = img;
@@ -348,6 +349,8 @@ const ProductDetail = ({
                 </div>
               </div>
             </div>
+
+            <ProductVariants variants={selectedProduct.variants || []} />
             {/* Specifications */}
             {selectedProduct.specifications &&
               Object.keys(selectedProduct.specifications).length > 0 && (
@@ -375,7 +378,7 @@ const ProductDetail = ({
                               <TruncatedTextWithTooltip value={value} />
                             </div>
                           );
-                        }
+                        },
                       )}
                     </div>
                   </div>
