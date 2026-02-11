@@ -480,7 +480,7 @@ const ProductForm = ({
                       type="button"
                       disabled={isEdit}
                       onClick={() => {
-                        if (!isEdit) {
+                        if (isEdit) {
                           return null;
                         } else {
                           if (

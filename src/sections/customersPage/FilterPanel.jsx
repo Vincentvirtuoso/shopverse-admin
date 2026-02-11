@@ -45,7 +45,7 @@ const FilterPanel = ({ onFilter }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Role Filter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium  text-gray-500 dark:text-gray-200 mb-2">
             Role
           </label>
           <select
@@ -63,7 +63,7 @@ const FilterPanel = ({ onFilter }) => {
 
         {/* Status Filter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium  text-gray-500 dark:text-gray-200 mb-2">
             Status
           </label>
           <select
@@ -79,7 +79,7 @@ const FilterPanel = ({ onFilter }) => {
 
         {/* Verification Filter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium  text-gray-500 dark:text-gray-200 mb-2">
             Email Verification
           </label>
           <select
@@ -95,7 +95,7 @@ const FilterPanel = ({ onFilter }) => {
 
         {/* Date Range */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium  text-gray-500 dark:text-gray-200 mb-2">
             Joined Date
           </label>
           <select
@@ -114,7 +114,7 @@ const FilterPanel = ({ onFilter }) => {
 
         {/* Min Orders */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium  text-gray-500 dark:text-gray-200 mb-2">
             Min Orders
           </label>
           <input
@@ -128,7 +128,7 @@ const FilterPanel = ({ onFilter }) => {
 
         {/* Min Spent */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium  text-gray-500 dark:text-gray-200 mb-2">
             Min Spent ($)
           </label>
           <input

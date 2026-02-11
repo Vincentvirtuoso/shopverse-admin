@@ -1,5 +1,3 @@
-import React from "react";
-
 const ErrorState = ({
   icon: Icon = null,
   title,
@@ -8,7 +6,7 @@ const ErrorState = ({
   className = "",
 }) => {
   return (
-    <div className={`text-center max-w-md mx-auto px-4 ${className}`}>
+    <div className={`text-center max-w-xl mx-auto px-4 ${className}`}>
       {Icon && (
         <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
           <Icon className="w-10 h-10 text-red-500 dark:text-red-400" />
@@ -22,7 +20,7 @@ const ErrorState = ({
       <p className="text-gray-600 dark:text-gray-400 mb-6">{message}</p>
 
       {actions.length > 0 && (
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <div className="flex flex-wrap gap-3 justify-center">
           {actions.map((action, index) => (
             <button
               key={index}

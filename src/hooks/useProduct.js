@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useApi } from "./useApi";
 import { isValidCategory } from "../assets/addProducts";
 import { useEffect } from "react";
@@ -22,27 +22,27 @@ export const useProduct = () => {
         throw err;
       }
     },
-    [callApi]
+    [callApi],
   );
 
   // Create a product
   const createProduct = useCallback(
     (productData, formData = null) =>
       handleProductMutation("/products", "POST", formData || productData),
-    [handleProductMutation]
+    [handleProductMutation],
   );
 
   // Update a product
   const updateProduct = useCallback(
     (id, productData, formData = null) =>
       handleProductMutation(`/products/${id}`, "PUT", formData || productData),
-    [handleProductMutation]
+    [handleProductMutation],
   );
 
   // Delete a product
   const deleteProduct = useCallback(
     (id) => handleProductMutation(`/products/${id}`, "DELETE"),
-    [handleProductMutation]
+    [handleProductMutation],
   );
 
   // Fetch all products with optional query params
@@ -66,25 +66,25 @@ export const useProduct = () => {
         throw err;
       }
     },
-    [callApi]
+    [callApi],
   );
 
   // Fetch single product by ID
   const getProductById = useCallback(
     (id) => callApi(`/products/${id}`, "GET"),
-    [callApi]
+    [callApi],
   );
 
   // Best sellers
   const getBestSellers = useCallback(
     () => callApi("/products/best-sellers", "GET"),
-    [callApi]
+    [callApi],
   );
 
   // Product stats
   const getProductStats = useCallback(
     () => callApi("/products/stats", "GET"),
-    [callApi]
+    [callApi],
   );
 
   return {
@@ -104,23 +104,33 @@ export const useProduct = () => {
   };
 };
 
-export const useProductForm = (initialValues = {}) => {
+export const useProductForm = (initialValues = {}, options = {}) => {
   const STORAGE_KEY = "product-form";
-  const initialForm = {
-    tags: [],
-    features: [],
-    variants: [],
-    ...initialValues,
-  };
+  const initialForm = useMemo(
+    () => ({
+      tags: [],
+      features: [],
+      variants: [],
+      ...initialValues,
+    }),
+    [initialValues],
+  );
 
-  const [form, setForm] = useState(() => {
-    try {
+  const { isEditMode = false } = options;
+
+  const [form, setForm] = useState(initialForm);
+
+  useEffect(() => {
+    if (!initialForm) return;
+
+    if (isEditMode) {
+      setForm(initialForm);
+    } else {
       const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? { ...initialForm, ...JSON.parse(saved) } : initialForm;
-    } catch {
-      return initialForm;
+      setForm(saved ? { ...initialForm, ...JSON.parse(saved) } : initialForm);
     }
-  });
+  }, [initialForm, isEditMode]);
+
   const [errors, setErrors] = useState({});
   const [keywordInput, setKeywordInput] = useState("");
   const [mainImage, setMainImage] = useState([]);
@@ -219,7 +229,7 @@ export const useProductForm = (initialValues = {}) => {
       meta: {
         ...prev.meta,
         keywords: (prev.meta.keywords || []).filter(
-          (keyword) => keyword !== keywordToRemove
+          (keyword) => keyword !== keywordToRemove,
         ),
       },
     }));
@@ -308,7 +318,7 @@ export const useProductForm = (initialValues = {}) => {
       else if (description.length < 10)
         addError(
           "description",
-          "Description must be at least 10 characters long"
+          "Description must be at least 10 characters long",
         );
       else if (description.length > 5000)
         addError("description", "Description cannot exceed 5000 characters");
@@ -337,12 +347,12 @@ export const useProductForm = (initialValues = {}) => {
         else if (originalPrice < price)
           addError(
             "originalPrice",
-            "Original price must be greater than or equal to the current price"
+            "Original price must be greater than or equal to the current price",
           );
         else if (originalPrice > price * 10)
           addError(
             "originalPrice",
-            "Original price seems unusually high compared to current price"
+            "Original price seems unusually high compared to current price",
           );
       }
 
@@ -362,7 +372,7 @@ export const useProductForm = (initialValues = {}) => {
         else if (!/^[A-Za-z0-9-_.]+$/.test(sku))
           addError(
             "sku",
-            "SKU can only contain letters, numbers, hyphens, underscores, and periods"
+            "SKU can only contain letters, numbers, hyphens, underscores, and periods",
           );
       }
     }
@@ -401,7 +411,7 @@ export const useProductForm = (initialValues = {}) => {
         `Validation failed for step ${step} (${
           Object.keys(errors).length
         } errors):`,
-        errors
+        errors,
       );
     }
 

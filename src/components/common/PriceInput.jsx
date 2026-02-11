@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FaNairaSign } from "react-icons/fa6";
 import { FiAlertCircle } from "react-icons/fi";
 import { motion } from "framer-motion";
-import { convertToNairaWords, formatNaira } from "../../util/helpers";
+import { convertToNairaWords, formatNaira } from "../../utils/helpers";
 import { LuAsterisk } from "react-icons/lu";
 
 const PriceInput = ({

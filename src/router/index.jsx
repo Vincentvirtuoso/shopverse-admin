@@ -10,6 +10,7 @@ import Auth from "../pages/Auth";
 import ProtectedRoute from "../components/ProtectedRoute";
 import AdminLayout from "../layout/AdminLayout";
 import Orders from "../pages/Orders";
+import CustomerStats from "../pages/CustomerStats";
 
 const router = createBrowserRouter([
   {
@@ -31,6 +32,7 @@ const router = createBrowserRouter([
               { path: "/add-product", element: <AddProduct /> },
               { path: "/edit-product/:id", element: <EditProduct /> },
               { path: "/customers", element: <CustomerList /> },
+              { path: "/customers/stats", element: <CustomerStats /> },
               { path: "/orders", element: <Orders /> },
             ],
           },

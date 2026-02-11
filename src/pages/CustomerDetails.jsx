@@ -15,6 +15,7 @@ import {
 } from "react-icons/fi";
 import { MdStore } from "react-icons/md";
 import useBodyScrollLock from "../hooks/useBodyScrollLock";
+import CardWrapper from "../components/ui/CardWrapper";
 
 const CustomerDetailsModal = ({ customer, isOpen, onClose }) => {
   useBodyScrollLock(isOpen);
@@ -33,14 +34,14 @@ const CustomerDetailsModal = ({ customer, isOpen, onClose }) => {
         />
 
         <div className="flex items-center justify-center min-h-screen p-4 z-20">
-          <motion.div
+          <CardWrapper
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="bg-white rounded-2xl shadow-2xl w-[90%] max-w-5xl max-h-[90vh] overflow-hidden"
+            className="bg-white rounded-2xl shadow-2xl w-[90%] max-w-5xl max-h-[95vh] overflow-hidden"
           >
             {/* Modal Header */}
-            <div className="p-6 border-b border-gray-400/40 flex justify-between items-center bg-linear-to-r from-red-50 to-yellow-50">
+            <div className="p-6 border-b border-gray-400/40 relative bg-linear-to-r from-red-50 to-yellow-50 dark:from-red-400/20 dark:to-yellow-400/20">
               <div className="flex items-center gap-4">
                 <img
                   src={customer.profileImage}
@@ -48,10 +49,10 @@ const CustomerDetailsModal = ({ customer, isOpen, onClose }) => {
                   className="w-16 h-16 rounded-full border-4 border-white shadow-lg"
                 />
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                     {customer.firstName} {customer.lastName}
                   </h2>
-                  <div className="flex items-center gap-3 mt-1">
+                  <div className="flex items-center gap-3 mt-1 flex-wrap">
                     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-red-100 text-red-800">
                       <FiUser />
                       {customer.role}
@@ -66,35 +67,34 @@ const CustomerDetailsModal = ({ customer, isOpen, onClose }) => {
                       {customer.isActive ? <FiCheckCircle /> : <FiXCircle />}
                       {customer.isActive ? "Active" : "Inactive"}
                     </span>
-                    <span className="text-gray-500">
-                      Customer ID: {customer._id.slice(-8)}
+                    <span className="text-gray-600 dark:text-gray-300">
+                      Customer ID: {customer._id}
                     </span>
                   </div>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors absolute right-2 top-2"
               >
-                <FiX className="text-2xl text-gray-500" />
+                <FiX className="text-2xl text-gray-500 dark:text-gray-400" />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+            <div className="p-6 overflow-y-auto max-h-[calc(95vh-130px)]">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column - Basic Info */}
                 <div className="lg:col-span-2 space-y-6">
                   {/* Contact Info */}
-                  <div className="bg-white rounded-xl border border-gray-400/40 p-5">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <FiUser className="text-red-600" />
-                      Contact Information
-                    </h3>
-                    <div className="space-y-4">
+                  <CardWrapper
+                    className="bg-white rounded-xl border border-gray-400/40 p-5"
+                    title="Contact Information"
+                  >
+                    <div className="space-y-4 mt-2">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
-                          <FiMail className="text-red-600" />
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+                          <FiMail className="text-blue-600" />
                         </div>
                         <div>
                           <p className="text-sm text-gray-500">Email</p>
@@ -113,8 +113,8 @@ const CustomerDetailsModal = ({ customer, isOpen, onClose }) => {
 
                       {customer.phoneNumber && (
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
-                            <FiPhone className="text-green-600" />
+                          <div className="w-10 h-10 rounded-lg  flex items-center justify-center">
+                            <FiPhone className="text-blue-600" />
                           </div>
                           <div>
                             <p className="text-sm text-gray-500">Phone</p>
@@ -134,10 +134,10 @@ const CustomerDetailsModal = ({ customer, isOpen, onClose }) => {
                         </div>
                       )}
                     </div>
-                  </div>
+                  </CardWrapper>
 
                   {/* Stats */}
-                  <div className="bg-white rounded-xl border border-gray-400/40 p-5">
+                  <CardWrapper className="bg-white rounded-xl border border-gray-400/40 p-5">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                       <FiShoppingBag className="text-purple-600" />
                       Customer Statistics
@@ -175,7 +175,7 @@ const CustomerDetailsModal = ({ customer, isOpen, onClose }) => {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </CardWrapper>
 
                   {/* Addresses */}
                   {customer.addresses && customer.addresses.length > 0 && (
@@ -254,7 +254,7 @@ const CustomerDetailsModal = ({ customer, isOpen, onClose }) => {
                         <span className="font-medium">
                           {customer.stats.lastLogin
                             ? new Date(
-                                customer.stats.lastLogin
+                                customer.stats.lastLogin,
                               ).toLocaleDateString()
                             : "Never"}
                         </span>
@@ -367,25 +367,7 @@ const CustomerDetailsModal = ({ customer, isOpen, onClose }) => {
                 </div>
               </div>
             </div>
-
-            {/* Modal Footer */}
-            <div className="p-6 border-t border-gray-400/40 bg-gray-50 flex justify-between">
-              <div className="text-sm text-gray-500">
-                Last Updated: {new Date(customer.updatedAt).toLocaleString()}
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={onClose}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Close
-                </button>
-                <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                  Edit Profile
-                </button>
-              </div>
-            </div>
-          </motion.div>
+          </CardWrapper>
         </div>
       </div>
     </AnimatePresence>

@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import {
   FiBell,
-  FiChevronLeft,
-  FiChevronRight,
   FiSearch,
   FiX,
   FiUser,
@@ -123,7 +121,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     const filtered = mockSearchResults.filter(
       (item) =>
         item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.id.toLowerCase().includes(searchQuery.toLowerCase())
+        item.id.toLowerCase().includes(searchQuery.toLowerCase()),
     );
     setSearchResults(filtered);
   }, [searchQuery]);
@@ -159,7 +157,7 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b dark:border-gray-400/50 border-gray-200 h-22 flex items-center">
+    <header className="sticky top-0 z-50 bg-white dark:bg-neutral-900 border-b dark:border-neutral-400/50 border-gray-200 h-22 flex items-center">
       <div className="px-4 sm:px-6 lg:px-8 flex-1">
         <div className="flex items-center justify-between h-16">
           {/* Left Section */}
@@ -239,10 +237,10 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                                 result.type === "order"
                                   ? "bg-blue-100 dark:bg-blue-900/30"
                                   : result.type === "product"
-                                  ? "bg-green-100 dark:bg-green-900/30"
-                                  : result.type === "customer"
-                                  ? "bg-purple-100 dark:bg-purple-900/30"
-                                  : "bg-yellow-100 dark:bg-yellow-900/30"
+                                    ? "bg-green-100 dark:bg-green-900/30"
+                                    : result.type === "customer"
+                                      ? "bg-purple-100 dark:bg-purple-900/30"
+                                      : "bg-yellow-100 dark:bg-yellow-900/30"
                               }`}
                             >
                               {result.type === "order" && (
@@ -363,8 +361,8 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                               notification.id === 1
                                 ? "bg-green-100 dark:bg-green-900/30"
                                 : notification.id === 2
-                                ? "bg-yellow-100 dark:bg-yellow-900/30"
-                                : "bg-blue-100 dark:blue-900/30"
+                                  ? "bg-yellow-100 dark:bg-yellow-900/30"
+                                  : "bg-blue-100 dark:blue-900/30"
                             }`}
                           >
                             {notification.id === 1 && (
@@ -570,10 +568,10 @@ const Navbar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                         result.type === "order"
                           ? "bg-blue-100 dark:bg-blue-900/30"
                           : result.type === "product"
-                          ? "bg-green-100 dark:bg-green-900/30"
-                          : result.type === "customer"
-                          ? "bg-purple-100 dark:bg-purple-900/30"
-                          : "bg-yellow-100 dark:bg-yellow-900/30"
+                            ? "bg-green-100 dark:bg-green-900/30"
+                            : result.type === "customer"
+                              ? "bg-purple-100 dark:bg-purple-900/30"
+                              : "bg-yellow-100 dark:bg-yellow-900/30"
                       }`}
                     >
                       {result.type === "order" && (

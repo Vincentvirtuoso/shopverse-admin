@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import ScrollToTop from "../components/common/ScrollToTop";
 import Sidebar from "../components/common/Sidebar";
+import { Toaster } from "react-hot-toast";
 
 const AdminLayout = () => {
   const { screen, isMobile } = useScreen();
@@ -50,6 +51,20 @@ const AdminLayout = () => {
           <Outlet />
         </motion.div>
       </main>
+
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: "#333",
+            color: "#fff",
+            border: "#bbb",
+            zIndex: 9999,
+          },
+          success: { iconTheme: { primary: "#fb2c36", secondary: "#fff" } },
+          duration: 4000,
+        }}
+      />
     </div>
   );
 };

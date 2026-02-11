@@ -23,7 +23,7 @@ import StatsCard from "../components/common/StatsCard";
 import CardWrapper from "../components/ui/CardWrapper";
 import { useProduct } from "../hooks/useProduct";
 import ProductDetail from "../sections/manageProduct/ProductDetail";
-import { getSmartUnit } from "../util/helpers";
+import { getSmartUnit } from "../utils/helpers";
 import Rating from "../components/ui/Rating";
 
 const ManageProducts = () => {
@@ -607,7 +607,7 @@ const ManageProducts = () => {
                                 Math.round(
                                   ((product.originalPrice - product.price) /
                                     product.originalPrice) *
-                                    100
+                                    100,
                                 )}
                               %
                             </span>

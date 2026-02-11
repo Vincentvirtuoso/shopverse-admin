@@ -8,79 +8,6 @@ import ErrorState from "../components/ui/ErrorState";
 import Notification from "../components/ui/Notification";
 import Spinner from "../components/common/Spinner";
 
-// Initial form values
-const INITIAL_FORM_VALUES = {
-  name: "",
-  brand: "",
-  description: "",
-  category: "",
-  subCategory: "",
-  price: 0,
-  originalPrice: 0,
-  discount: 0,
-  stockCount: 0,
-  unit: "piece",
-  availabilityType: "in-stock",
-  inStock: true,
-  image: "",
-  images: [],
-  isBestSeller: false,
-  isFeatured: false,
-  isNewArrival: false,
-  isActive: true,
-  tags: [],
-  features: [],
-  warranty: "",
-  specifications: {},
-  weight: { value: 0, unit: "g" },
-  dimensions: { length: 0, width: 0, height: 0, unit: "cm" },
-  shippingInfo: { isFreeShipping: false, deliveryTime: "", shippingClass: "" },
-  meta: { title: "", description: "", keywords: [] },
-  relatedProducts: [],
-  variants: [],
-};
-
-// Map API response to form structure
-const mapApiToFormData = (apiData) => ({
-  name: apiData.name || "",
-  brand: apiData.brand || "",
-  description: apiData.description || "",
-  category: apiData.category || "",
-  subCategory: apiData.subCategory || "",
-  price: apiData.price || 0,
-  originalPrice: apiData.originalPrice || 0,
-  discount: apiData.discount || 0,
-  stockCount: apiData.stockCount || 0,
-  unit: apiData.unit || "piece",
-  availabilityType: apiData.availabilityType || "in-stock",
-  inStock: apiData.inStock !== undefined ? apiData.inStock : true,
-  image: apiData.image || "",
-  images: apiData.images || [],
-  isBestSeller: apiData.isBestSeller || false,
-  isFeatured: apiData.isFeatured || false,
-  isNewArrival: apiData.isNewArrival || false,
-  isActive: apiData.isActive !== undefined ? apiData.isActive : true,
-  tags: apiData.tags || [],
-  features: apiData.features || [],
-  warranty: apiData.warranty || "",
-  specifications: apiData.specifications || {},
-  weight: apiData.weight || { value: 0, unit: "g" },
-  dimensions: apiData.dimensions || {
-    length: 0,
-    width: 0,
-    height: 0,
-    unit: "cm",
-  },
-  shippingInfo: apiData.shippingInfo || {
-    isFreeShipping: false,
-    deliveryTime: "",
-    shippingClass: "",
-  },
-  meta: apiData.meta || { title: "", description: "", keywords: [] },
-  relatedProducts: apiData.relatedProducts || [],
-  variants: apiData.variants || [],
-});
-
 const EditProduct = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -92,10 +19,9 @@ const EditProduct = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  const {
-    form: formData,
-    setForm: setFormData,
-  } = useProductForm(INITIAL_FORM_VALUES);
+  const { form: formData, setForm: setFormData } = useProductForm(productData, {
+    isEditMode: true,
+  });
 
   // Fetch product data
   const fetchProductData = useCallback(async () => {
@@ -108,9 +34,8 @@ const EditProduct = () => {
       const response = await getProductById(id);
 
       if (response?.data) {
-        const mappedData = mapApiToFormData(response.data);
         setProductData(response.data);
-        setFormData(mappedData);
+        setFormData(response.data);
       } else {
         throw new Error("No product data received");
       }
@@ -158,10 +83,8 @@ const EditProduct = () => {
       setIsSubmitting(true);
 
       try {
-        // Clean the data before sending
         const cleanedData = { ...submitData };
 
-        // Remove empty arrays and null values
         Object.keys(cleanedData).forEach((key) => {
           if (
             cleanedData[key] === "" ||
@@ -173,10 +96,8 @@ const EditProduct = () => {
           }
         });
 
-        // Send update request
         const response = await updateProduct(id, cleanedData);
 
-        // Show success notification
         setNotification({
           type: "success",
           title: "Product Updated",
@@ -212,20 +133,20 @@ const EditProduct = () => {
     setNotification(null);
   }, []);
 
-  // Loading state
-  const loadingState = useMemo(
-    () => (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <Spinner size="lg" label="Loading product details..." />
+  if (loading) {
+    return (
+      <div className="min-h-[calc(100vh-10rem)] bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <Spinner
+          size="2xl"
+          label="Loading product details..."
+          color="primary"
+        />
       </div>
-    ),
-    [],
-  );
-
-  // Error state
-  const errorState = useMemo(
-    () => (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+    );
+  }
+  if (error) {
+    return (
+      <div className="min-h-[calc(100vh-10rem)] bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <ErrorState
           icon={FiAlertCircle}
           title="Error Loading Product"
@@ -245,26 +166,23 @@ const EditProduct = () => {
           ]}
         />
       </div>
-    ),
-    [error, fetchProductData, navigate],
-  );
+    );
+  }
 
-  // Main content
-  const mainContent = useMemo(
-    () => (
+  return (
+    <>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        {/* Header */}
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.3 }}
           className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-900"
         >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="">
             <div className="flex sm:items-center sm:justify-between gap-4 flex-col sm:flex-row">
               <button
                 onClick={() => navigate("/manage-products")}
-                className="flex items-center gap-2 px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors place-self-start"
                 aria-label="Back to products"
               >
                 <FiArrowLeft className="w-5 h-5" />
@@ -275,7 +193,7 @@ const EditProduct = () => {
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-gray-500 dark:text-gray-400">
                     Last updated:{" "}
-                    {new Date(productData.updatedAt).toLocaleDateString()}
+                    {new Date(productData.updatedAt).toLocaleString()}
                   </span>
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -302,24 +220,13 @@ const EditProduct = () => {
             <ProductForm
               loading={isSubmitting}
               onSubmit={handleSubmit}
-              initialData={productData}
+              // initialData={productData}
               setNotification={setNotification}
               isEdit={true}
             />
           </motion.div>
         </div>
       </div>
-    ),
-    [productData, isSubmitting, handleSubmit, navigate],
-  );
-
-  // Render based on state
-  if (loading) return loadingState;
-  if (error) return errorState;
-
-  return (
-    <>
-      {mainContent}
 
       {/* Notification */}
       <AnimatePresence>

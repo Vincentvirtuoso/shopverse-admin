@@ -15,7 +15,7 @@ import useBodyScrollLock from "../../hooks/useBodyScrollLock";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 import Rating from "../../components/ui/Rating";
 import useGridColumns from "../../hooks/useGridColumns";
-import { separateCamelCase } from "../../util/helpers";
+import { separateCamelCase } from "../../utils/helpers";
 import TruncatedTextWithTooltip from "../../components/common/TruncatedTextWithTooltip";
 import ProductVariants from "../../components/ui/ProductVariants";
 

@@ -1,7 +1,14 @@
 import { motion } from "framer-motion";
+import {
+  LuArrowDown,
+  LuArrowUp,
+  LuTrendingDown,
+  LuTrendingUp,
+} from "react-icons/lu";
 
 const StatsCard = ({
   label,
+  subtitle,
   index,
   value,
   icon: Icon,
@@ -21,25 +28,38 @@ const StatsCard = ({
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-gray-500 dark:text-gray-200">{label}</p>
+
+          {subtitle && (
+            <p className="text-xs text-gray-400 dark:text-gray-300 mt-1">
+              {subtitle}
+            </p>
+          )}
+
           <p className="text-2xl font-bold mt-2">{value}</p>
         </div>
-        {showIconBackground ? (
-          <div
-            className={`p-3 rounded-lg bg-${iconColor.bg} text-${iconColor.text}`}
-          >
+
+        {Icon &&
+          (showIconBackground ? (
+            <div className={`p-3 rounded-lg ${iconColor.bg} ${iconColor.text}`}>
+              {typeof Icon === "function" ? <Icon size={iconSize} /> : Icon}
+            </div>
+          ) : typeof Icon === "function" ? (
             <Icon size={iconSize} />
-          </div>
-        ) : (
-          Icon
-        )}
+          ) : (
+            Icon
+          ))}
       </div>
+
       {change && (
         <p
-          className={`text-sm mt-4 ${
-            change?.startsWith("+") ? "dark:text-green-400" : "text-red-400"
+          className={`flex items-center gap-1 text-sm mt-4 ${
+            change > 0
+              ? "text-green-500 dark:text-green-400"
+              : "text-red-500 dark:text-red-400"
           }`}
         >
-          {change} from last month
+          {change > 0 ? <LuArrowUp /> : <LuArrowDown />}
+          {change}%
         </p>
       )}
     </motion.div>
