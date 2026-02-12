@@ -22,6 +22,7 @@ import BasicInfo from "./steps/BasicInfo";
 import Pricing from "./steps/Pricing";
 import SEO from "./steps/SEO";
 import BulkProductUpload from "./BulkProductUpload";
+import JsonInputModal from "../../components/ui/JsonInputModal";
 
 const getErrorMessage = (errors) => {
   if (!errors || typeof errors !== "object") return "";
@@ -40,6 +41,7 @@ const ProductForm = ({
   const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [bulkEditIndex, setBulkEditIndex] = useState(null);
   const [bulkProducts, setBulkProducts] = useState([]);
+  const [jsonInputMode, setJsonInputMode] = useState(false);
 
   const {
     form,
@@ -72,6 +74,15 @@ const ProductForm = ({
 
   const currentIndex = sections.findIndex((s) => s.id === activeSection);
 
+  const handleJsonSave = (newForm) => {
+    setForm(newForm);
+    setJsonInputMode(false);
+    setNotification({
+      type: "success",
+      title: "JSON Updated",
+      message: "Form data has been updated from JSON input.",
+    });
+  };
   const handleProductSelect = (index) => {
     setBulkEditIndex(index);
     if (bulkProducts[index]) {
@@ -504,6 +515,12 @@ const ProductForm = ({
                 >
                   <div className="flex gap-2 flex-wrap">
                     <button
+                      onClick={() => setJsonInputMode(true)}
+                      className="px-4 py-2 bg-blue-500 rounded-lg"
+                    >
+                      Send Json
+                    </button>
+                    <button
                       type="button"
                       disabled={isEdit}
                       onClick={() => {
@@ -617,6 +634,11 @@ const ProductForm = ({
           </div>
         )}
       </motion.div>
+      <JsonInputModal
+        isOpen={jsonInputMode}
+        onClose={() => setJsonInputMode(false)}
+        onSave={handleJsonSave}
+      />
     </div>
   );
 };

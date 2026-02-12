@@ -6,8 +6,8 @@ const JsonInputModal = ({
   onSave,
   title = "Edit JSON",
   initialValue = "",
-  fieldPath = null, // e.g., ['specifications'] or ['attributes', 'details']
-  setForm = null, // Optional: directly update form if provided
+  fieldPath = null,
+  setForm = null,
 }) => {
   const [jsonText, setJsonText] = useState("");
   const [error, setError] = useState("");
