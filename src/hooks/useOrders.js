@@ -48,7 +48,7 @@ export const useOrder = () => {
     async (orderId, statusData) => {
       try {
         const response = await callApi(
-          `/orders/${orderId}/status`,
+          `/orders/admin/${orderId}/status`,
           "PATCH",
           statusData,
         );
@@ -79,7 +79,7 @@ export const useOrder = () => {
   const bulkUpdateOrders = useCallback(
     async (orderIds, updateData) => {
       try {
-        const response = await callApi("/orders/bulk-update", "PATCH", {
+        const response = await callApi("/orders/admin/bulk-update", "PATCH", {
           orderIds,
           ...updateData,
         });
@@ -116,17 +116,12 @@ export const useOrder = () => {
     [callApi],
   );
 
-  // ============= ANALYTICS & REPORTING =============
-
-  /**
-   * Get order analytics with timeframe filtering
-   */
   const getOrderAnalytics = useCallback(
     async (params = {}) => {
       try {
         const queryParams = new URLSearchParams(params).toString();
         const response = await callApi(
-          `/orders/analytics?${queryParams}`,
+          `/orders/admin/analytics?${queryParams}`,
           "GET",
         );
         setAnalytics(response.data);
@@ -138,14 +133,14 @@ export const useOrder = () => {
     [callApi],
   );
 
-  /**
-   * Get sales statistics
-   */
   const getSalesStats = useCallback(
     async (params = {}) => {
       try {
         const queryParams = new URLSearchParams(params).toString();
-        const response = await callApi(`/orders/stats?${queryParams}`, "GET");
+        const response = await callApi(
+          `/orders/admin/stats?${queryParams}`,
+          "GET",
+        );
         setStats(response.data.data);
         return response;
       } catch (err) {
@@ -155,14 +150,14 @@ export const useOrder = () => {
     [callApi],
   );
 
-  /**
-   * Export orders in various formats
-   */
   const exportOrders = useCallback(
     async (params = {}) => {
       try {
         const queryParams = new URLSearchParams(params).toString();
-        const response = await callApi(`/orders/export?${queryParams}`, "GET");
+        const response = await callApi(
+          `/orders/admin/export?${queryParams}`,
+          "GET",
+        );
         return response;
       } catch (err) {
         throw err;
@@ -171,16 +166,11 @@ export const useOrder = () => {
     [callApi],
   );
 
-  // ============= FULFILLMENT & SHIPPING =============
-
-  /**
-   * Get fulfillment queue
-   */
   const getFulfillmentQueue = useCallback(
     async (type = "pending_fulfillment") => {
       try {
         const response = await callApi(
-          `/orders/fulfillment/queue?type=${type}`,
+          `/orders/admin/fulfillment/queue?type=${type}`,
           "GET",
         );
         setFulfillmentQueue(response.data.orders);
@@ -192,14 +182,11 @@ export const useOrder = () => {
     [callApi],
   );
 
-  /**
-   * Mark order as shipped with tracking info
-   */
   const markAsShipped = useCallback(
     async (orderId, shippingInfo) => {
       try {
         const response = await callApi(
-          `/orders/${orderId}/ship`,
+          `/orders/admin/${orderId}/ship`,
           "POST",
           shippingInfo,
         );
@@ -222,7 +209,7 @@ export const useOrder = () => {
     async (updateData) => {
       try {
         const response = await callApi(
-          "/orders/fulfillment/bulk-update",
+          "/orders/admin/fulfillment/bulk-update",
           "PATCH",
           updateData,
         );
@@ -242,7 +229,7 @@ export const useOrder = () => {
     async (orderId, trackingInfo) => {
       try {
         const response = await callApi(
-          `/orders/${orderId}/tracking`,
+          `/orders/admin/${orderId}/tracking`,
           "PATCH",
           trackingInfo,
         );
@@ -264,7 +251,7 @@ export const useOrder = () => {
       try {
         const queryParams = new URLSearchParams(filters).toString();
         const response = await callApi(
-          `/orders/returns/dashboard?${queryParams}`,
+          `/orders/admin/returns/dashboard?${queryParams}`,
           "GET",
         );
         setReturns(response.data.returnsByStatus);
@@ -283,7 +270,7 @@ export const useOrder = () => {
     async (returnData) => {
       try {
         const response = await callApi(
-          "/orders/returns/process",
+          "/orders/admin/returns/process",
           "POST",
           returnData,
         );
@@ -310,7 +297,7 @@ export const useOrder = () => {
     async (refundData) => {
       try {
         const response = await callApi(
-          "/orders/refund/process",
+          "/orders/admin/refund/process",
           "POST",
           refundData,
         );
@@ -333,7 +320,7 @@ export const useOrder = () => {
     async (orderId, returnRequest) => {
       try {
         const response = await callApi(
-          `/orders/${orderId}/return`,
+          `/orders/admin/${orderId}/return`,
           "POST",
           returnRequest,
         );
@@ -354,7 +341,7 @@ export const useOrder = () => {
     async (customerId) => {
       try {
         const response = await callApi(
-          `/orders/customer/${customerId}/insights`,
+          `/orders/admin/customer/${customerId}/insights`,
           "GET",
         );
         return response;
@@ -373,7 +360,7 @@ export const useOrder = () => {
       try {
         const queryParams = new URLSearchParams(filters).toString();
         const response = await callApi(
-          `/orders/customer/${customerId}?${queryParams}`,
+          `/orders/admin/customer/${customerId}?${queryParams}`,
           "GET",
         );
         return response;
@@ -394,7 +381,7 @@ export const useOrder = () => {
       try {
         const queryParams = new URLSearchParams(params).toString();
         const response = await callApi(
-          `/orders/inventory/impact?${queryParams}`,
+          `/orders/admin/inventory/impact?${queryParams}`,
           "GET",
         );
         return response;
@@ -415,7 +402,7 @@ export const useOrder = () => {
       try {
         const queryParams = new URLSearchParams(params).toString();
         const response = await callApi(
-          `/orders/abandoned-carts?${queryParams}`,
+          `/orders/admin/abandoned-carts?${queryParams}`,
           "GET",
         );
         return response;
@@ -433,7 +420,7 @@ export const useOrder = () => {
     async (cartId) => {
       try {
         const response = await callApi(
-          `/orders/abandoned-carts/${cartId}/recover`,
+          `/orders/admin/abandoned-carts/${cartId}/recover`,
           "POST",
         );
         return response;
@@ -452,10 +439,14 @@ export const useOrder = () => {
   const addOrderNote = useCallback(
     async (orderId, note, isPrivate = true) => {
       try {
-        const response = await callApi(`/orders/${orderId}/notes`, "POST", {
-          note,
-          isPrivate,
-        });
+        const response = await callApi(
+          `/orders/admin/${orderId}/notes`,
+          "POST",
+          {
+            note,
+            isPrivate,
+          },
+        );
 
         setOrder((prev) =>
           prev?._id === orderId ? response.data.order : prev,
@@ -474,9 +465,13 @@ export const useOrder = () => {
   const sendOrderEmail = useCallback(
     async (orderId, emailType) => {
       try {
-        const response = await callApi(`/orders/${orderId}/email`, "POST", {
-          type: emailType,
-        });
+        const response = await callApi(
+          `/orders/admin/${orderId}/email`,
+          "POST",
+          {
+            type: emailType,
+          },
+        );
         return response;
       } catch (err) {
         throw err;
@@ -493,7 +488,10 @@ export const useOrder = () => {
   const generateInvoice = useCallback(
     async (orderId) => {
       try {
-        const response = await callApi(`/orders/${orderId}/invoice`, "GET");
+        const response = await callApi(
+          `/orders/admin/${orderId}/invoice`,
+          "GET",
+        );
         return response;
       } catch (err) {
         throw err;
@@ -509,7 +507,7 @@ export const useOrder = () => {
     async (orderId) => {
       try {
         const response = await callApi(
-          `/orders/${orderId}/invoice/download`,
+          `/orders/admin/${orderId}/invoice/download`,
           "GET",
           null,
           { responseType: "blob" },
@@ -539,7 +537,7 @@ export const useOrder = () => {
    */
   const getProcessingMetrics = useCallback(async () => {
     try {
-      const response = await callApi("/orders/metrics/processing", "GET");
+      const response = await callApi("/orders/admin/metrics/processing", "GET");
       return response;
     } catch (err) {
       throw err;
@@ -693,7 +691,11 @@ export const useOrderFilters = () => {
   });
 
   const updateFilter = useCallback((key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value, page: 1 })); // Reset to page 1 on filter change
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+      page: key === "page" ? value : 1,
+    }));
   }, []);
 
   const resetFilters = useCallback(() => {

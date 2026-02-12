@@ -1,5 +1,6 @@
 import React from "react";
 import { FiChevronUp, FiChevronDown } from "react-icons/fi";
+import { LuCircleX } from "react-icons/lu";
 
 const WrapperHeader = ({
   toggleExpand,
@@ -21,6 +22,7 @@ const WrapperHeader = ({
   showDivider = false,
   disabled = false,
   padding = false,
+  onClose,
 }) => {
   const handleClick = () => {
     if (disabled) return;
@@ -90,6 +92,14 @@ const WrapperHeader = ({
           <FiChevronDown size={chevronSize} className="shrink-0 ml-2" />
         )
       ) : null}
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="p-2 text-gray-900 dark:text-white hover:text-gray-100 dark:hover:text-gray-300 rounded-lg transition-colors"
+        >
+          <LuCircleX className="w-5 h-5" />
+        </button>
+      )}
     </div>
   );
 };
