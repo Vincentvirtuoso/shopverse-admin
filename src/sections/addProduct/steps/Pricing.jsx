@@ -83,7 +83,7 @@ const Pricing = ({ form, errors, handleChange }) => {
           // currency="USD"
           step={0.01}
           min={0}
-          max={1000000}
+          max={100000000}
           description="The original price before discount"
         />
 
