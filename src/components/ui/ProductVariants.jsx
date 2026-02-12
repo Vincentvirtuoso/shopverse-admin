@@ -11,22 +11,22 @@ const ProductVariants = ({ variants = [] }) => {
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead>
-            <tr className="bg-gray-50">
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <tr className="bg-gray-50 dark:bg-neutral-800/70">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                 Name
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                 Price
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                 Stock
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                 Attributes
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-neutral-700 divide-y divide-gray-200">
             {variants.length === 0 ? (
               <tr>
                 <td
@@ -38,9 +38,9 @@ const ProductVariants = ({ variants = [] }) => {
               </tr>
             ) : (
               variants.map((variant, index) => (
-                <tr key={index} className="hover:bg-gray-50">
+                <tr key={index} className="">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-gray-900  dark:text-white">
                       {variant.name || `Variant ${index + 1}`}
                     </div>
                     {variant.sku && (
@@ -52,12 +52,11 @@ const ProductVariants = ({ variants = [] }) => {
                           maxLength={20}
                           tooltipStyle="text-[10px] min-w-[20px] max-w-[180px]"
                         />
-                        {/* {variant.sku} */}
                       </div>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-gray-900  dark:text-white">
                       ₦{variant.price?.toLocaleString() || "0"}
                     </div>
                   </td>

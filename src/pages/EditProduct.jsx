@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
 import { FiArrowLeft, FiRefreshCcw, FiAlertCircle } from "react-icons/fi";
-import { useProduct, useProductForm } from "../hooks/useProduct";
+import { useProduct } from "../hooks/useProduct";
 import ProductForm from "../sections/addProduct/ProductForm";
 import ErrorState from "../components/ui/ErrorState";
 import Notification from "../components/ui/Notification";
@@ -19,10 +19,6 @@ const EditProduct = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  const { form: formData, setForm: setFormData } = useProductForm(productData, {
-    isEditMode: true,
-  });
-
   // Fetch product data
   const fetchProductData = useCallback(async () => {
     if (!id) return;
@@ -35,7 +31,6 @@ const EditProduct = () => {
 
       if (response?.data) {
         setProductData(response.data);
-        setFormData(response.data);
       } else {
         throw new Error("No product data received");
       }
@@ -48,55 +43,19 @@ const EditProduct = () => {
     } finally {
       setLoading(false);
     }
-  }, [id, getProductById, setFormData]);
+  }, [id, getProductById]);
 
   // Initial fetch
   useEffect(() => {
     fetchProductData();
   }, [fetchProductData]);
 
-  // Calculate discount when prices change
-  useEffect(() => {
-    if (formData.originalPrice > 0 && formData.originalPrice > formData.price) {
-      const discount = Math.round(
-        ((formData.originalPrice - formData.price) / formData.originalPrice) *
-          100,
-      );
-
-      if (discount !== formData.discount) {
-        setFormData((prev) => ({
-          ...prev,
-          discount,
-        }));
-      }
-    } else if (formData.discount !== 0) {
-      setFormData((prev) => ({
-        ...prev,
-        discount: 0,
-      }));
-    }
-  }, [formData.price, formData.originalPrice, formData.discount, setFormData]);
-
-  // Handle form submission
   const handleSubmit = useCallback(
-    async ({ formData: submitData, setActiveSection }) => {
+    async ({ formData, setActiveSection, resetForm }) => {
       setIsSubmitting(true);
 
       try {
-        const cleanedData = { ...submitData };
-
-        Object.keys(cleanedData).forEach((key) => {
-          if (
-            cleanedData[key] === "" ||
-            cleanedData[key] === null ||
-            cleanedData[key] === undefined ||
-            (Array.isArray(cleanedData[key]) && cleanedData[key].length === 0)
-          ) {
-            delete cleanedData[key];
-          }
-        });
-
-        const response = await updateProduct(id, cleanedData);
+        const response = await updateProduct(id, formData);
 
         setNotification({
           type: "success",
@@ -107,6 +66,7 @@ const EditProduct = () => {
 
         setActiveSection("basic");
         navigate("/manage-products");
+        resetForm?.();
 
         return response;
       } catch (err) {
@@ -135,18 +95,18 @@ const EditProduct = () => {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-10rem)] bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-[calc(100vh-10rem)] flex items-center justify-center">
         <Spinner
           size="2xl"
-          label="Loading product details..."
-          color="primary"
+          label="Loading product details"
+          labelAnimation="typing"
         />
       </div>
     );
   }
   if (error) {
     return (
-      <div className="min-h-[calc(100vh-10rem)] bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+      <div className="min-h-[calc(100vh-10rem)] flex items-center justify-center p-4">
         <ErrorState
           icon={FiAlertCircle}
           title="Error Loading Product"
@@ -171,12 +131,12 @@ const EditProduct = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen">
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-900"
+          className="sticky top-0 z-10"
         >
           <div className="">
             <div className="flex sm:items-center sm:justify-between gap-4 flex-col sm:flex-row">
@@ -220,9 +180,9 @@ const EditProduct = () => {
             <ProductForm
               loading={isSubmitting}
               onSubmit={handleSubmit}
-              // initialData={productData}
+              initialData={productData}
               setNotification={setNotification}
-              isEdit={true}
+              isEdit
             />
           </motion.div>
         </div>

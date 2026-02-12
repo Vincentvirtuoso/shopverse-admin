@@ -44,11 +44,6 @@ api.interceptors.response.use(
       return Promise.reject(err);
     }
 
-    if (originalRequest.data instanceof FormData) {
-      console.warn("FormData request failed, cannot retry");
-      return Promise.reject(err);
-    }
-
     if (err.response.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

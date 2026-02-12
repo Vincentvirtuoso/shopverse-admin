@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { useApi } from "./useApi";
-import { isValidCategory } from "../assets/addProducts";
 import { useEffect } from "react";
+import useValidateForm from "./useValidateForm";
 
 export const useProduct = () => {
   const { loading, error, callApi } = useApi();
@@ -119,54 +119,108 @@ export const useProductForm = (initialValues = {}, options = {}) => {
   const { isEditMode = false } = options;
 
   const [form, setForm] = useState(initialForm);
+  const [dirtyFields, setDirtyFields] = useState(new Set()); // Track changed fields
+  const [mainImage, setMainImage] = useState([]);
+  const [additionalImages, setAdditionalImages] = useState([]);
+  const [initialMainImage, setInitialMainImage] = useState(null);
+  const [_, setInitialAdditionalImages] = useState([]);
 
   useEffect(() => {
     if (!initialForm) return;
 
     if (isEditMode) {
       setForm(initialForm);
+      setDirtyFields(new Set());
+
+      if (initialForm.image) {
+        setMainImage([initialForm.image]);
+        setInitialMainImage(initialForm.image);
+      }
+
+      if (initialForm.images) {
+        setAdditionalImages([...initialForm.images]);
+        setInitialAdditionalImages([...initialForm.images]);
+      }
     } else {
       const saved = localStorage.getItem(STORAGE_KEY);
       setForm(saved ? { ...initialForm, ...JSON.parse(saved) } : initialForm);
+      setMainImage([]);
+      setAdditionalImages([]);
+      setDirtyFields(new Set());
     }
   }, [initialForm, isEditMode]);
 
   const [errors, setErrors] = useState({});
   const [keywordInput, setKeywordInput] = useState("");
-  const [mainImage, setMainImage] = useState([]);
-  const [additionalImages, setAdditionalImages] = useState([]);
+
+  const { validateForm } = useValidateForm(
+    form,
+    setErrors,
+    mainImage,
+    additionalImages,
+  );
+
+  const markDirty = useCallback(
+    (fieldPath) => {
+      const normalizedPath = fieldPath.replace(/\[(\d+)\]/g, ".$1");
+
+      setDirtyFields((prev) => new Set([...prev, normalizedPath]));
+
+      const parts = normalizedPath.split(".");
+      let path = "";
+      parts.forEach((part, index) => {
+        if (index === 0) {
+          path = part;
+        } else {
+          path = `${path}.${part}`;
+        }
+        setDirtyFields((prev) => new Set([...prev, path]));
+      });
+    },
+    [setDirtyFields],
+  );
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    const newValue = type === "checkbox" ? checked : value;
 
     if (name.includes(".")) {
       const [parent, child] = name.split(".");
       if (parent.includes(".")) {
         const [grandParent, middle] = parent.split(".");
-        setForm((prev) => ({
-          ...prev,
-          [grandParent]: {
-            ...prev[grandParent],
-            [middle]: {
-              ...prev[grandParent][middle],
-              [child]: type === "checkbox" ? checked : value,
+        setForm((prev) => {
+          const updated = {
+            ...prev,
+            [grandParent]: {
+              ...prev[grandParent],
+              [middle]: {
+                ...prev[grandParent]?.[middle],
+                [child]: newValue,
+              },
             },
-          },
-        }));
+          };
+          return updated;
+        });
+        markDirty(name);
       } else {
-        setForm((prev) => ({
-          ...prev,
-          [parent]: {
-            ...prev[parent],
-            [child]: type === "checkbox" ? checked : value,
-          },
-        }));
+        setForm((prev) => {
+          const updated = {
+            ...prev,
+            [parent]: {
+              ...prev[parent],
+              [child]: newValue,
+            },
+          };
+          return updated;
+        });
+        markDirty(name);
       }
     } else {
-      setForm((prev) => ({
-        ...prev,
-        [name]: type === "checkbox" ? checked : value,
-      }));
+      setForm((prev) => {
+        const updated = { ...prev, [name]: newValue };
+        return updated;
+      });
+      markDirty(name);
     }
 
     // Clear error for this field
@@ -185,13 +239,16 @@ export const useProductForm = (initialValues = {}, options = {}) => {
         return;
       }
       setForm((prev) => ({ ...prev, tags: [...prev.tags, tag.toLowerCase()] }));
+      markDirty("tags");
     }
   };
+
   const removeTag = (tag) => {
     setForm((prev) => ({
       ...prev,
       tags: prev.tags.filter((t) => t !== tag),
     }));
+    markDirty("tags");
   };
 
   const addFeature = (feature) => {
@@ -201,6 +258,7 @@ export const useProductForm = (initialValues = {}, options = {}) => {
       ...prev,
       features: [...(prev.features || []), feature],
     }));
+    markDirty("features");
   };
 
   const removeFeature = (featureToRemove) => {
@@ -208,6 +266,7 @@ export const useProductForm = (initialValues = {}, options = {}) => {
       ...prev,
       features: (prev.features || []).filter((f) => f !== featureToRemove),
     }));
+    markDirty("features");
   };
 
   const addKeyword = () => {
@@ -216,9 +275,10 @@ export const useProductForm = (initialValues = {}, options = {}) => {
         ...prev,
         meta: {
           ...prev.meta,
-          keywords: [...(prev.meta.keywords || []), keywordInput.trim()],
+          keywords: [...(prev.meta?.keywords || []), keywordInput.trim()],
         },
       }));
+      markDirty("meta.keywords");
       setKeywordInput("");
     }
   };
@@ -228,11 +288,12 @@ export const useProductForm = (initialValues = {}, options = {}) => {
       ...prev,
       meta: {
         ...prev.meta,
-        keywords: (prev.meta.keywords || []).filter(
+        keywords: (prev.meta?.keywords || []).filter(
           (keyword) => keyword !== keywordToRemove,
         ),
       },
     }));
+    markDirty("meta.keywords");
   };
 
   const handleSpecificationsChange = useCallback((newSpecs) => {
@@ -240,6 +301,7 @@ export const useProductForm = (initialValues = {}, options = {}) => {
       ...prev,
       specifications: newSpecs,
     }));
+    markDirty("specifications");
   }, []);
 
   const addVariant = () => {
@@ -256,175 +318,309 @@ export const useProductForm = (initialValues = {}, options = {}) => {
         },
       ],
     }));
+    markDirty("variants");
   };
 
-  const updateVariant = (index, field, value) => {
-    setForm((prev) => {
-      const updatedVariants = [...prev.variants];
-      updatedVariants[index] = {
-        ...updatedVariants[index],
-        [field]: value,
-      };
-      return { ...prev, variants: updatedVariants };
-    });
-  };
+  const updateVariant = useCallback(
+    (
+      variantIndex,
+      field,
+      value,
+      options = { isObject: false, objectName: "" },
+    ) => {
+      if (options.isObject) {
+        setForm((prev) => ({
+          ...prev,
+          variants: prev.variants.map((variant, index) =>
+            index === variantIndex
+              ? {
+                  ...variant,
+                  [options.objectName]: {
+                    ...variant[options.objectName],
+                    [field]: value,
+                  },
+                }
+              : variant,
+          ),
+        }));
+
+        markDirty(`variants.${variantIndex}.${options.objectName}.${field}`);
+        markDirty(`variants.${variantIndex}.${options.objectName}`);
+        markDirty(`variants.${variantIndex}`);
+        markDirty("variants");
+      } else {
+        setForm((prev) => {
+          const updatedVariants = [...prev.variants];
+          updatedVariants[variantIndex] = {
+            ...updatedVariants[variantIndex],
+            [field]: value,
+          };
+          return { ...prev, variants: updatedVariants };
+        });
+
+        markDirty(`variants.${variantIndex}.${field}`);
+        markDirty(`variants.${variantIndex}`);
+        markDirty("variants");
+      }
+    },
+    [markDirty],
+  );
 
   const removeVariant = (index) => {
     setForm((prev) => ({
       ...prev,
       variants: prev.variants.filter((_, i) => i !== index),
     }));
+    markDirty("variants");
   };
+
+  const getChangedFields = useCallback(() => {
+    if (!isEditMode) {
+      return JSON.parse(JSON.stringify(form));
+    }
+
+    const changed = {};
+    const initial = initialForm;
+
+    const clone = (value) => {
+      if (value instanceof Map) {
+        return new Map(value);
+      }
+      return JSON.parse(JSON.stringify(value));
+    };
+
+    const simpleFields = [
+      "name",
+      "brand",
+      "price",
+      "originalPrice",
+      "discount",
+      "rating",
+      "reviewCount",
+      "shortDescription",
+      "description",
+      "category",
+      "subCategory",
+      "inStock",
+      "stockCount",
+      "availabilityType",
+      "unit",
+      "sku",
+      "isBestSeller",
+      "isFeatured",
+      "isNewArrival",
+      "features",
+      "tags",
+    ];
+
+    simpleFields.forEach((field) => {
+      if (dirtyFields.has(field)) {
+        if (JSON.stringify(form[field]) !== JSON.stringify(initial[field])) {
+          changed[field] = clone(form[field]);
+        }
+      }
+    });
+
+    if (
+      dirtyFields.has("weight") ||
+      dirtyFields.has("weight.value") ||
+      dirtyFields.has("weight.unit")
+    ) {
+      const weightChanged =
+        form.weight?.value !== initial.weight?.value ||
+        form.weight?.unit !== initial.weight?.unit;
+
+      if (weightChanged) {
+        changed.weight = {
+          value: form.weight?.value || "",
+          unit: form.weight?.unit || "g",
+        };
+      }
+    }
+
+    if (
+      dirtyFields.has("dimensions") ||
+      dirtyFields.has("dimensions.length") ||
+      dirtyFields.has("dimensions.width") ||
+      dirtyFields.has("dimensions.height") ||
+      dirtyFields.has("dimensions.unit")
+    ) {
+      const dimensionsChanged =
+        form.dimensions?.length !== initial.dimensions?.length ||
+        form.dimensions?.width !== initial.dimensions?.width ||
+        form.dimensions?.height !== initial.dimensions?.height ||
+        form.dimensions?.unit !== initial.dimensions?.unit;
+
+      if (dimensionsChanged) {
+        changed.dimensions = {
+          length: form.dimensions?.length || 0,
+          width: form.dimensions?.width || 0,
+          height: form.dimensions?.height || 0,
+          unit: form.dimensions?.unit || "cm",
+        };
+      }
+    }
+
+    if (dirtyFields.has("specifications")) {
+      const specsChanged =
+        JSON.stringify([...form.specifications]) !==
+        JSON.stringify([...initial.specifications]);
+
+      if (specsChanged) {
+        changed.specifications = new Map(form.specifications);
+      }
+    }
+
+    if (
+      dirtyFields.has("shippingInfo") ||
+      dirtyFields.has("shippingInfo.dimensions") ||
+      dirtyFields.has("shippingInfo.weight") ||
+      dirtyFields.has("shippingInfo.isFreeShipping") ||
+      dirtyFields.has("shippingInfo.deliveryTime") ||
+      dirtyFields.has("shippingInfo.shippingClass")
+    ) {
+      const shippingChanged =
+        JSON.stringify(form.shippingInfo) !==
+        JSON.stringify(initial.shippingInfo);
+
+      if (shippingChanged) {
+        changed.shippingInfo = {
+          dimensions: { ...form.shippingInfo?.dimensions },
+          weight: form.shippingInfo?.weight || 0,
+          isFreeShipping: form.shippingInfo?.isFreeShipping || false,
+          deliveryTime: form.shippingInfo?.deliveryTime || "3-5 business days",
+          shippingClass: form.shippingInfo?.shippingClass || "",
+        };
+      }
+    }
+
+    if (
+      dirtyFields.has("meta") ||
+      dirtyFields.has("meta.title") ||
+      dirtyFields.has("meta.description") ||
+      dirtyFields.has("meta.keywords")
+    ) {
+      const metaChanged =
+        form.meta?.title !== initial.meta?.title ||
+        form.meta?.description !== initial.meta?.description ||
+        form.meta?.keywords !== initial.meta?.keywords;
+
+      if (metaChanged) {
+        changed.meta = {
+          title: form.meta?.title || "",
+          description: form.meta?.description || "",
+          keywords: form.meta?.keywords || "",
+        };
+      }
+    }
+
+    if (
+      dirtyFields.has("variants") ||
+      Array.from(dirtyFields).some((f) => f.startsWith("variants"))
+    ) {
+      const initialVariants = initial.variants || [];
+
+      const changedVariants = form.variants
+        .map((variant, index) => {
+          const initialVariant = initialVariants[index];
+
+          if (!initialVariant) {
+            return clone(variant);
+          }
+
+          const hasChanges = Object.keys(variant).some((key) => {
+            if (key === "attributes") {
+              return (
+                JSON.stringify(variant.attributes) !==
+                JSON.stringify(initialVariant.attributes)
+              );
+            }
+            return variant[key] !== initialVariant[key];
+          });
+
+          return hasChanges ? clone(variant) : null;
+        })
+        .filter(Boolean);
+
+      if (changedVariants.length > 0) {
+        changed.variants = changedVariants;
+      }
+    }
+
+    if (initial.variants?.length > form.variants.length) {
+      const deletedVariantIds = initial.variants
+        .filter((_, index) => !form.variants[index])
+        .map((v) => v.id)
+        .filter(Boolean);
+
+      if (deletedVariantIds.length > 0) {
+        changed.deletedVariantIds = deletedVariantIds;
+      }
+    }
+
+    Object.keys(changed).forEach((key) => {
+      if (
+        changed[key] === undefined ||
+        changed[key] === null ||
+        (typeof changed[key] === "object" &&
+          !(changed[key] instanceof Map) &&
+          Object.keys(changed[key]).length === 0) ||
+        (Array.isArray(changed[key]) && changed[key].length === 0)
+      ) {
+        delete changed[key];
+      }
+    });
+
+    if (Object.keys(changed).length > 0) {
+      changed.id = initial.id;
+    }
+
+    return changed;
+  }, [form, initialForm, dirtyFields, isEditMode]);
+
+  const getChangedImages = useCallback(() => {
+    if (!isEditMode) {
+      return {
+        mainImage: mainImage[0] instanceof File ? mainImage[0] : null,
+        additionalImages: additionalImages.filter((img) => img instanceof File),
+      };
+    }
+
+    const changes = {
+      mainImage: null,
+      additionalImages: [],
+    };
+
+    if (mainImage[0] !== initialMainImage) {
+      changes.mainImage = mainImage[0] instanceof File ? mainImage[0] : null;
+    }
+
+    if (additionalImages.length > 0) {
+      changes.additionalImages = additionalImages.filter(
+        (img) => img instanceof File,
+      );
+    }
+
+    return changes;
+  }, [mainImage, additionalImages, initialMainImage, isEditMode]);
 
   const resetForm = () => {
     setForm(initialForm);
     setErrors({});
     setKeywordInput("");
+    setDirtyFields(new Set());
     localStorage.removeItem(STORAGE_KEY);
   };
 
-  const validateForm = (step, general = false) => {
-    const errors = {};
-
-    const shouldValidate = (s) => general || step === s;
-
-    const trim = (v) => v?.trim?.() ?? "";
-
-    const isNumber = (v) => !isNaN(parseFloat(v));
-
-    const addError = (key, message) => {
-      if (!errors[key]) errors[key] = message;
-    };
-
-    if (shouldValidate(0)) {
-      const name = trim(form.name);
-      const brand = trim(form.brand);
-      const description = trim(form.description);
-      const category = trim(form.category);
-
-      if (!name) addError("name", "Product name is required");
-      else if (name.length < 3)
-        addError("name", "Product name must be at least 3 characters long");
-      else if (name.length > 100)
-        addError("name", "Product name cannot exceed 100 characters");
-
-      if (!brand) addError("brand", "Brand is required");
-      else if (brand.length < 2)
-        addError("brand", "Brand name must be at least 2 characters long");
-      else if (brand.length > 50)
-        addError("brand", "Brand name cannot exceed 50 characters");
-
-      if (!description) addError("description", "Description is required");
-      else if (description.length < 10)
-        addError(
-          "description",
-          "Description must be at least 10 characters long",
-        );
-      else if (description.length > 5000)
-        addError("description", "Description cannot exceed 5000 characters");
-
-      if (!category) addError("category", "Category is required");
-      else if (!isValidCategory(category))
-        addError("category", "Please select a valid category");
-    }
-
-    if (shouldValidate(1)) {
-      const price = parseFloat(form.price);
-      const originalPrice = parseFloat(form.originalPrice);
-
-      if (!form.price) addError("price", "Price is required");
-      else if (!isNumber(form.price))
-        addError("price", "Price must be a valid number");
-      else if (price <= 0) addError("price", "Price must be greater than 0");
-      else if (!/^\d+(\.\d{1,2})?$/.test(form.price.toString()))
-        addError("price", "Price must have at most 2 decimal places");
-
-      if (form.originalPrice) {
-        if (!isNumber(form.originalPrice))
-          addError("originalPrice", "Original price must be a valid number");
-        else if (originalPrice <= 0)
-          addError("originalPrice", "Original price must be greater than 0");
-        else if (originalPrice < price)
-          addError(
-            "originalPrice",
-            "Original price must be greater than or equal to the current price",
-          );
-        else if (originalPrice > price * 10)
-          addError(
-            "originalPrice",
-            "Original price seems unusually high compared to current price",
-          );
-      }
-
-      if (form.stock !== undefined) {
-        if (form.stock < 0) addError("stock", "Stock cannot be negative");
-        else if (!Number.isInteger(Number(form.stock)))
-          addError("stock", "Stock must be a whole number");
-      }
-
-      if (trim(form.sku)) {
-        const sku = trim(form.sku);
-
-        if (sku.length < 3)
-          addError("sku", "SKU must be at least 3 characters");
-        else if (sku.length > 50)
-          addError("sku", "SKU cannot exceed 50 characters");
-        else if (!/^[A-Za-z0-9-_.]+$/.test(sku))
-          addError(
-            "sku",
-            "SKU can only contain letters, numbers, hyphens, underscores, and periods",
-          );
-      }
-    }
-
-    if (shouldValidate(2) && form.dimensions) {
-      const { length, weight } = form.dimensions;
-
-      if (length && (length <= 0 || length > 500))
-        addError("dimensions", "Length must be between 0 and 500 cm");
-
-      if (weight && (weight <= 0 || weight > 1000))
-        addError("dimensions", "Weight must be between 0 and 1000 kg");
-    }
-
-    if (shouldValidate(3)) {
-      if (!mainImage || mainImage.length === 0)
-        addError("images", "Main image is required");
-
-      if (!additionalImages || additionalImages.length === 0)
-        addError("images", "At least additional one product image is required");
-      else if (additionalImages.length > 10)
-        addError("images", "Maximum of 10 images allowed");
-    }
-    if (shouldValidate(4)) {
-      if (form.features?.length === 0) {
-        addError("features", "Minimum of 3 features allowed");
-      }
-    }
-
-    setErrors(errors);
-
-    const isValid = Object.keys(errors).length === 0;
-
-    if (!isValid) {
-      console.warn(
-        `Validation failed for step ${step} (${
-          Object.keys(errors).length
-        } errors):`,
-        errors,
-      );
-    }
-
-    return isValid;
-  };
-
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
-    } catch (err) {
-      console.warn("Failed to save product form:", err);
+    if (!isEditMode) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
+      } catch (err) {
+        console.warn("Failed to save product form:", err);
+      }
     }
-  }, [form]);
+  }, [form, isEditMode]);
 
   return {
     form,
@@ -450,5 +646,11 @@ export const useProductForm = (initialValues = {}, options = {}) => {
     mainImage,
     setMainImage,
     handleSpecificationsChange,
+    initialForm,
+    getChangedFields,
+    getChangedImages,
+    dirtyFields,
+    isEditMode,
+    markDirty,
   };
 };

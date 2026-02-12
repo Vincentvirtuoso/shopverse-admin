@@ -568,13 +568,13 @@ const ManageProducts = () => {
                           />
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900 dark:text-gray-200">
+                          <p className="font-medium text-gray-900 dark:text-gray-200 line-clamp-2">
                             {product.name}
                           </p>
                           <p className="text-sm text-gray-400">
                             {product.brand}
                           </p>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-gray-400 mt-1 line-clamp-1">
                             SKU: {product.sku || "N/A"}
                           </p>
                         </div>

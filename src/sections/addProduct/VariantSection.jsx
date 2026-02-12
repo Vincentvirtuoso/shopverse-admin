@@ -27,18 +27,12 @@ const VariantSection = ({ form, addVariant, removeVariant, updateVariant }) => {
 
   const handleAttributeChange = useCallback(
     (variantIndex, key, value) => {
-      const variant = form.variants[variantIndex];
-      const newAttributes = safeToMap(variant.attributes);
-
-      if (value.trim() === "") {
-        newAttributes.delete(key);
-      } else {
-        newAttributes.set(key.trim(), value.trim());
-      }
-
-      updateVariant(variantIndex, "attributes", newAttributes);
+      updateVariant(variantIndex, key, value, {
+        isObject: true,
+        objectName: "attributes",
+      });
     },
-    [form.variants, updateVariant]
+    [updateVariant],
   );
 
   const toggleAttributeEditor = useCallback((index) => {
@@ -277,7 +271,7 @@ const VariantSection = ({ form, addVariant, removeVariant, updateVariant }) => {
                           updateVariant(
                             index,
                             "price",
-                            parseFloat(e.target.value) || 0
+                            parseFloat(e.target.value) || 0,
                           )
                         }
                         min="0"
@@ -320,7 +314,7 @@ const VariantSection = ({ form, addVariant, removeVariant, updateVariant }) => {
                               isVariant: true,
                               title: variant.name,
                               attributes: variant.attributes,
-                            })
+                            }),
                           )
                         }
                         className="p-3 rounded-l-none rounded-xl border border-red-500 border-l-0 bg-red-500  text-white text-sm font-semibold hover:bg-red-600 transition-colors"
@@ -345,7 +339,7 @@ const VariantSection = ({ form, addVariant, removeVariant, updateVariant }) => {
                         updateVariant(
                           index,
                           "stockCount",
-                          parseInt(e.target.value) || 0
+                          parseInt(e.target.value) || 0,
                         )
                       }
                       min="0"
@@ -364,7 +358,10 @@ const VariantSection = ({ form, addVariant, removeVariant, updateVariant }) => {
                 {/* Attributes Section */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-4">
-                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    <label
+                      className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300"
+                      onClick={() => console.log(variant.attributes)}
+                    >
                       <FiTag className="w-4 h-4 text-gray-400" />
                       Variant Attributes
                     </label>
@@ -422,10 +419,10 @@ const VariantSection = ({ form, addVariant, removeVariant, updateVariant }) => {
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") {
                                   const keyInput = document.getElementById(
-                                    `attr-key-${index}`
+                                    `attr-key-${index}`,
                                   );
                                   const valueInput = document.getElementById(
-                                    `attr-value-${index}`
+                                    `attr-value-${index}`,
                                   );
                                   if (
                                     keyInput.value.trim() &&
@@ -434,7 +431,7 @@ const VariantSection = ({ form, addVariant, removeVariant, updateVariant }) => {
                                     handleAttributeChange(
                                       index,
                                       keyInput.value,
-                                      valueInput.value
+                                      valueInput.value,
                                     );
                                     keyInput.value = "";
                                     valueInput.value = "";
@@ -449,9 +446,9 @@ const VariantSection = ({ form, addVariant, removeVariant, updateVariant }) => {
                   </AnimatePresence>
 
                   {/* Attributes Display */}
-                  {variant.attributes && variant.attributes.size > 0 ? (
+                  {variant.attributes ? (
                     <div className="flex flex-wrap gap-2">
-                      {Array.from(variant.attributes.entries()).map(
+                      {Object.entries(variant.attributes).map(
                         ([key, value], attrIndex) => (
                           <div
                             key={attrIndex}
@@ -468,13 +465,13 @@ const VariantSection = ({ form, addVariant, removeVariant, updateVariant }) => {
                               type="button"
                               onClick={() => {
                                 const newAttributes = new Map(
-                                  variant.attributes
+                                  variant.attributes,
                                 );
                                 newAttributes.delete(key);
                                 updateVariant(
                                   index,
                                   "attributes",
-                                  newAttributes
+                                  newAttributes,
                                 );
                               }}
                               className="ml-1 p-0.5 text-gray-400 hover:text-red-500 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
@@ -482,7 +479,7 @@ const VariantSection = ({ form, addVariant, removeVariant, updateVariant }) => {
                               <FiX className="w-3 h-3" />
                             </button>
                           </div>
-                        )
+                        ),
                       )}
                     </div>
                   ) : (
@@ -520,7 +517,7 @@ const VariantSection = ({ form, addVariant, removeVariant, updateVariant }) => {
               <span className="font-semibold text-gray-900 dark:text-gray-100">
                 {form.variants.reduce(
                   (sum, v) => sum + (parseInt(v.stockCount) || 0),
-                  0
+                  0,
                 )}
               </span>
             </div>
@@ -535,7 +532,7 @@ const VariantSection = ({ form, addVariant, removeVariant, updateVariant }) => {
                       sum +
                       (parseFloat(v.price) || 0) *
                         (parseInt(v.stockCount) || 0),
-                    0
+                    0,
                   )
                   .toLocaleString()}
               </span>
@@ -559,7 +556,7 @@ const VariantSection = ({ form, addVariant, removeVariant, updateVariant }) => {
               onClick={() => {
                 if (
                   window.confirm(
-                    "Are you sure you want to remove all variants?"
+                    "Are you sure you want to remove all variants?",
                   )
                 ) {
                   while (form.variants.length > 0) {

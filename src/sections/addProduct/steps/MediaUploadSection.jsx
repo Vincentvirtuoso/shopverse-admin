@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { FiInfo } from "react-icons/fi";
 import FileUpload from "../../../components/common/FileUpload";

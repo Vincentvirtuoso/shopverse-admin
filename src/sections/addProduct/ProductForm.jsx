@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   FiChevronRight,
@@ -37,8 +37,6 @@ const ProductForm = ({
   isEdit = false,
 }) => {
   const [activeSection, setActiveSection] = useState("basic");
-  const [productObject, setProductObject] = useState("");
-  const [isProductObject, setIsProductObject] = useState(false);
   const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [bulkEditIndex, setBulkEditIndex] = useState(null);
   const [bulkProducts, setBulkProducts] = useState([]);
@@ -66,20 +64,22 @@ const ProductForm = ({
     setMainImage,
     additionalImages,
     handleSpecificationsChange,
-  } = useProductForm(initialData);
+    initialForm,
+    // markDirty,
+    getChangedFields,
+    getChangedImages,
+  } = useProductForm(initialData, { isEditMode: isEdit });
 
   const currentIndex = sections.findIndex((s) => s.id === activeSection);
 
   const handleProductSelect = (index) => {
     setBulkEditIndex(index);
-    // Load the selected product into the form
     if (bulkProducts[index]) {
       setForm(bulkProducts[index]);
       setActiveSection("basic");
     }
   };
 
-  // Handle updates to bulk product
   const handleBulkProductUpdate = (index, updatedData) => {
     setBulkProducts((prev) => {
       const updated = [...prev];
@@ -91,16 +91,13 @@ const ProductForm = ({
     });
   };
 
-  // Handle bulk upload submission
   const handleBulkUpload = async (products) => {
-    // Store products for editing
     setBulkProducts(products);
 
     try {
       const formData = new FormData();
       formData.append("products", JSON.stringify(products));
 
-      // Send to your API
       const response = await fetch("/api/products/bulk", {
         method: "POST",
         body: formData,
@@ -124,21 +121,12 @@ const ProductForm = ({
         message: "Failed to upload products. Please try again.",
       });
     }
-
-    // Option 2: Load first product for editing
-    // if (products.length > 0) {
-    //   handleProductSelect(0);
-    //   setShowBulkUpload(false);
-    // }
   };
 
   const handleSingleProductSubmit = async (e) => {
     e.preventDefault();
 
-    // Your existing validation...
-
     if (bulkEditIndex !== null && showBulkUpload) {
-      // Update the product in bulk array
       handleBulkProductUpdate(bulkEditIndex, form);
 
       setNotification({
@@ -147,7 +135,6 @@ const ProductForm = ({
         message: `Product ${bulkEditIndex + 1} updated in bulk list.`,
       });
 
-      // Go back to bulk view
       setBulkEditIndex(null);
       setShowBulkUpload(true);
     }
@@ -160,7 +147,7 @@ const ProductForm = ({
       setNotification({
         type: "error",
         title: "You can't proceed to the next step",
-        message: " Main image is required",
+        message: "Main image is required",
       });
       return;
     }
@@ -176,7 +163,7 @@ const ProductForm = ({
       setNotification({
         type: "error",
         title: "You can't proceed to the next step",
-        message: " Maximum of 10 images allowed",
+        message: "Maximum of 10 images allowed",
       });
       return;
     }
@@ -193,40 +180,80 @@ const ProductForm = ({
 
     const formData = new FormData();
 
-    console.log(form);
+    if (isEdit) {
+      const changedFields = getChangedFields();
+      const changedImages = getChangedImages();
 
-    const productJson = {
-      ...form,
-    };
-    delete productJson.image;
-    delete productJson.images;
-    delete productJson.id;
+      changedFields.id = initialForm.id;
 
-    Object.keys(productJson).forEach((key) => {
-      if (
-        productJson[key] === "" ||
-        productJson[key] === null ||
-        (Array.isArray(productJson[key]) && productJson[key].length === 0)
-      ) {
-        delete productJson[key];
+      if (Object.keys(changedFields).length > 0) {
+        formData.append("product", JSON.stringify(changedFields));
       }
-    });
 
-    if (productJson.shippingInfo) {
-      delete productJson.shippingInfo.weight;
-      delete productJson.shippingInfo.dimensions;
-    }
+      if (changedImages.mainImage instanceof File) {
+        formData.append("mainImage", changedImages.mainImage);
+      }
 
-    formData.append("product", JSON.stringify(productJson));
-    formData.append("mainImage", mainImage[0]);
+      if (changedImages.additionalImages?.length > 0) {
+        changedImages.additionalImages.forEach((img) => {
+          if (img instanceof File) {
+            formData.append("additionalImages", img);
+          }
+        });
+      }
 
-    if (additionalImages && additionalImages.length > 0) {
+      if (
+        Object.keys(changedFields).length === 0 &&
+        !changedImages.mainImage &&
+        changedImages.additionalImages?.length === 0
+      ) {
+        setNotification({
+          type: "info",
+          title: "No Changes",
+          message: "No changes detected to update.",
+          duration: 3000,
+        });
+        return;
+      }
+    } else {
+      const productJson = { ...form };
+      delete productJson.image;
+      delete productJson.images;
+      delete productJson.id;
+
+      Object.keys(productJson).forEach((key) => {
+        if (
+          productJson[key] === "" ||
+          productJson[key] === null ||
+          (Array.isArray(productJson[key]) && productJson[key].length === 0)
+        ) {
+          delete productJson[key];
+        }
+      });
+
+      if (productJson.shippingInfo) {
+        delete productJson.shippingInfo.weight;
+        delete productJson.shippingInfo.dimensions;
+      }
+
+      formData.append("product", JSON.stringify(productJson));
+
+      if (mainImage[0] instanceof File) {
+        formData.append("mainImage", mainImage[0]);
+      }
+
       additionalImages.forEach((img) => {
-        if (img instanceof File) formData.append("additionalImages", img);
+        if (img instanceof File) {
+          formData.append("additionalImages", img);
+        }
       });
     }
 
-    onSubmit({ formData, setActiveSection, resetForm });
+    onSubmit({
+      formData,
+      setActiveSection,
+      resetForm,
+    });
   };
 
   const renderSection = () => {

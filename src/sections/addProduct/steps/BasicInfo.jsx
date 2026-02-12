@@ -18,7 +18,7 @@ const BasicInfo = ({ form, errors, handleChange }) => {
           <input
             type="text"
             name="name"
-            value={form.name}
+            value={form.name || ""}
             onChange={handleChange}
             className={`w-full px-4 py-3 rounded-lg border ${
               errors.name
@@ -46,7 +46,7 @@ const BasicInfo = ({ form, errors, handleChange }) => {
           <input
             type="text"
             name="brand"
-            value={form.brand}
+            value={form.brand || ""}
             onChange={handleChange}
             className={`w-full px-4 py-3 rounded-lg border ${
               errors.brand
@@ -70,7 +70,7 @@ const BasicInfo = ({ form, errors, handleChange }) => {
           <input
             type="text"
             name="category"
-            value={form.category}
+            value={form.category || ""}
             onChange={handleChange}
             className={`w-full px-4 py-3 rounded-lg border ${
               errors.category
@@ -94,7 +94,7 @@ const BasicInfo = ({ form, errors, handleChange }) => {
           <input
             type="text"
             name="subCategory"
-            value={form.subCategory}
+            value={form.subCategory || ""}
             onChange={handleChange}
             className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 
                     bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
@@ -109,7 +109,7 @@ const BasicInfo = ({ form, errors, handleChange }) => {
         </label>
         <textarea
           name="description"
-          value={form.description}
+          value={form.description || ""}
           onChange={handleChange}
           rows={4}
           className={`w-full px-4 py-3 rounded-lg border ${

@@ -18,7 +18,6 @@ export const useApi = () => {
           ...config,
         });
 
-        setLoading(false);
         return response.data;
       } catch (err) {
         setLoading(false);
@@ -29,7 +28,7 @@ export const useApi = () => {
         setLoading(false);
       }
     },
-    []
+    [],
   );
   return { loading, error, callApi };
 };
