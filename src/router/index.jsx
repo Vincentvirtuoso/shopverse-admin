@@ -11,6 +11,8 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import AdminLayout from "../layout/AdminLayout";
 import Orders from "../pages/Orders";
 import CustomerStats from "../pages/CustomerStats";
+import ManageCategories from "../pages/ManageCategories";
+import AddCategory from "../pages/AddCategory";
 
 const router = createBrowserRouter([
   {
@@ -28,6 +30,8 @@ const router = createBrowserRouter([
             element: <AdminLayout />,
             children: [
               { path: "/dashboard", element: <Home /> },
+              { path: "/manage-categories", element: <ManageCategories /> },
+              { path: "/categories/new", element: <AddCategory /> },
               { path: "/manage-products", element: <ManageProducts /> },
               { path: "/add-product", element: <AddProduct /> },
               { path: "/edit-product/:id", element: <EditProduct /> },

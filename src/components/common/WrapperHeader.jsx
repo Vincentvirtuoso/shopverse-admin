@@ -14,7 +14,7 @@ const WrapperHeader = ({
   onClick,
   showChevron = true,
   chevronSize = 20,
-  iconBgColor = "bg-blue-50",
+  iconBgColor = "bg-blue-50 dark:bg-blue-500/60",
   iconSize = "p-2",
   titleClassName = "",
   descriptionClassName = "text-gray-600",

@@ -1,12 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
-import {
-  FiChevronRight,
-  FiChevronLeft,
-  FiSave,
-  FiInfo,
-  FiUpload,
-} from "react-icons/fi";
+import { FiChevronRight, FiChevronLeft, FiSave, FiInfo } from "react-icons/fi";
 import { LuRefreshCcw } from "react-icons/lu";
 import { useProductForm } from "../../hooks/useProduct";
 import WrapperHeader from "../../components/common/WrapperHeader";
@@ -23,6 +17,7 @@ import Pricing from "./steps/Pricing";
 import SEO from "./steps/SEO";
 import BulkProductUpload from "./BulkProductUpload";
 import JsonInputModal from "../../components/ui/JsonInputModal";
+import { useJsonInputModal } from "../../hooks/useJsonInputModal";
 
 const getErrorMessage = (errors) => {
   if (!errors || typeof errors !== "object") return "";
@@ -41,7 +36,8 @@ const ProductForm = ({
   const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [bulkEditIndex, setBulkEditIndex] = useState(null);
   const [bulkProducts, setBulkProducts] = useState([]);
-  const [jsonInputMode, setJsonInputMode] = useState(false);
+  // const [jsonInputMode, setJsonInputMode] = useState(false);
+  const { modalConfig, openJsonInput, closeJsonInput } = useJsonInputModal();
 
   const {
     form,
@@ -67,22 +63,25 @@ const ProductForm = ({
     additionalImages,
     handleSpecificationsChange,
     initialForm,
+    handleJsonAllFieldEdit,
+    handleJsonEditField,
     // markDirty,
     getChangedFields,
     getChangedImages,
-  } = useProductForm(initialData, { isEditMode: isEdit });
+  } = useProductForm(initialData, { isEditMode: isEdit, openJsonInput });
 
   const currentIndex = sections.findIndex((s) => s.id === activeSection);
 
-  const handleJsonSave = (newForm) => {
-    setForm(newForm);
-    setJsonInputMode(false);
-    setNotification({
-      type: "success",
-      title: "JSON Updated",
-      message: "Form data has been updated from JSON input.",
-    });
-  };
+  // const handleJsonSave = (newForm) => {
+  //   setForm(newForm);
+  //   setJsonInputMode(false);
+  //   setNotification({
+  //     type: "success",
+  //     title: "JSON Updated",
+  //     message: "Form data has been updated from JSON input.",
+  //   });
+  // };
+
   const handleProductSelect = (index) => {
     setBulkEditIndex(index);
     if (bulkProducts[index]) {
@@ -307,7 +306,9 @@ const ProductForm = ({
             addTag={addTag}
             removeFeature={removeFeature}
             removeTag={removeTag}
+            setNotification={setNotification}
             onSpecificationsChange={handleSpecificationsChange}
+            handleJsonEditField={handleJsonEditField}
           />
         );
 
@@ -416,8 +417,8 @@ const ProductForm = ({
           // Show regular form layout
           <div className="flex flex-col lg:flex-row gap-5">
             {/* Sidebar Navigation */}
-            <CardWrapper className="lg:w-1/4 p-6">
-              <div className="flex flex-col gap-2 sticky top-24">
+            <CardWrapper className="lg:w-1/4 p-4">
+              <div className="flex flex-col gap-2 sticky bottom-24">
                 {/* Quick Action Buttons */}
                 {/* {!isEdit && (
                   <button
@@ -515,7 +516,9 @@ const ProductForm = ({
                 >
                   <div className="flex gap-2 flex-wrap">
                     <button
-                      onClick={() => setJsonInputMode(true)}
+                      onClick={() =>
+                        handleJsonAllFieldEdit({ setNotification })
+                      }
                       className="px-4 py-2 bg-blue-500 rounded-lg"
                     >
                       Send Json
@@ -562,7 +565,7 @@ const ProductForm = ({
                 </WrapperHeader>
 
                 {/* Form Content */}
-                <div className="p-8 flex flex-col flex-1 gap-12">
+                <div className="p-6 flex flex-col flex-1 gap-8">
                   <div className="mb-auto">{renderSection()}</div>
 
                   {/* Navigation Buttons */}
@@ -635,9 +638,13 @@ const ProductForm = ({
         )}
       </motion.div>
       <JsonInputModal
-        isOpen={jsonInputMode}
-        onClose={() => setJsonInputMode(false)}
-        onSave={handleJsonSave}
+        isOpen={modalConfig.isOpen}
+        onClose={closeJsonInput}
+        onSave={(parsedJson) => modalConfig.onSaveCallback?.(parsedJson)}
+        title={modalConfig.title}
+        initialValue={modalConfig.initialValue}
+        fieldPath={modalConfig.fieldPath}
+        setForm={setForm}
       />
     </div>
   );

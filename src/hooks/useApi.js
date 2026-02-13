@@ -30,5 +30,5 @@ export const useApi = () => {
     },
     [],
   );
-  return { loading, error, callApi };
+  return { loading, error, callApi, setError };
 };

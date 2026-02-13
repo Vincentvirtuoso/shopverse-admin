@@ -1,14 +1,25 @@
 import { motion } from "framer-motion";
 import { useCallback, useMemo, useState } from "react";
-import { FiKey, FiPlus, FiTrash2, FiType } from "react-icons/fi";
-import CardWrapper from "../ui/CardWrapper";
+import {
+  FiKey,
+  FiPlus,
+  FiTrash2,
+  FiType,
+  FiCode,
+  FiEdit2,
+} from "react-icons/fi";
+import WrapperHeader from "./WrapperHeader";
 
-const SpecificationsInput = ({ specifications, onSpecificationsChange }) => {
+const SpecificationsInput = ({
+  title = "Product Specifications",
+  specifications,
+  onSpecificationsChange,
+  handleJsonEditField,
+}) => {
   const [newKey, setNewKey] = useState("");
   const [newValue, setNewValue] = useState("");
   const [errors, setErrors] = useState({});
 
-  // Convert to Map for operations
   const specsMap = useMemo(() => {
     if (!specifications) return new Map();
     if (specifications instanceof Map) return new Map(specifications);
@@ -18,23 +29,9 @@ const SpecificationsInput = ({ specifications, onSpecificationsChange }) => {
     return new Map();
   }, [specifications]);
 
-  // Get entries for rendering
-  const specEntries = useMemo(() => {
-    if (!specifications) return [];
-    if (specifications instanceof Map)
-      return Array.from(specifications.entries());
-    if (typeof specifications === "object")
-      return Object.entries(specifications);
-    return [];
-  }, [specifications]);
-
-  console.log("specifications:", specifications);
-  console.log("specEntries:", specEntries);
-
   const handleAddSpecification = useCallback(() => {
     const validationErrors = {};
 
-    // Check if key already exists (using the Map)
     if (!newKey.trim()) {
       validationErrors.key = "Key is required";
     } else if (newKey.length > 50) {
@@ -53,6 +50,7 @@ const SpecificationsInput = ({ specifications, onSpecificationsChange }) => {
       setErrors(validationErrors);
       return;
     }
+
     const updatedSpecs = Object.fromEntries(specsMap);
     updatedSpecs[newKey.trim()] = newValue.trim();
 
@@ -68,7 +66,16 @@ const SpecificationsInput = ({ specifications, onSpecificationsChange }) => {
       specsMap.delete(key);
       onSpecificationsChange(new Map(specsMap));
     },
-    [specsMap, onSpecificationsChange]
+    [specsMap, onSpecificationsChange],
+  );
+
+  const handleEditSpecification = useCallback(
+    (key, value) => {
+      setNewKey(key);
+      setNewValue(value);
+      handleRemoveSpecification(key);
+    },
+    [handleRemoveSpecification],
   );
 
   const handleKeyDown = useCallback(
@@ -78,11 +85,40 @@ const SpecificationsInput = ({ specifications, onSpecificationsChange }) => {
         handleAddSpecification();
       }
     },
-    [handleAddSpecification]
+    [handleAddSpecification],
   );
 
+  const getSpecsAsObject = useCallback(() => {
+    return Object.fromEntries(specsMap);
+  }, [specsMap]);
+
+  const handleJsonEdit = useCallback(() => {
+    if (handleJsonEditField) {
+      handleJsonEditField(getSpecsAsObject());
+    }
+  }, [handleJsonEditField, getSpecsAsObject]);
+
   return (
-    <CardWrapper className="space-y-4 p-5" title="Product Specifications">
+    <div className="space-y-4 p-5" title={title}>
+      <div className="flex items-center justify-between">
+        <WrapperHeader
+          title={title}
+          showDivider
+          className="flex-1 pb-2"
+          description={
+            <button
+              type="button"
+              onClick={handleJsonEdit}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/30 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+              title="Edit as JSON"
+            >
+              <FiCode size={16} />
+              <span className="inline">Edit as JSON</span>
+            </button>
+          }
+        />
+      </div>
+
       {/* Add new specification */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
         <div className="md:col-span-2">
@@ -146,7 +182,7 @@ const SpecificationsInput = ({ specifications, onSpecificationsChange }) => {
       </div>
 
       {/* Specifications list */}
-      {specifications.size ? (
+      {specifications && specifications.size > 0 ? (
         <div className="space-y-3">
           {Array.from(specifications.entries()).map(([key, value], index) => (
             <motion.div
@@ -167,13 +203,24 @@ const SpecificationsInput = ({ specifications, onSpecificationsChange }) => {
                   </span>
                 </div>
               </div>
-              <button
-                onClick={() => handleRemoveSpecification(key)}
-                className="ml-4 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
-                aria-label={`Remove specification ${key}`}
-              >
-                <FiTrash2 size={16} />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => handleEditSpecification(key, value)}
+                  className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label={`Edit specification ${key}`}
+                  title="Edit specification"
+                >
+                  <FiEdit2 size={14} />
+                </button>
+                <button
+                  onClick={() => handleRemoveSpecification(key)}
+                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+                  aria-label={`Remove specification ${key}`}
+                  title="Remove specification"
+                >
+                  <FiTrash2 size={14} />
+                </button>
+              </div>
             </motion.div>
           ))}
         </div>
@@ -187,6 +234,15 @@ const SpecificationsInput = ({ specifications, onSpecificationsChange }) => {
             Add key specifications to help customers understand your product
             better
           </p>
+          {handleJsonEditField && (
+            <button
+              onClick={handleJsonEdit}
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/30 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+            >
+              <FiCode size={16} />
+              Add via JSON
+            </button>
+          )}
         </div>
       )}
 
@@ -195,7 +251,7 @@ const SpecificationsInput = ({ specifications, onSpecificationsChange }) => {
         <p>Keep values concise and informative</p>
         <p>Press Ctrl+Enter to quickly add specifications</p>
       </div>
-    </CardWrapper>
+    </div>
   );
 };
 

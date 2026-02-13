@@ -6,6 +6,7 @@ import { useProduct } from "../hooks/useProduct";
 import ProductForm from "../sections/addProduct/ProductForm";
 import initialProduct from "../assets/addProducts";
 import { useEffect } from "react";
+import Notification from "../components/ui/Notification";
 
 const AddProduct = () => {
   const navigate = useNavigate();
@@ -34,72 +35,23 @@ const AddProduct = () => {
     }
   };
 
-  useEffect(() => {
-    if (!notification) return;
-    setTimeout(() => {
-      setNotification(null);
-    }, 5000);
-  }, [notification]);
+  // useEffect(() => {
+  //   if (!notification) return;
+  //   setTimeout(() => {
+  //     setNotification(null);
+  //   }, 500000);
+  // }, [notification]);
 
   return (
     <div className="relative">
       {/* Notification */}
       <AnimatePresence>
         {notification && (
-          <motion.div
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -50 }}
-            className="fixed top-26 right-10 transform z-50 w-full max-w-md"
-          >
-            <div
-              className={`rounded-xl shadow-2xl p-6 ${
-                notification.type === "success"
-                  ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white"
-                  : "bg-red-50 border border-red-500  text-red-500"
-              }`}
-            >
-              <div className="flex items-start space-x-4">
-                <div className="shrink-0">
-                  {notification.type === "success" ? (
-                    <FiCheckCircle className="w-6 h-6" />
-                  ) : (
-                    <FiAlertCircle className="w-6 h-6" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-lg mb-1 text-red-700">
-                    {notification.title}
-                  </h3>
-                  {notification.message?.includes("\n") ? (
-                    <ul className="text-sm opacity-90 list-disc pl-5 space-y-1">
-                      {notification.message.split("\n").map((msg, i) => (
-                        <li key={i}>{msg}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm opacity-90">{notification.message}</p>
-                  )}
-                  {notification.productId && (
-                    <div className="mt-3 pt-3 border-t border-white/20">
-                      <p className="text-xs opacity-75">
-                        Product ID: {notification.productId}
-                      </p>
-                    </div>
-                  )}
-                </div>
-                <button
-                  onClick={() => setNotification(null)}
-                  className="shrink-0 opacity-75 hover:opacity-100 transition-opacity"
-                >
-                  <span className="sr-only">Close</span>
-                  <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-                    <span className="text-xs">✕</span>
-                  </div>
-                </button>
-              </div>
-            </div>
-          </motion.div>
+          <Notification
+            {...notification}
+            onClose={() => setNotification(null)}
+            duration={5000}
+          />
         )}
       </AnimatePresence>
 

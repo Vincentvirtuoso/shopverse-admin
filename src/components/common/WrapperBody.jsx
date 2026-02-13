@@ -157,11 +157,34 @@ WrapperBody.Section = ({ children, className = "", ...props }) => (
 WrapperBody.Grid = ({ children, cols = 2, gap = 4, className = "" }) => {
   const colClasses = {
     1: "grid-cols-1",
-    2: "grid-cols-1 md:grid-cols-2",
-    3: "grid-cols-1 md:grid-cols-3",
-    4: "grid-cols-1 md:grid-cols-2 lg:grid-cols-4",
-    5: "grid-cols-1 md:grid-cols-3 lg:grid-cols-5",
-    6: "grid-cols-1 md:grid-cols-3 lg:grid-cols-6",
+
+    2: "grid-cols-1 sm:grid-cols-2",
+    "2-md": "grid-cols-1 md:grid-cols-2",
+    "2-lg": "grid-cols-1 lg:grid-cols-2",
+    "2-xl": "grid-cols-1 xl:grid-cols-2",
+    "2-2xl": "grid-cols-1 2xl:grid-cols-2",
+    3: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+    "3-sm": "grid-cols-1 sm:grid-cols-3",
+    "3-md": "grid-cols-1 md:grid-cols-3",
+    "3-lg": "grid-cols-1 lg:grid-cols-3",
+    4: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
+    "4-sm": "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
+    "4-md": "grid-cols-1 md:grid-cols-2 lg:grid-cols-4",
+    "4-lg": "grid-cols-1 lg:grid-cols-4",
+    5: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5",
+    "5-md": "grid-cols-1 md:grid-cols-3 lg:grid-cols-5",
+    "5-lg": "grid-cols-1 lg:grid-cols-5",
+    6: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6",
+    "6-md": "grid-cols-1 md:grid-cols-3 lg:grid-cols-6",
+    "6-lg": "grid-cols-1 lg:grid-cols-6",
+    "auto-100":
+      "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6",
+    "auto-120":
+      "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5",
+    "auto-150":
+      "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4",
+    "auto-200":
+      "grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3",
   };
 
   return (
@@ -174,7 +197,7 @@ WrapperBody.Grid = ({ children, cols = 2, gap = 4, className = "" }) => {
 WrapperBody.Flex = ({
   children,
   direction = "row",
-  align = "start",
+  align = "stretch",
   justify = "start",
   gap = 4,
   wrap = false,
@@ -216,8 +239,8 @@ WrapperBody.Flex = ({
 };
 
 WrapperBody.Divider = ({ className = "" }) => (
-  <hr
-    className={`my-4 border-t border-gray-200 dark:border-gray-500/20 ${className}`}
+  <div
+    className={`my-4 border-t border-gray-300 dark:border-neutral-500/80 ${className}`}
   />
 );
 

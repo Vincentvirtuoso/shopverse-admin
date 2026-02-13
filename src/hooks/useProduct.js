@@ -116,7 +116,7 @@ export const useProductForm = (initialValues = {}, options = {}) => {
     [initialValues],
   );
 
-  const { isEditMode = false } = options;
+  const { isEditMode = false, openJsonInput = null } = options;
 
   const [form, setForm] = useState(initialForm);
   const [dirtyFields, setDirtyFields] = useState(new Set()); // Track changed fields
@@ -227,6 +227,42 @@ export const useProductForm = (initialValues = {}, options = {}) => {
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
+  };
+
+  const handleJsonEditField = (fieldPath, currentValue, setNotification) => {
+    // for (const key of fieldPath) {
+    //   if (currentValue instanceof Map) {
+    //     currentValue = currentValue.get(key);
+    //   } else {
+    //     currentValue = currentValue?.[key];
+    //   }
+    // }
+
+    openJsonInput(fieldPath, currentValue, {
+      title: `Edit ${fieldPath.join(" > ")}`,
+      onSave: (savedData) => {
+        console.log("Saved data:", savedData);
+        setNotification?.({
+          type: "success",
+          title: "JSON Updated",
+          message: "Form data has been updated from JSON input.",
+        });
+      },
+    });
+  };
+
+  const handleJsonAllFieldEdit = ({ setNotification }) => {
+    openJsonInput(null, form, {
+      title: "Edit Entire Product",
+      onSave: (savedData) => {
+        console.log("Saved entire form:", savedData);
+        setNotification?.({
+          type: "success",
+          title: "JSON Updated",
+          message: "Form data has been updated from JSON input.",
+        });
+      },
+    });
   };
 
   const addTag = (tag, updateForm) => {
@@ -652,5 +688,7 @@ export const useProductForm = (initialValues = {}, options = {}) => {
     dirtyFields,
     isEditMode,
     markDirty,
+    handleJsonEditField,
+    handleJsonAllFieldEdit,
   };
 };

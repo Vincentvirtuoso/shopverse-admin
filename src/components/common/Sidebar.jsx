@@ -104,6 +104,12 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const navItems = [
     { icon: <FiHome />, label: "Dashboard", href: "/dashboard", count: 0 },
     {
+      icon: <FiGrid />,
+      label: "Manage Categories",
+      href: "/manage-categories",
+      count: 0,
+    },
+    {
       icon: <FiShoppingBag />,
       label: "Manage Products",
       href: "/manage-products",
@@ -123,7 +129,6 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       count: 23,
     },
     { icon: <FaNairaSign />, label: "Revenue", href: "/revenue" },
-    { icon: <FiGrid />, label: "Categories", href: "/categories" },
     { icon: <FiSettings />, label: "Settings", href: "/settings" },
   ];
 
