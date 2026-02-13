@@ -37,6 +37,13 @@ import {
   FaSort,
   FaArrowUp,
   FaArrowDown,
+  FaLightbulb,
+  FaMobile,
+  FaTshirt,
+  FaHome,
+  FaBook,
+  FaExclamationCircle,
+  FaCopy,
 } from "react-icons/fa";
 import CardWrapper from "../components/ui/CardWrapper";
 import { toast } from "react-hot-toast";
@@ -47,6 +54,10 @@ import WrapperFooter from "../components/common/WrapperFooter";
 import MiniFileUpload from "../components/common/MiniFileUpload";
 import RadioCard from "../components/common/RadioCard";
 import MultiInput from "../components/common/MultiInput";
+import { LuArrowLeft } from "react-icons/lu";
+import Spinner from "../components/common/Spinner";
+import MetaFields from "../sections/addCategory/MetaFields";
+import MetaFieldModal from "../sections/addCategory/MetaFieldModal";
 
 // Custom slug generator
 const generateSlug = (text) => {
@@ -120,7 +131,7 @@ const AddCategory = () => {
     description: "",
     icon: "",
     image: "",
-    parent: "",
+    // parent: "",
     sortOrder: 0,
     isFeatured: false,
     isActive: true,
@@ -388,7 +399,7 @@ const AddCategory = () => {
       data: {
         key: "",
         label: "",
-        type: "string",
+        type: "text",
         unit: "",
         placeholder: "",
         options: [],
@@ -415,53 +426,64 @@ const AddCategory = () => {
   const handleMetaFieldSubmit = async () => {
     const { mode, data, index } = metaFieldModal;
 
-    // Validate
-    if (!data.key) {
-      toast.error("Field key is required");
-      return;
-    }
-    if (!data.label) {
-      toast.error("Field label is required");
-      return;
+    if (!data.label?.trim()) return toast.error("Field label is required");
+    if (!data.key?.trim()) return toast.error("Field key is required");
+
+    const sanitizedKey = data.key
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "_")
+      .replace(/[^a-z0-9_]/g, "");
+
+    if (!/^[a-z]/.test(sanitizedKey)) {
+      return toast.error("Key must start with a lowercase letter");
     }
 
-    // Format key
-    data.key = data.key.toLowerCase().replace(/[^a-z0-9_]/g, "_");
+    const finalFieldData = {
+      ...data,
+      key: sanitizedKey,
+      options:
+        data.type === "array" || data.type === "select"
+          ? data.options || []
+          : [],
+      defaultValue:
+        data.type === "number"
+          ? Number(data.defaultValue || 0)
+          : data.defaultValue,
+      sortOrder:
+        data.sortOrder || (mode === "add" ? formData.metaFields.length : 0),
+    };
+
+    if (mode === "add") {
+      const keyExists = formData.metaFields.some((f) => f.key === sanitizedKey);
+      if (keyExists) return toast.error("A field with this key already exists");
+    }
 
     try {
       if (isEditing) {
-        // API call for existing category
         if (mode === "add") {
-          await addMetaField(id, data);
+          await addMetaField(id, finalFieldData);
         } else {
-          await updateMetaField(id, formData.metaFields[index].key, data);
+          const oldKey = formData.metaFields[index].key;
+          await updateMetaField(id, oldKey, finalFieldData);
         }
-
-        // Reload category to get updated data
         await loadCategory(id);
       } else {
-        // Local state update for new category
-        if (mode === "add") {
-          setFormData((prev) => ({
-            ...prev,
-            metaFields: [
-              ...prev.metaFields,
-              { ...data, _id: Date.now().toString() },
-            ],
-          }));
-        } else {
-          setFormData((prev) => ({
-            ...prev,
-            metaFields: prev.metaFields.map((item, i) =>
-              i === index ? { ...item, ...data } : item,
-            ),
-          }));
-        }
+        setFormData((prev) => {
+          const newFields = [...prev.metaFields];
+          if (mode === "add") {
+            newFields.push({ ...finalFieldData });
+          } else {
+            newFields[index] = { ...newFields[index], ...finalFieldData };
+          }
+          return { ...prev, metaFields: newFields };
+        });
       }
 
       toast.success(
         `Meta field ${mode === "add" ? "added" : "updated"} successfully`,
       );
+
       setMetaFieldModal({
         isOpen: false,
         mode: "add",
@@ -469,7 +491,12 @@ const AddCategory = () => {
         index: null,
       });
     } catch (err) {
-      toast.error(err.message || `Failed to ${mode} meta field`);
+      console.error("MetaField Submit Error:", err);
+      toast.error(
+        err.response?.data?.message ||
+          err.message ||
+          `Failed to ${mode} meta field`,
+      );
     }
   };
 
@@ -575,9 +602,9 @@ const AddCategory = () => {
           <button
             type="button"
             onClick={() => navigate("/categories")}
-            className="px-4 py-2 rounded-lg text-gray-400 hover:bg-gray-50 transition-colors flex items-center gap-2"
+            className="px-4 py-2 rounded-lg text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-2"
           >
-            <FaTimes /> Cancel
+            <LuArrowLeft /> Back
           </button>
           <button
             type="submit"
@@ -586,9 +613,11 @@ const AddCategory = () => {
             className="px-4 py-2 bg-linear-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isSubmitting ? (
-              <>
-                <FaSpinner className="animate-spin" /> Saving...
-              </>
+              <Spinner
+                label="Saving"
+                labelPosition="right"
+                labelAnimation="pulse"
+              />
             ) : (
               <>
                 <FaSave /> {isEditing ? "Update" : "Create"}
@@ -698,26 +727,28 @@ const AddCategory = () => {
                 </div>
 
                 {/* Parent Category */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Parent Category
-                  </label>
-                  <select
-                    name="parent"
-                    value={formData.parent}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 rounded-lg  focus:border-transparent"
-                  >
-                    <option value="">None (Top Level)</option>
-                    {categories
-                      ?.filter((cat) => !isEditing || cat._id !== id)
-                      .map((cat) => (
-                        <option key={cat._id} value={cat._id}>
-                          {cat.name} {!cat.isActive && "(Inactive)"}
-                        </option>
-                      ))}
-                  </select>
-                </div>
+                {categories && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">
+                      Parent Category
+                    </label>
+                    <select
+                      name="parent"
+                      value={formData.parent}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 rounded-lg  focus:border-transparent"
+                    >
+                      <option value="">None (Top Level)</option>
+                      {categories
+                        ?.filter((cat) => !isEditing || cat._id !== id)
+                        .map((cat) => (
+                          <option key={cat._id} value={cat._id}>
+                            {cat.name} {!cat.isActive && "(Inactive)"}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                )}
 
                 {/* Sort Order */}
                 <div>
@@ -1013,141 +1044,154 @@ const AddCategory = () => {
         )}
 
         {/* Tab: Meta Fields */}
+
         {activeTab === "metafields" && (
-          <CardWrapper
-            title="Meta Field Management"
-            className="mb-6"
-            bodyClassName="p-4"
-            headerClassName="p-5"
-          >
+          <CardWrapper className="mb-6" bodyClassName="p-4">
             <WrapperHeader
-              title="Custom Meta Fields"
+              title="Meta Field Management"
               description="Define custom fields for products in this category"
+              showDivider
+              className="pb-4"
               icon={<FaCog />}
-              isExpandable
-              expanded={expandedSections.metafields}
-              toggleExpand={() => toggleSection("metafields")}
             >
               <button
                 type="button"
                 onClick={openAddMetaField}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2 text-sm place-self-start"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2 text-sm whitespace-nowrap shadow-sm hover:shadow-md transition-all place-self-start"
+                title="Create a new custom field for products in this category"
               >
-                <FaPlus /> Add Meta Field
+                <FaPlus /> Add New Meta Field
               </button>
             </WrapperHeader>
+            <p className="text-sm text-gray-600 dark:text-gray-300 my-3">
+              Meta fields allow you to add custom data fields to products in
+              this category. For example, if you're selling electronics, you
+              might add fields like "Battery Life", "Screen Size", or "Processor
+              Type".
+            </p>
 
-            <AnimatePresence>
-              {expandedSections.metafields && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden"
+            {/* Quick Guide for Meta Fields */}
+
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              {formData.metaFields.length === 0 ? (
+                <WrapperBody.Card
+                  padding="lg"
+                  className="text-center mt-6"
+                  border
                 >
-                  {formData.metaFields.length === 0 ? (
-                    <WrapperBody.Card
-                      padding="lg"
-                      className="text-center mt-4"
-                      border
-                    >
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <FaCog className="text-2xl text-gray-400" />
+                  <div className="w-20 h-20 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <FaCog className="text-3xl text-gray-500 dark:text-gray-400" />
+                  </div>
+
+                  <WrapperBody.Title as="h3" className="text-lg mb-2">
+                    Start Building Your Product Data Structure
+                  </WrapperBody.Title>
+
+                  <WrapperBody.Text muted className="mb-4 max-w-md mx-auto">
+                    Add custom fields to collect specific product attributes
+                    that aren't covered by default fields. This helps you
+                    organize product information consistently.
+                  </WrapperBody.Text>
+
+                  {/* Example Fields Preview */}
+                  <div className="mb-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 max-w-2xl mx-auto">
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-3 text-left">
+                      Example meta fields for different product types:
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="flex items-start gap-2 text-left">
+                        <div className="w-6 h-6 bg-indigo-100 dark:bg-indigo-900/30 rounded flex items-center justify-center shrink-0">
+                          <FaMobile className="text-xs text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium">Electronics</p>
+                          <p className="text-xs text-gray-500">
+                            Screen Size, RAM, Storage, Processor
+                          </p>
+                        </div>
                       </div>
-                      <WrapperBody.Title as="h3" className="text-lg mb-2">
-                        No Meta Fields Yet
-                      </WrapperBody.Title>
-                      <WrapperBody.Text muted className="mb-4">
-                        Add custom fields to collect specific product attributes
-                      </WrapperBody.Text>
-                      <button
-                        type="button"
-                        onClick={openAddMetaField}
-                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 inline-flex items-center gap-2"
-                      >
-                        <FaPlus /> Add Your First Meta Field
-                      </button>
-                    </WrapperBody.Card>
-                  ) : (
-                    <WrapperBody.Flex direction="col" gap={3} className="mt-4">
-                      {formData.metaFields.map((field, index) => (
-                        <CardWrapper
-                          key={field._id || index}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 20 }}
-                          bodyClassName="flex items-center gap-3 p-4 hover:shadow-sm transition-shadow"
-                        >
-                          <div className="cursor-move text-gray-400">
-                            <FaGripVertical />
-                          </div>
+                      <div className="flex items-start gap-2 text-left">
+                        <div className="w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded flex items-center justify-center shrink-0">
+                          <FaTshirt className="text-xs text-green-600 dark:text-green-400" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium">Clothing</p>
+                          <p className="text-xs text-gray-500">
+                            Size, Material, Care Instructions
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2 text-left">
+                        <div className="w-6 h-6 bg-yellow-100 dark:bg-yellow-900/30 rounded flex items-center justify-center shrink-0">
+                          <FaHome className="text-xs text-yellow-600 dark:text-yellow-400" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium">Furniture</p>
+                          <p className="text-xs text-gray-500">
+                            Dimensions, Weight, Material, Assembly Required
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2 text-left">
+                        <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 rounded flex items-center justify-center shrink-0">
+                          <FaBook className="text-xs text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium">Books</p>
+                          <p className="text-xs text-gray-500">
+                            ISBN, Pages, Publisher, Language
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3">
-                              <h4 className="font-medium text-gray-900 dark:text-white">
-                                {field.label}
-                              </h4>
-                              <span className="px-2 py-0.5 bg-purple-100 text-purple-800 rounded-full text-xs">
-                                {field.type}
-                              </span>
-                              {field.isRequired && (
-                                <span className="px-2 py-0.5 bg-red-100 text-red-800 rounded-full text-xs">
-                                  Required
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-sm text-gray-400">{field.key}</p>
-                            <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                              {field.isFilterable && (
-                                <span className="flex items-center gap-1">
-                                  <FaFilter /> Filterable
-                                </span>
-                              )}
-                              {field.isSearchable && (
-                                <span className="flex items-center gap-1">
-                                  <FaSearch /> Searchable
-                                </span>
-                              )}
-                              {field.unit && (
-                                <span className="flex items-center gap-1">
-                                  Unit: {field.unit}
-                                </span>
-                              )}
-                            </div>
-                          </div>
+                  <button
+                    type="button"
+                    onClick={openAddMetaField}
+                    className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 inline-flex items-center gap-2 font-medium shadow-sm hover:shadow-md transition-all"
+                  >
+                    <FaPlus /> Create Your First Meta Field
+                  </button>
+                </WrapperBody.Card>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mt-4 mb-2 flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-100">
+                        Custom Fields ({formData.metaFields.length})
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-300">
+                        • Drag to reorder • Click settings to edit
+                      </span>
+                    </div>
+                  </div>
 
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => openEditMetaField(index)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="Edit"
-                            >
-                              <FaCog />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setDeleteConfirm({
-                                  isOpen: true,
-                                  type: "metafield",
-                                  index,
-                                  name: field.label,
-                                })
-                              }
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete"
-                            >
-                              <FaTrash />
-                            </button>
-                          </div>
-                        </CardWrapper>
-                      ))}
-                    </WrapperBody.Flex>
-                  )}
-                </motion.div>
+                  <MetaFields
+                    formData={formData}
+                    openEditMetaField={openEditMetaField}
+                    setDeleteConfirm={setDeleteConfirm}
+                    setFormData={setFormData}
+                  />
+
+                  <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg text-xs text-gray-600 dark:text-gray-400 flex items-start gap-2">
+                    <FaLightbulb className="text-yellow-500 shrink-0 mt-0.5" />
+                    <p>
+                      <span className="font-medium">Pro Tip:</span> Fields
+                      marked as filterable will appear in the category page
+                      sidebar. Searchable fields help customers find products
+                      using the search bar. You can change these settings
+                      anytime.
+                    </p>
+                  </div>
+                </>
               )}
-            </AnimatePresence>
+            </motion.div>
           </CardWrapper>
         )}
       </form>
@@ -1366,432 +1410,12 @@ const AddCategory = () => {
 
       {/* Meta Field Modal */}
       <AnimatePresence>
-        {metaFieldModal.isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-            onClick={() =>
-              setMetaFieldModal({ ...metaFieldModal, isOpen: false })
-            }
-          >
-            <CardWrapper
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <WrapperHeader
-                title={`${metaFieldModal.mode === "add" ? "Add" : "Edit"} Meta Field`}
-                onClose={() =>
-                  setMetaFieldModal({ ...metaFieldModal, isOpen: false })
-                }
-                padding
-                showDivider
-              />
-
-              <WrapperBody padding="lg" spacing="md">
-                {/* Key */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Field Key *
-                  </label>
-                  <div className="relative">
-                    <FaHashtag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="text"
-                      value={metaFieldModal.data?.key || ""}
-                      onChange={(e) =>
-                        setMetaFieldModal((prev) => ({
-                          ...prev,
-                          data: {
-                            ...prev.data,
-                            key: e.target.value
-                              .toLowerCase()
-                              .replace(/[^a-z0-9_]/g, "_"),
-                          },
-                        }))
-                      }
-                      className="w-full pl-10 pr-3 py-2 rounded-lg "
-                      placeholder="e.g., screen_size"
-                      pattern="[a-z][a-zA-Z0-9_]*"
-                      title="Must start with a letter and contain only letters, numbers, or underscores"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Must start with a letter and contain only letters, numbers,
-                    or underscores
-                  </p>
-                </div>
-
-                {/* Label */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Label *
-                  </label>
-                  <input
-                    type="text"
-                    value={metaFieldModal.data?.label || ""}
-                    onChange={(e) =>
-                      setMetaFieldModal((prev) => ({
-                        ...prev,
-                        data: { ...prev.data, label: e.target.value },
-                      }))
-                    }
-                    className="w-full px-3 py-2 rounded-lg "
-                    placeholder="e.g., Screen Size"
-                  />
-                </div>
-
-                {/* Type */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Field Type *
-                  </label>
-                  <select
-                    value={metaFieldModal.data?.type || "string"}
-                    onChange={(e) =>
-                      setMetaFieldModal((prev) => ({
-                        ...prev,
-                        data: { ...prev.data, type: e.target.value },
-                      }))
-                    }
-                    className="w-full px-3 py-2 rounded-lg "
-                  >
-                    {META_FIELD_TYPES.map((type) => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Unit (for number type) */}
-                {metaFieldModal.data?.type === "number" && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">
-                      Unit
-                    </label>
-                    <select
-                      value={metaFieldModal.data?.unit || ""}
-                      onChange={(e) =>
-                        setMetaFieldModal((prev) => ({
-                          ...prev,
-                          data: { ...prev.data, unit: e.target.value },
-                        }))
-                      }
-                      className="w-full px-3 py-2 rounded-lg "
-                    >
-                      {UNIT_OPTIONS.map((unit) => (
-                        <option key={unit.value} value={unit.value}>
-                          {unit.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {/* Placeholder */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Placeholder
-                  </label>
-                  <input
-                    type="text"
-                    value={metaFieldModal.data?.placeholder || ""}
-                    onChange={(e) =>
-                      setMetaFieldModal((prev) => ({
-                        ...prev,
-                        data: { ...prev.data, placeholder: e.target.value },
-                      }))
-                    }
-                    className="w-full px-3 py-2 rounded-lg "
-                    placeholder="e.g., Enter screen size"
-                  />
-                </div>
-
-                {/* Options (for array type) */}
-                {metaFieldModal.data?.type === "array" && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">
-                      Options
-                    </label>
-                    <div className="flex gap-2 mb-2">
-                      <input
-                        type="text"
-                        placeholder="Add option and press Enter"
-                        className="flex-1 px-3 py-2 rounded-lg "
-                        onKeyPress={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            const input = e.target;
-                            if (input.value.trim()) {
-                              setMetaFieldModal((prev) => ({
-                                ...prev,
-                                data: {
-                                  ...prev.data,
-                                  options: [
-                                    ...(prev.data?.options || []),
-                                    input.value.trim(),
-                                  ],
-                                },
-                              }));
-                              input.value = "";
-                            }
-                          }
-                        }}
-                      />
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {metaFieldModal.data?.options?.map((option, index) => (
-                        <span
-                          key={index}
-                          className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm flex items-center gap-2"
-                        >
-                          {option}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setMetaFieldModal((prev) => ({
-                                ...prev,
-                                data: {
-                                  ...prev.data,
-                                  options: prev.data?.options.filter(
-                                    (_, i) => i !== index,
-                                  ),
-                                },
-                              }))
-                            }
-                            className="text-indigo-600 hover:text-indigo-800"
-                          >
-                            <FaTimes size={12} />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Default Value */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Default Value
-                  </label>
-                  {metaFieldModal.data?.type === "boolean" ? (
-                    <select
-                      value={
-                        metaFieldModal.data?.defaultValue ? "true" : "false"
-                      }
-                      onChange={(e) =>
-                        setMetaFieldModal((prev) => ({
-                          ...prev,
-                          data: {
-                            ...prev.data,
-                            defaultValue: e.target.value === "true",
-                          },
-                        }))
-                      }
-                      className="w-full px-3 py-2 rounded-lg "
-                    >
-                      <option value="false">No</option>
-                      <option value="true">Yes</option>
-                    </select>
-                  ) : metaFieldModal.data?.type === "array" ? (
-                    <select
-                      multiple
-                      value={metaFieldModal.data?.defaultValue || []}
-                      onChange={(e) =>
-                        setMetaFieldModal((prev) => ({
-                          ...prev,
-                          data: {
-                            ...prev.data,
-                            defaultValue: Array.from(
-                              e.target.selectedOptions,
-                              (opt) => opt.value,
-                            ),
-                          },
-                        }))
-                      }
-                      className="w-full px-3 py-2 rounded-lg "
-                    >
-                      {metaFieldModal.data?.options?.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      type={
-                        metaFieldModal.data?.type === "number"
-                          ? "number"
-                          : "text"
-                      }
-                      value={metaFieldModal.data?.defaultValue || ""}
-                      onChange={(e) =>
-                        setMetaFieldModal((prev) => ({
-                          ...prev,
-                          data: {
-                            ...prev.data,
-                            defaultValue:
-                              metaFieldModal.data?.type === "number"
-                                ? parseFloat(e.target.value)
-                                : e.target.value,
-                          },
-                        }))
-                      }
-                      className="w-full px-3 py-2 rounded-lg "
-                      placeholder="Default value"
-                    />
-                  )}
-                </div>
-
-                {/* Settings Section */}
-                <WrapperBody.Card padding="md" border className="mt-4">
-                  <WrapperBody.Title as="h4" className="text-sm mb-3">
-                    Field Settings
-                  </WrapperBody.Title>
-
-                  <WrapperBody.Flex direction="col" gap={3}>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Required Field</span>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={metaFieldModal.data?.isRequired || false}
-                          onChange={(e) =>
-                            setMetaFieldModal((prev) => ({
-                              ...prev,
-                              data: {
-                                ...prev.data,
-                                isRequired: e.target.checked,
-                              },
-                            }))
-                          }
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">
-                        Filterable (in storefront)
-                      </span>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={metaFieldModal.data?.isFilterable || false}
-                          onChange={(e) =>
-                            setMetaFieldModal((prev) => ({
-                              ...prev,
-                              data: {
-                                ...prev.data,
-                                isFilterable: e.target.checked,
-                              },
-                            }))
-                          }
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Searchable</span>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={metaFieldModal.data?.isSearchable || false}
-                          onChange={(e) =>
-                            setMetaFieldModal((prev) => ({
-                              ...prev,
-                              data: {
-                                ...prev.data,
-                                isSearchable: e.target.checked,
-                              },
-                            }))
-                          }
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Visible on Product Page</span>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={
-                            metaFieldModal.data?.isVisibleOnProductPage !==
-                            false
-                          }
-                          onChange={(e) =>
-                            setMetaFieldModal((prev) => ({
-                              ...prev,
-                              data: {
-                                ...prev.data,
-                                isVisibleOnProductPage: e.target.checked,
-                              },
-                            }))
-                          }
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                      </label>
-                    </div>
-                  </WrapperBody.Flex>
-                </WrapperBody.Card>
-
-                {/* Sort Order */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Sort Order
-                  </label>
-                  <input
-                    type="number"
-                    value={metaFieldModal.data?.sortOrder || 0}
-                    onChange={(e) =>
-                      setMetaFieldModal((prev) => ({
-                        ...prev,
-                        data: {
-                          ...prev.data,
-                          sortOrder: parseInt(e.target.value),
-                        },
-                      }))
-                    }
-                    min="0"
-                    className="w-full px-3 py-2 rounded-lg "
-                  />
-                </div>
-              </WrapperBody>
-
-              <WrapperFooter padding="lg">
-                <div className="flex justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setMetaFieldModal({ ...metaFieldModal, isOpen: false })
-                    }
-                    className="px-4 py-2 rounded-lg text-gray-400 hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleMetaFieldSubmit}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-                  >
-                    {metaFieldModal.mode === "add" ? "Add" : "Update"}
-                  </button>
-                </div>
-              </WrapperFooter>
-            </CardWrapper>
-          </motion.div>
-        )}
+        <MetaFieldModal
+          isOpen={metaFieldModal.isOpen}
+          metaFieldModal={metaFieldModal}
+          setMetaFieldModal={setMetaFieldModal}
+          handleMetaFieldSubmit={handleMetaFieldSubmit}
+        />
       </AnimatePresence>
 
       {/* Delete Confirmation Modal */}

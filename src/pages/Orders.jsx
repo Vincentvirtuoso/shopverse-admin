@@ -165,7 +165,7 @@ const OrderManagementPage = () => {
           </form>
         </WrapperHeader>
 
-        <div className="p-6">
+        <div className="">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">

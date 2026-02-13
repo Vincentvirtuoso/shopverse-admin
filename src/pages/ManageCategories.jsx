@@ -27,6 +27,14 @@ import { useCategory } from "../hooks/useCategory";
 import CardWrapper from "../components/ui/CardWrapper";
 import { useNavigate } from "react-router-dom";
 import Spinner from "../components/common/Spinner";
+import {
+  FiCheck,
+  FiEdit,
+  FiMoreHorizontal,
+  FiMoreVertical,
+  FiRefreshCcw,
+  FiX,
+} from "react-icons/fi";
 
 const ManageCategories = () => {
   const {
@@ -45,8 +53,8 @@ const ManageCategories = () => {
   // Local state
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
-    isActive: null,
-    isFeatured: null,
+    isActive: true,
+    isFeatured: false,
     parent: null,
   });
   const [sortConfig, setSortConfig] = useState({
@@ -307,7 +315,7 @@ const ManageCategories = () => {
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="divide-y divide-gray-200 bg-gray-100 dark:bg-neutral-700 hover:bg-gray-100/40 hover:dark:bg-neutral-700/40">
             <AnimatePresence>
               {filteredCategories.map((category, index) => (
                 <motion.tr
@@ -316,8 +324,7 @@ const ManageCategories = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ delay: index * 0.05 }}
-                  whileHover={{ backgroundColor: "#f9fafb" }}
-                  className="group"
+                  className="group "
                 >
                   <td className="px-6 py-4">
                     <input
@@ -344,15 +351,15 @@ const ManageCategories = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div>
-                      <div className="font-medium text-gray-900">
+                      <div className="font-medium text-gray-400">
                         {category.name}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-gray-300">
                         Level {category.level || 0}
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-gray-300">
                     {category.slug}
                   </td>
                   <td className="px-6 py-4">
@@ -382,48 +389,26 @@ const ManageCategories = () => {
                         </>
                       ) : (
                         <>
-                          <FaTimes className="mr-1 text-xs" /> Inactive
+                          <FiX className="mr-1 text-xs" /> Inactive
                         </>
                       )}
                     </button>
                   </td>
                   <td className="px-6 py-4">
-                    {category.isFeatured ? (
-                      <FaStar className="text-yellow-400" />
-                    ) : (
-                      <FaRegStar className="text-gray-300" />
-                    )}
+                    <span className="flex place-content-center">
+                      {category.isFeatured ? "YES" : "NO"}
+                    </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => navigate(`/categories/${category._id}`)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Edit"
-                      >
-                        <FaEdit />
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => handleFallbackClick(category)}
-                        className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                        title="Set Fallback"
-                      >
-                        <FaRandom />
-                      </motion.button>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => handleDeleteClick(category)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Delete"
-                      >
-                        <FaTrash />
-                      </motion.button>
-                    </div>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => handleFallbackClick(category)}
+                      className="p-2 text-gray-300 hover:bg-gray-500 rounded-lg transition-colors"
+                      title="See Actions"
+                    >
+                      <FiMoreVertical />
+                    </motion.button>
                   </td>
                 </motion.tr>
               ))}
@@ -724,29 +709,29 @@ const ManageCategories = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {/* Bulk actions */}
           {selectedCategories.length > 0 && (
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-2 bg-gray-100 rounded-lg p-1"
+              className="flex items-center gap-2 bg-gray-100 dark:bg-neutral-600 rounded-lg p-1"
             >
               <button
                 onClick={() => handleBulkAction("activate")}
-                className="px-3 py-1.5 text-sm text-green-600 hover:bg-white rounded-md transition-colors"
+                className="px-3 py-1.5 text-sm bg-green-600 text-white hover:bg-green-600/60 rounded-md transition-colors"
               >
-                <FaCheck className="inline mr-1" /> Activate
+                <FiCheck className="inline mr-1" /> Activate
               </button>
               <button
                 onClick={() => handleBulkAction("deactivate")}
-                className="px-3 py-1.5 text-sm text-orange-600 hover:bg-white rounded-md transition-colors"
+                className="px-3 py-1.5 text-sm bg-orange-600 text-white hover:bg-orange-600/60 rounded-md transition-colors"
               >
-                <FaTimes className="inline mr-1" /> Deactivate
+                <FiX className="inline mr-1" /> Deactivate
               </button>
               <button
                 onClick={() => handleBulkAction("delete")}
-                className="px-3 py-1.5 text-sm text-red-600 hover:bg-white rounded-md transition-colors"
+                className="px-3 py-1.5 text-sm bg-red-600 text-white hover:bg-red-600/60 rounded-md transition-colors"
               >
                 <FaTrash className="inline mr-1" /> Delete
               </button>
@@ -785,6 +770,15 @@ const ManageCategories = () => {
             className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-pink-600 to-red-600 text-white rounded-lg hover:from-pink-700 hover:to-red-700 transition-all shadow-lg hover:shadow-xl"
           >
             <FaPlus /> Add Category
+          </motion.button>
+          {/* Add category button */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => fetchCategories()}
+            className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-neutral-600 to-slate-600 text-white rounded-lg hover:from-neutral-700 hover:to-slate-700 transition-all shadow-lg hover:shadow-xl"
+          >
+            <FiRefreshCcw /> Reload
           </motion.button>
         </div>
       </div>

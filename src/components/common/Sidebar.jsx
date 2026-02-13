@@ -106,7 +106,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     {
       icon: <FiGrid />,
       label: "Manage Categories",
-      href: "/manage-categories",
+      href: "/categories",
       count: 0,
     },
     {
