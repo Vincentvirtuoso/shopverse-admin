@@ -107,7 +107,7 @@ const AddCategory = () => {
   const isEditing = !!id;
 
   const {
-    // loading,
+    loadingStates,
     // error,
     // category,
     categories,
@@ -175,7 +175,6 @@ const AddCategory = () => {
     icon: null,
     image: null,
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load data on mount
   useEffect(() => {
@@ -183,6 +182,7 @@ const AddCategory = () => {
     if (isEditing && id) {
       loadCategory(id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const loadCategory = async (categoryId) => {
@@ -212,7 +212,7 @@ const AddCategory = () => {
         image: data.image,
       });
     } catch (err) {
-      toast.error("Failed to load category");
+      toast.error(err.message || "Failed to load category");
       navigate("/categories");
     }
   };
@@ -285,7 +285,6 @@ const AddCategory = () => {
     }));
   };
 
-  // ==================== Subcategory Handlers ====================
   const openAddSubCategory = () => {
     setSubCategoryModal({
       isOpen: true,
@@ -341,10 +340,7 @@ const AddCategory = () => {
         if (mode === "add") {
           setFormData((prev) => ({
             ...prev,
-            subCategories: [
-              ...prev.subCategories,
-              { ...data, _id: Date.now().toString() },
-            ],
+            subCategories: [...prev.subCategories, { ...data }],
           }));
         } else {
           setFormData((prev) => ({
@@ -524,13 +520,11 @@ const AddCategory = () => {
   // ==================== Form Submission ====================
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
     try {
       // Validate required fields
       if (!formData.name) {
         toast.error("Category name is required");
-        setIsSubmitting(false);
         return;
       }
 
@@ -559,6 +553,8 @@ const AddCategory = () => {
         toast.success("Category created successfully");
       }
 
+      console.log(response);
+
       // Navigate back to list
       setTimeout(() => {
         navigate("/categories");
@@ -567,8 +563,6 @@ const AddCategory = () => {
       toast.error(
         err.message || `Failed to ${isEditing ? "update" : "create"} category`,
       );
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -578,6 +572,22 @@ const AddCategory = () => {
     { id: "subcategories", label: "Subcategories", icon: <FaList /> },
     { id: "metafields", label: "Meta Fields", icon: <FaCog /> },
   ];
+
+  if (isEditing && loadingStates.fetchCategory) {
+    return (
+      <div>
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (loadingStates.fetchCategories && !categories) {
+    return (
+      <div>
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -609,10 +619,16 @@ const AddCategory = () => {
           <button
             type="submit"
             form="category-form"
-            disabled={isSubmitting}
+            disabled={
+              isEditing
+                ? loadingStates.updateCategory
+                : loadingStates.createCategory
+            }
             className="px-4 py-2 bg-linear-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            {isSubmitting ? (
+            {isEditing ? (
+              loadingStates.updateCategory
+            ) : loadingStates.createCategory ? (
               <Spinner
                 label="Saving"
                 labelPosition="right"
@@ -1199,212 +1215,7 @@ const AddCategory = () => {
       {/* Subcategory Modal */}
       <AnimatePresence>
         {subCategoryModal.isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 bg-opacity-50 flex items-center justify-center z-50 p-4"
-            onClick={() =>
-              setSubCategoryModal({ ...subCategoryModal, isOpen: false })
-            }
-          >
-            <CardWrapper
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-xl shadow-xl max-w-2xl w-9/10 max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <WrapperHeader
-                title={`${subCategoryModal.mode === "add" ? "Add" : "Edit"} Subcategory`}
-                onClose={() =>
-                  setSubCategoryModal({ ...subCategoryModal, isOpen: false })
-                }
-                padding
-                showDivider
-              />
-
-              <WrapperBody padding="lg" spacing="md">
-                {/* Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={subCategoryModal.data?.name || ""}
-                    onChange={(e) =>
-                      setSubCategoryModal((prev) => ({
-                        ...prev,
-                        data: {
-                          ...prev.data,
-                          name: e.target.value,
-                          slug:
-                            prev.data?.autoGenerateSlug !== false
-                              ? generateSlug(e.target.value)
-                              : prev.data?.slug,
-                        },
-                      }))
-                    }
-                    className="w-full px-3 py-2 rounded-lg "
-                    placeholder="e.g., Smartphones"
-                  />
-                </div>
-
-                {/* Slug */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-sm font-medium text-gray-400">
-                      Slug
-                    </label>
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={
-                          subCategoryModal.data?.autoGenerateSlug !== false
-                        }
-                        onChange={(e) =>
-                          setSubCategoryModal((prev) => ({
-                            ...prev,
-                            data: {
-                              ...prev.data,
-                              autoGenerateSlug: e.target.checked,
-                              slug:
-                                e.target.checked && prev.data?.name
-                                  ? generateSlug(prev.data.name)
-                                  : prev.data?.slug,
-                            },
-                          }))
-                        }
-                        className="rounded border-gray-300 text-indigo-600"
-                      />
-                      Auto-generate
-                    </label>
-                  </div>
-                  {!subCategoryModal.data?.autoGenerateSlug && (
-                    <div className="relative">
-                      <FaLink className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="text"
-                        value={subCategoryModal.data?.slug || ""}
-                        onChange={(e) =>
-                          setSubCategoryModal((prev) => ({
-                            ...prev,
-                            data: { ...prev.data, slug: e.target.value },
-                          }))
-                        }
-                        disabled={subCategoryModal.data?.autoGenerateSlug}
-                        className="w-full pl-10 pr-3 py-2 rounded-lg  disabled:bg-gray-100"
-                        placeholder="smartphones"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Description
-                  </label>
-                  <textarea
-                    value={subCategoryModal.data?.description || ""}
-                    onChange={(e) =>
-                      setSubCategoryModal((prev) => ({
-                        ...prev,
-                        data: { ...prev.data, description: e.target.value },
-                      }))
-                    }
-                    rows={3}
-                    className="w-full px-3 py-2 rounded-lg "
-                    placeholder="Describe this subcategory..."
-                  />
-                </div>
-
-                {/* Image Upload */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Image
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          setSubCategoryModal((prev) => ({
-                            ...prev,
-                            data: { ...prev.data, image: reader.result },
-                          }));
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }}
-                    className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                  />
-                </div>
-
-                {/* Active Status */}
-                <RadioCard
-                  label="Active"
-                  isChecked={subCategoryModal.data?.isActive !== false}
-                  handleChange={(e) =>
-                    setSubCategoryModal((prev) => ({
-                      ...prev,
-                      data: { ...prev.data, isActive: e.target.checked },
-                    }))
-                  }
-                />
-
-                {/* Sort Order */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">
-                    Sort Order
-                  </label>
-                  <input
-                    type="number"
-                    value={subCategoryModal.data?.sortOrder || 0}
-                    onChange={(e) =>
-                      setSubCategoryModal((prev) => ({
-                        ...prev,
-                        data: {
-                          ...prev.data,
-                          sortOrder: parseInt(e.target.value),
-                        },
-                      }))
-                    }
-                    min="0"
-                    className="w-full px-3 py-2 rounded-lg "
-                  />
-                </div>
-              </WrapperBody>
-
-              <WrapperFooter padding="lg">
-                <div className="flex justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSubCategoryModal({
-                        ...subCategoryModal,
-                        isOpen: false,
-                      })
-                    }
-                    className="px-4 py-2 rounded-lg text-gray-400 hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSubCategorySubmit}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-                  >
-                    {subCategoryModal.mode === "add" ? "Add" : "Update"}
-                  </button>
-                </div>
-              </WrapperFooter>
-            </CardWrapper>
-          </motion.div>
+          
         )}
       </AnimatePresence>
 
@@ -1479,16 +1290,25 @@ const AddCategory = () => {
                 >
                   Cancel
                 </button>
-                <button
-                  onClick={
-                    deleteConfirm.type === "subcategory"
-                      ? handleDeleteSubCategory
-                      : handleDeleteMetaField
-                  }
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  Delete
-                </button>
+                {loadingStates.removeSubCategory ||
+                loadingStates.removeMetaField ? (
+                  <Spinner
+                    label="Deleting"
+                    labelAnimation="typing"
+                    labelPosition="right"
+                  />
+                ) : (
+                  <button
+                    onClick={
+                      deleteConfirm.type === "subcategory"
+                        ? handleDeleteSubCategory
+                        : handleDeleteMetaField
+                    }
+                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    Delete
+                  </button>
+                )}
               </div>
             </CardWrapper>
           </motion.div>

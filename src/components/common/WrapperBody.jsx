@@ -154,7 +154,13 @@ WrapperBody.Section = ({ children, className = "", ...props }) => (
   </WrapperBody>
 );
 
-WrapperBody.Grid = ({ children, cols = 2, gap = 4, className = "" }) => {
+WrapperBody.Grid = ({
+  children,
+  cols = 2,
+  gap = 4,
+  className = "",
+  ...props
+}) => {
   const colClasses = {
     1: "grid-cols-1",
 
@@ -167,6 +173,7 @@ WrapperBody.Grid = ({ children, cols = 2, gap = 4, className = "" }) => {
     "3-sm": "grid-cols-1 sm:grid-cols-3",
     "3-md": "grid-cols-1 md:grid-cols-3",
     "3-lg": "grid-cols-1 lg:grid-cols-3",
+    "3-md-lg": "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
     4: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
     "4-sm": "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
     "4-md": "grid-cols-1 md:grid-cols-2 lg:grid-cols-4",
@@ -188,7 +195,10 @@ WrapperBody.Grid = ({ children, cols = 2, gap = 4, className = "" }) => {
   };
 
   return (
-    <div className={`grid ${colClasses[cols]} gap-${gap} ${className}`}>
+    <div
+      className={`grid ${colClasses[cols]} gap-${gap} ${className}`}
+      {...props}
+    >
       {children}
     </div>
   );

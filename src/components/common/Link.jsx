@@ -17,7 +17,7 @@ const Link = ({ item, index, isSidebarOpen }) => {
         `flex items-center justify-between p-3 rounded-lg transition-all text-gray-600 dark:text-white text-sm ${
           isActive
             ? "bg-red-500 text-white"
-            : "dark:hover:bg-gray-800 hover:bg-gray-50 hover:text-red-500"
+            : "dark:hover:bg-neutral-800 hover:text-neutral-300 hover:bg-gray-50"
         }`
       }
     >

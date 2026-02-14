@@ -13,6 +13,7 @@ import Orders from "../pages/Orders";
 import CustomerStats from "../pages/CustomerStats";
 import ManageCategories from "../pages/ManageCategories";
 import AddCategory from "../pages/AddCategory";
+import CategoryDetail from "../pages/CategoryDetail";
 
 const router = createBrowserRouter([
   {
@@ -32,6 +33,8 @@ const router = createBrowserRouter([
               { path: "/dashboard", element: <Home /> },
               { path: "/categories", element: <ManageCategories /> },
               { path: "/categories/new", element: <AddCategory /> },
+              { path: "/category/:id", element: <CategoryDetail /> },
+              // { path: "/category/:id/edit", element: <AddCategory /> },
               { path: "/manage-products", element: <ManageProducts /> },
               { path: "/add-product", element: <AddProduct /> },
               { path: "/edit-product/:id", element: <EditProduct /> },

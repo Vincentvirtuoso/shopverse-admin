@@ -2,14 +2,58 @@ import { useState, useCallback } from "react";
 import { useApi } from "./useApi";
 
 export const useCategory = () => {
-  const { loading, error, setError, callApi } = useApi();
+  const { loading: apiLoading, error, setError, callApi } = useApi();
+
+  // Individual loading states
+  const [loadingStates, setLoadingStates] = useState({
+    fetchCategories: false,
+    fetchCategory: false,
+    fetchActiveCategories: false,
+    fetchHierarchy: false,
+    fetchProductCount: false,
+    createCategory: false,
+    updateCategory: false,
+    renameCategory: false,
+    deleteCategory: false,
+    reorderCategories: false,
+    updateStatus: false,
+    setFallback: false,
+    addSubCategory: false,
+    updateSubCategory: false,
+    removeSubCategory: false,
+    reorderSubCategories: false,
+    addMetaField: false,
+    updateMetaField: false,
+    renameMetaField: false,
+    removeMetaField: false,
+    reorderMetaFields: false,
+  });
+
   const [categories, setCategories] = useState([]);
   const [category, setCategory] = useState(null);
   const [pagination, setPagination] = useState(null);
 
+  // Helper to manage loading states
+  const withLoading = useCallback(
+    async (loadingKey, apiCall) => {
+      setLoadingStates((prev) => ({ ...prev, [loadingKey]: true }));
+      setError(null);
+
+      try {
+        const result = await apiCall();
+        return result;
+      } catch (err) {
+        setError(err);
+        throw err;
+      } finally {
+        setLoadingStates((prev) => ({ ...prev, [loadingKey]: false }));
+      }
+    },
+    [setError],
+  );
+
   const handleCategoryMutation = useCallback(async (apiCall, options = {}) => {
     const { onSuccess, transform } = options;
-
     const response = await apiCall();
 
     if (transform) {
@@ -25,227 +69,253 @@ export const useCategory = () => {
 
   const getAllCategories = useCallback(
     async (params = {}) => {
-      const queryParams = new URLSearchParams(params).toString();
-      const response = await callApi(
-        `/categories${queryParams ? `?${queryParams}` : ""}`,
-        "GET",
-      );
-      setCategories(response.data);
-      setPagination(response.pagination);
-      return response;
+      return withLoading("fetchCategories", async () => {
+        const queryParams = new URLSearchParams(params).toString();
+        const response = await callApi(
+          `/categories${queryParams ? `?${queryParams}` : ""}`,
+          "GET",
+        );
+        setCategories(response.data);
+        setPagination(response.pagination);
+        return response;
+      });
     },
-    [callApi],
+    [callApi, withLoading],
   );
 
   const getCategoryById = useCallback(
     async (id) => {
-      const response = await callApi(`/categories/${id}`, "GET");
-      setCategory(response.data);
-      return response;
+      return withLoading("fetchCategory", async () => {
+        const response = await callApi(`/categories/${id}`, "GET");
+        setCategory(response.data);
+        return response;
+      });
     },
-    [callApi],
+    [callApi, withLoading],
   );
 
   const getCategoryBySlug = useCallback(
     async (slug) => {
-      const response = await callApi(`/categories/slug/${slug}`, "GET");
-      setCategory(response.data);
-      return response;
+      return withLoading("fetchCategory", async () => {
+        const response = await callApi(`/categories/slug/${slug}`, "GET");
+        setCategory(response.data);
+        return response;
+      });
     },
-    [callApi],
+    [callApi, withLoading],
   );
 
   const getActiveCategories = useCallback(async () => {
-    return callApi("/categories/active", "GET");
-  }, [callApi]);
+    return withLoading("fetchActiveCategories", async () => {
+      return callApi("/categories/active", "GET");
+    });
+  }, [callApi, withLoading]);
 
   const getCategoryHierarchy = useCallback(async () => {
-    return callApi("/categories/hierarchy", "GET");
-  }, [callApi]);
+    return withLoading("fetchHierarchy", async () => {
+      return callApi("/categories/hierarchy", "GET");
+    });
+  }, [callApi, withLoading]);
 
   const getProductCount = useCallback(
     async (id) => {
-      return callApi(`/categories/${id}/product-count`, "GET");
+      return withLoading("fetchProductCount", async () => {
+        return callApi(`/categories/${id}/product-count`, "GET");
+      });
     },
-    [callApi],
+    [callApi, withLoading],
   );
 
   const createCategory = useCallback(
     async (categoryData) => {
-      let data;
-      let headers = { "Content-Type": "application/json" };
+      return withLoading("createCategory", async () => {
+        let data;
+        let headers = { "Content-Type": "application/json" };
 
-      if (categoryData.image || categoryData.icon) {
-        const formData = new FormData();
-        const { image, icon, ...restData } = categoryData;
+        if (categoryData.image || categoryData.icon) {
+          const formData = new FormData();
+          const { image, icon, ...restData } = categoryData;
 
-        formData.append("data", JSON.stringify(restData));
+          formData.append("data", JSON.stringify(restData));
 
-        if (image instanceof File) {
-          formData.append("image", image);
+          if (image instanceof File) {
+            formData.append("image", image);
+          }
+          if (icon instanceof File) {
+            formData.append("icon", icon);
+          }
+
+          data = formData;
+          headers = { "Content-Type": "multipart/form-data" };
+        } else {
+          data = categoryData;
         }
-        if (icon instanceof File) {
-          formData.append("icon", icon);
-        }
 
-        data = formData;
-        headers = { "Content-Type": "multipart/form-data" };
-      } else {
-        data = categoryData;
-      }
+        const response = await handleCategoryMutation(
+          () => callApi("/categories", "POST", data, { headers }),
+          {
+            onSuccess: (res) => setCategory(res.data),
+          },
+        );
 
-      const response = await handleCategoryMutation(
-        () => callApi("/categories", "POST", data, { headers }),
-        {
-          onSuccess: (res) => setCategory(res.data),
-        },
-      );
-
-      return response;
+        return response;
+      });
     },
-    [callApi, handleCategoryMutation],
+    [callApi, handleCategoryMutation, withLoading],
   );
 
   const updateCategory = useCallback(
     async (id, categoryData) => {
-      // Handle FormData for file uploads
-      let data;
-      let headers = { "Content-Type": "application/json" };
+      return withLoading("updateCategory", async () => {
+        // Handle FormData for file uploads
+        let data;
+        let headers = { "Content-Type": "application/json" };
 
-      if (
-        categoryData.image instanceof File ||
-        categoryData.icon instanceof File ||
-        categoryData.image === null ||
-        categoryData.icon === null
-      ) {
-        const formData = new FormData();
-        const { image, icon, ...restData } = categoryData;
+        if (
+          categoryData.image instanceof File ||
+          categoryData.icon instanceof File ||
+          categoryData.image === null ||
+          categoryData.icon === null
+        ) {
+          const formData = new FormData();
+          const { image, icon, ...restData } = categoryData;
 
-        formData.append("data", JSON.stringify(restData));
+          formData.append("data", JSON.stringify(restData));
 
-        if (image instanceof File) {
-          formData.append("image", image);
-        } else if (image === null) {
-          formData.append("data", JSON.stringify({ ...restData, image: "" }));
+          if (image instanceof File) {
+            formData.append("image", image);
+          } else if (image === null) {
+            formData.append("data", JSON.stringify({ ...restData, image: "" }));
+          }
+
+          if (icon instanceof File) {
+            formData.append("icon", icon);
+          } else if (icon === null) {
+            formData.append("data", JSON.stringify({ ...restData, icon: "" }));
+          }
+
+          data = formData;
+          headers = { "Content-Type": "multipart/form-data" };
+        } else {
+          data = categoryData;
         }
 
-        if (icon instanceof File) {
-          formData.append("icon", icon);
-        } else if (icon === null) {
-          formData.append("data", JSON.stringify({ ...restData, icon: "" }));
-        }
+        const response = await handleCategoryMutation(
+          () => callApi(`/categories/${id}`, "PATCH", data, { headers }),
+          {
+            onSuccess: (res) => setCategory(res.data),
+          },
+        );
 
-        data = formData;
-        headers = { "Content-Type": "multipart/form-data" };
-      } else {
-        data = categoryData;
-      }
-
-      const response = await handleCategoryMutation(
-        () => callApi(`/categories/${id}`, "PATCH", data, { headers }),
-        {
-          onSuccess: (res) => setCategory(res.data),
-        },
-      );
-
-      return response;
+        return response;
+      });
     },
-    [callApi, handleCategoryMutation],
+    [callApi, handleCategoryMutation, withLoading],
   );
 
   const renameCategory = useCallback(
     async (id, name) => {
-      const response = await handleCategoryMutation(
-        () => callApi(`/categories/${id}/rename`, "PATCH", { name }),
-        {
-          onSuccess: (res) => setCategory(res.data),
-        },
-      );
+      return withLoading("renameCategory", async () => {
+        const response = await handleCategoryMutation(
+          () => callApi(`/categories/${id}/rename`, "PATCH", { name }),
+          {
+            onSuccess: (res) => setCategory(res.data),
+          },
+        );
 
-      return response;
+        return response;
+      });
     },
-    [callApi, handleCategoryMutation],
+    [callApi, handleCategoryMutation, withLoading],
   );
 
   const deleteCategory = useCallback(
     async (id, globalFallbackId = null) => {
-      const response = await handleCategoryMutation(
-        () =>
-          callApi(
-            `/categories/${id}`,
-            "DELETE",
-            globalFallbackId ? { globalFallbackId } : {},
-          ),
-        {
-          onSuccess: () => {
-            setCategories((prev) => prev.filter((c) => c._id !== id));
-            if (category?._id === id) setCategory(null);
+      return withLoading("deleteCategory", async () => {
+        const response = await handleCategoryMutation(
+          () =>
+            callApi(
+              `/categories/${id}`,
+              "DELETE",
+              globalFallbackId ? { globalFallbackId } : {},
+            ),
+          {
+            onSuccess: () => {
+              setCategories((prev) => prev.filter((c) => c._id !== id));
+              if (category?._id === id) setCategory(null);
+            },
           },
-        },
-      );
+        );
 
-      return response;
+        return response;
+      });
     },
-    [callApi, handleCategoryMutation, category],
+    [callApi, handleCategoryMutation, category, withLoading],
   );
 
   const reorderCategories = useCallback(
     async (ids) => {
-      return callApi("/categories/reorder", "PATCH", { ids });
+      return withLoading("reorderCategories", async () => {
+        return callApi("/categories/reorder", "POST", { ids });
+      });
     },
-    [callApi],
+    [callApi, withLoading],
   );
 
   const updateCategoryStatus = useCallback(
     async (id, isActive) => {
-      const response = await handleCategoryMutation(
-        () => callApi(`/categories/${id}/status`, "PATCH", { isActive }),
-        {
-          onSuccess: () => {
-            setCategories((prev) =>
-              prev.map((c) => (c._id === id ? { ...c, isActive } : c)),
-            );
-            if (category?._id === id) {
-              setCategory((prev) => ({ ...prev, isActive }));
-            }
+      return withLoading("updateStatus", async () => {
+        const response = await handleCategoryMutation(
+          () => callApi(`/categories/${id}/status`, "PATCH", { isActive }),
+          {
+            onSuccess: () => {
+              setCategories((prev) =>
+                prev.map((c) => (c._id === id ? { ...c, isActive } : c)),
+              );
+              if (category?._id === id) {
+                setCategory((prev) => ({ ...prev, isActive }));
+              }
+            },
           },
-        },
-      );
+        );
 
-      return response;
+        return response;
+      });
     },
-    [callApi, handleCategoryMutation, category],
+    [callApi, handleCategoryMutation, category, withLoading],
   );
 
   const setFallbackCategory = useCallback(
     async (id, fallbackCategoryId) => {
-      const response = await handleCategoryMutation(
-        () =>
-          callApi(`/categories/${id}/fallback`, "PATCH", {
-            fallbackCategoryId,
-          }),
-        {
-          onSuccess: () => {
-            setCategories((prev) =>
-              prev.map((c) =>
-                c._id === id
-                  ? { ...c, fallbackCategory: fallbackCategoryId }
-                  : c,
-              ),
-            );
-            if (category?._id === id) {
-              setCategory((prev) => ({
-                ...prev,
-                fallbackCategory: fallbackCategoryId,
-              }));
-            }
+      return withLoading("setFallback", async () => {
+        const response = await handleCategoryMutation(
+          () =>
+            callApi(`/categories/${id}/fallback`, "PATCH", {
+              fallbackCategoryId,
+            }),
+          {
+            onSuccess: () => {
+              setCategories((prev) =>
+                prev.map((c) =>
+                  c._id === id
+                    ? { ...c, fallbackCategory: fallbackCategoryId }
+                    : c,
+                ),
+              );
+              if (category?._id === id) {
+                setCategory((prev) => ({
+                  ...prev,
+                  fallbackCategory: fallbackCategoryId,
+                }));
+              }
+            },
           },
-        },
-      );
+        );
 
-      return response;
+        return response;
+      });
     },
-    [callApi, handleCategoryMutation, category],
+    [callApi, handleCategoryMutation, category, withLoading],
   );
 
   const updateCategoryInState = useCallback(
@@ -262,116 +332,128 @@ export const useCategory = () => {
 
   const addSubCategory = useCallback(
     async (categoryId, subCategoryData) => {
-      // Handle FormData for file uploads
-      let data;
-      let headers = { "Content-Type": "application/json" };
+      return withLoading("addSubCategory", async () => {
+        // Handle FormData for file uploads
+        let data;
+        let headers = { "Content-Type": "application/json" };
 
-      if (subCategoryData.image instanceof File) {
-        const formData = new FormData();
-        const { image, ...restData } = subCategoryData;
+        if (subCategoryData.image instanceof File) {
+          const formData = new FormData();
+          const { image, ...restData } = subCategoryData;
 
-        formData.append("data", JSON.stringify(restData));
-        formData.append("image", image);
+          formData.append("data", JSON.stringify(restData));
+          formData.append("image", image);
 
-        data = formData;
-        headers = { "Content-Type": "multipart/form-data" };
-      } else {
-        data = subCategoryData;
-      }
+          data = formData;
+          headers = { "Content-Type": "multipart/form-data" };
+        } else {
+          data = subCategoryData;
+        }
 
-      const response = await handleCategoryMutation(
-        () =>
-          callApi(`/categories/${categoryId}/subcategories`, "POST", data, {
-            headers,
-          }),
-        {
-          onSuccess: (res) => updateCategoryInState(categoryId, res.data),
-        },
-      );
+        const response = await handleCategoryMutation(
+          () =>
+            callApi(`/categories/${categoryId}/subcategories`, "POST", data, {
+              headers,
+            }),
+          {
+            onSuccess: (res) => updateCategoryInState(categoryId, res.data),
+          },
+        );
 
-      return response;
+        return response;
+      });
     },
-    [callApi, handleCategoryMutation, updateCategoryInState],
+    [callApi, handleCategoryMutation, updateCategoryInState, withLoading],
   );
 
   const updateSubCategory = useCallback(
     async (categoryId, subCategorySlug, subCategoryData) => {
-      // Handle FormData for file uploads
-      let data;
-      let headers = { "Content-Type": "application/json" };
+      return withLoading("updateSubCategory", async () => {
+        // Handle FormData for file uploads
+        let data;
+        let headers = { "Content-Type": "application/json" };
 
-      if (
-        subCategoryData.image instanceof File ||
-        subCategoryData.image === null
-      ) {
-        const formData = new FormData();
-        const { image, ...restData } = subCategoryData;
+        if (
+          subCategoryData.image instanceof File ||
+          subCategoryData.image === null
+        ) {
+          const formData = new FormData();
+          const { image, ...restData } = subCategoryData;
 
-        formData.append("data", JSON.stringify(restData));
+          formData.append("data", JSON.stringify(restData));
 
-        if (image instanceof File) {
-          formData.append("image", image);
-        } else if (image === null) {
-          formData.append("data", JSON.stringify({ ...restData, image: "" }));
+          if (image instanceof File) {
+            formData.append("image", image);
+          } else if (image === null) {
+            formData.append("data", JSON.stringify({ ...restData, image: "" }));
+          }
+
+          data = formData;
+          headers = { "Content-Type": "multipart/form-data" };
+        } else {
+          data = subCategoryData;
         }
 
-        data = formData;
-        headers = { "Content-Type": "multipart/form-data" };
-      } else {
-        data = subCategoryData;
-      }
+        const response = await handleCategoryMutation(
+          () =>
+            callApi(
+              `/categories/${categoryId}/subcategories/${subCategorySlug}`,
+              "PATCH",
+              data,
+              { headers },
+            ),
+          {
+            onSuccess: (res) => updateCategoryInState(categoryId, res.data),
+          },
+        );
 
-      const response = await handleCategoryMutation(
-        () =>
-          callApi(
-            `/categories/${categoryId}/subcategories/${subCategorySlug}`,
-            "PATCH",
-            data,
-            { headers },
-          ),
-        {
-          onSuccess: (res) => updateCategoryInState(categoryId, res.data),
-        },
-      );
-
-      return response;
+        return response;
+      });
     },
-    [callApi, handleCategoryMutation, updateCategoryInState],
+    [callApi, handleCategoryMutation, updateCategoryInState, withLoading],
   );
 
   const removeSubCategory = useCallback(
     async (categoryId, subCategorySlug) => {
-      const response = await handleCategoryMutation(
-        () =>
-          callApi(
-            `/categories/${categoryId}/subcategories/${subCategorySlug}`,
-            "DELETE",
-          ),
-        {
-          onSuccess: (res) => updateCategoryInState(categoryId, res.data),
-        },
-      );
+      return withLoading("removeSubCategory", async () => {
+        const response = await handleCategoryMutation(
+          () =>
+            callApi(
+              `/categories/${categoryId}/subcategories/${subCategorySlug}`,
+              "DELETE",
+            ),
+          {
+            onSuccess: (res) => updateCategoryInState(categoryId, res.data),
+          },
+        );
 
-      return response;
+        return response;
+      });
     },
-    [callApi, handleCategoryMutation, updateCategoryInState],
+    [callApi, handleCategoryMutation, updateCategoryInState, withLoading],
   );
 
   const reorderSubCategories = useCallback(
     async (categoryId, ids) => {
-      const response = await handleCategoryMutation(
-        () =>
-          callApi(`/categories/${categoryId}/subcategories/reorder`, "PATCH", {
-            ids,
-          }),
-        {
-          onSuccess: (res) => updateCategoryInState(categoryId, res.data),
-        },
-      );
+      return withLoading("reorderSubCategories", async () => {
+        const response = await handleCategoryMutation(
+          () =>
+            callApi(
+              `/categories/${categoryId}/subcategories/reorder`,
+              "PATCH",
+              {
+                ids,
+              },
+            ),
+          {
+            onSuccess: (res) => updateCategoryInState(categoryId, res.data),
+          },
+        );
 
-      return response;
+        return response;
+      });
     },
-    [callApi, handleCategoryMutation, updateCategoryInState],
+    [callApi, handleCategoryMutation, updateCategoryInState, withLoading],
   );
 
   const updateMetaFieldInState = useCallback(
@@ -388,90 +470,101 @@ export const useCategory = () => {
 
   const addMetaField = useCallback(
     async (categoryId, metaFieldData) => {
-      const response = await handleCategoryMutation(
-        () =>
-          callApi(
-            `/categories/${categoryId}/metafields`,
-            "POST",
-            metaFieldData,
-          ),
-        {
-          onSuccess: (res) => updateMetaFieldInState(categoryId, res),
-        },
-      );
+      return withLoading("addMetaField", async () => {
+        const response = await handleCategoryMutation(
+          () =>
+            callApi(
+              `/categories/${categoryId}/metafields`,
+              "POST",
+              metaFieldData,
+            ),
+          {
+            onSuccess: (res) => updateMetaFieldInState(categoryId, res),
+          },
+        );
 
-      return response;
+        return response;
+      });
     },
-    [callApi, handleCategoryMutation, updateMetaFieldInState],
+    [callApi, handleCategoryMutation, updateMetaFieldInState, withLoading],
   );
 
   const updateMetaField = useCallback(
     async (categoryId, key, metaFieldData) => {
-      const response = await handleCategoryMutation(
-        () =>
-          callApi(
-            `/categories/${categoryId}/metafields/${key}`,
-            "PATCH",
-            metaFieldData,
-          ),
-        {
-          onSuccess: (res) => updateMetaFieldInState(categoryId, res),
-        },
-      );
+      return withLoading("updateMetaField", async () => {
+        const response = await handleCategoryMutation(
+          () =>
+            callApi(
+              `/categories/${categoryId}/metafields/${key}`,
+              "PATCH",
+              metaFieldData,
+            ),
+          {
+            onSuccess: (res) => updateMetaFieldInState(categoryId, res),
+          },
+        );
 
-      return response;
+        return response;
+      });
     },
-    [callApi, handleCategoryMutation, updateMetaFieldInState],
+    [callApi, handleCategoryMutation, updateMetaFieldInState, withLoading],
   );
 
   const renameMetaFieldKey = useCallback(
     async (categoryId, oldKey, newKey) => {
-      const response = await handleCategoryMutation(
-        () =>
-          callApi(
-            `/categories/${categoryId}/metafields/${oldKey}/rename`,
-            "PATCH",
-            { newKey },
-          ),
-        {
-          onSuccess: (res) => updateMetaFieldInState(categoryId, res),
-        },
-      );
+      return withLoading("renameMetaField", async () => {
+        const response = await handleCategoryMutation(
+          () =>
+            callApi(
+              `/categories/${categoryId}/metafields/${oldKey}/rename`,
+              "PATCH",
+              { newKey },
+            ),
+          {
+            onSuccess: (res) => updateMetaFieldInState(categoryId, res),
+          },
+        );
 
-      return response;
+        return response;
+      });
     },
-    [callApi, handleCategoryMutation, updateMetaFieldInState],
+    [callApi, handleCategoryMutation, updateMetaFieldInState, withLoading],
   );
 
   const removeMetaField = useCallback(
     async (categoryId, key) => {
-      const response = await handleCategoryMutation(
-        () => callApi(`/categories/${categoryId}/metafields/${key}`, "DELETE"),
-        {
-          onSuccess: (res) => updateMetaFieldInState(categoryId, res),
-        },
-      );
+      return withLoading("removeMetaField", async () => {
+        const response = await handleCategoryMutation(
+          () =>
+            callApi(`/categories/${categoryId}/metafields/${key}`, "DELETE"),
+          {
+            onSuccess: (res) => updateMetaFieldInState(categoryId, res),
+          },
+        );
 
-      return response;
+        return response;
+      });
     },
-    [callApi, handleCategoryMutation, updateMetaFieldInState],
+    [callApi, handleCategoryMutation, updateMetaFieldInState, withLoading],
   );
 
   const reorderMetaFields = useCallback(
     async (categoryId, keys) => {
-      const response = await handleCategoryMutation(
-        () =>
-          callApi(`/categories/${categoryId}/metafields/reorder`, "PATCH", {
-            ids: keys,
-          }),
-        {
-          onSuccess: (res) => updateMetaFieldInState(categoryId, res),
-        },
-      );
+      return withLoading("reorderMetaFields", async () => {
+        const response = await handleCategoryMutation(
+          () =>
+            callApi(`/categories/${categoryId}/metafields/reorder`, "PATCH", {
+              ids: keys,
+            }),
+          {
+            onSuccess: (res) => updateMetaFieldInState(categoryId, res),
+          },
+        );
 
-      return response;
+        return response;
+      });
     },
-    [callApi, handleCategoryMutation, updateMetaFieldInState],
+    [callApi, handleCategoryMutation, updateMetaFieldInState, withLoading],
   );
 
   // Clear states
@@ -488,14 +581,43 @@ export const useCategory = () => {
     setError(null);
   }, []);
 
+  // Reset all loading states
+  const resetLoadingStates = useCallback(() => {
+    setLoadingStates({
+      fetchCategories: false,
+      fetchCategory: false,
+      fetchActiveCategories: false,
+      fetchHierarchy: false,
+      fetchProductCount: false,
+      createCategory: false,
+      updateCategory: false,
+      renameCategory: false,
+      deleteCategory: false,
+      reorderCategories: false,
+      updateStatus: false,
+      setFallback: false,
+      addSubCategory: false,
+      updateSubCategory: false,
+      removeSubCategory: false,
+      reorderSubCategories: false,
+      addMetaField: false,
+      updateMetaField: false,
+      renameMetaField: false,
+      removeMetaField: false,
+      reorderMetaFields: false,
+    });
+  }, []);
+
   return {
     // States
-    loading,
+    loading: apiLoading, // Keep the original loading state from useApi if needed
+    loadingStates, // Individual loading states
     error,
     categories,
     category,
     pagination,
 
+    // Actions
     getAllCategories,
     getCategoryById,
     getCategoryBySlug,
@@ -524,5 +646,6 @@ export const useCategory = () => {
     clearCategory,
     clearCategories,
     clearError,
+    resetLoadingStates,
   };
 };

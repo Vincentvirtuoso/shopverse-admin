@@ -12,8 +12,8 @@ const calculateShippingEstimate = (weight, dimensions) => {
     weight.unit === "g"
       ? weight.value / 1000
       : weight.unit === "lb"
-      ? weight.value * 0.453592
-      : weight.value;
+        ? weight.value * 0.453592
+        : weight.value;
 
   const volume = dimensions.length * dimensions.width * dimensions.height;
 
@@ -105,6 +105,14 @@ export const getSmartUnit = (quantity, unit) => {
     default:
       return formatUnitAbbreviation(unit);
   }
+};
+
+export const toggleIdInArray = (array, id) => {
+  const normalizedId = Array.isArray(id) ? id[0] : id;
+
+  return array.includes(normalizedId)
+    ? array.filter((item) => item !== normalizedId)
+    : [...array, normalizedId];
 };
 
 const formatNaira = (value) => {
@@ -244,7 +252,7 @@ function separateCamelCase(str, options = {}) {
     result = result.replace(/([A-Z]+)([A-Z][a-z])/g, `$1${separator}$2`);
   } else {
     result = result.replace(/([A-Z]+)/g, (match) =>
-      match.split("").join(separator)
+      match.split("").join(separator),
     );
   }
 

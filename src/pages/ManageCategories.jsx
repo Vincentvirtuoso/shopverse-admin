@@ -1,26 +1,20 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence, Reorder } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FaPlus,
   FaSearch,
-  FaEdit,
   FaTrash,
   FaStar,
-  FaRegStar,
   FaChevronLeft,
   FaChevronRight,
   FaFilter,
-  FaSortAmountDown,
-  FaSortAmountUp,
   FaRandom,
-  FaSpinner,
-  FaTimes,
   FaCheck,
   FaExclamationTriangle,
   FaInfoCircle,
   FaFolder,
   FaBars,
-  FaGripVertical,
+  FaBan,
 } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 import { useCategory } from "../hooks/useCategory";
@@ -30,15 +24,21 @@ import Spinner from "../components/common/Spinner";
 import {
   FiCheck,
   FiEdit,
-  FiMoreHorizontal,
-  FiMoreVertical,
+  FiEye,
+  FiFolder,
   FiRefreshCcw,
+  FiTrash,
   FiX,
 } from "react-icons/fi";
+import { useActiveFilters } from "../hooks/useActiveFilters";
+import { manageCatfilterConfig } from "../assets/filterConfigs";
+import FilterTags from "../components/common/FilterTags";
+import TableView from "../components/ui/TableView";
+import CategoryGridView from "../sections/categories/CategoryGridView";
 
 const ManageCategories = () => {
   const {
-    loading,
+    loadingStates,
     // error,
     categories,
     pagination,
@@ -53,8 +53,8 @@ const ManageCategories = () => {
   // Local state
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
-    isActive: true,
-    isFeatured: false,
+    isActive: null,
+    isFeatured: null,
     parent: null,
   });
   const [sortConfig, setSortConfig] = useState({
@@ -77,9 +77,22 @@ const ManageCategories = () => {
   const [selectedFallback, setSelectedFallback] = useState("");
   const [viewMode, setViewMode] = useState("table");
 
+  const toggleSelectAll = (selectMode) => {
+    if (
+      selectedCategories.length === filteredCategories.length ||
+      selectMode === "unselect"
+    ) {
+      setSelectedCategories([]);
+    } else {
+      setSelectedCategories(filteredCategories.map((cat) => cat._id));
+    }
+  };
+
   const navigate = useNavigate();
   useEffect(() => {
     fetchCategories();
+    toggleSelectAll("unselect");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, pageSize, sortConfig, filters]);
 
   const fetchCategories = async () => {
@@ -103,46 +116,51 @@ const ManageCategories = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchTerm) {
+        toggleSelectAll("unselect");
         fetchCategories();
       }
     }, 500);
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm]);
 
-  // Filter and sort categories
-  const filteredCategories = useMemo(() => {
-    if (!categories) return [];
+  const [filteredCategories, setFilteredCategories] = useState([]);
+
+  useEffect(() => {
+    if (!categories) {
+      setFilteredCategories([]);
+      return;
+    }
 
     let filtered = [...categories];
 
-    // Apply search filter
     if (searchTerm) {
+      const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (cat) =>
-          cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          cat.slug.toLowerCase().includes(searchTerm.toLowerCase()),
+          cat.name.toLowerCase().includes(term) ||
+          cat.slug.toLowerCase().includes(term),
       );
     }
 
-    // Apply status filters
     if (filters.isActive !== null) {
       filtered = filtered.filter((cat) => cat.isActive === filters.isActive);
     }
+
     if (filters.isFeatured !== null) {
       filtered = filtered.filter(
         (cat) => cat.isFeatured === filters.isFeatured,
       );
     }
 
-    // Apply sorting
     filtered.sort((a, b) => {
       let aVal = a[sortConfig.field];
       let bVal = b[sortConfig.field];
 
       if (sortConfig.field === "name") {
-        aVal = a.name?.toLowerCase();
-        bVal = b.name?.toLowerCase();
+        aVal = a.name?.toLowerCase() || "";
+        bVal = b.name?.toLowerCase() || "";
       } else if (sortConfig.field === "productCount") {
         aVal = a.productCount || 0;
         bVal = b.productCount || 0;
@@ -153,14 +171,17 @@ const ManageCategories = () => {
       return 0;
     });
 
-    return filtered;
+    setFilteredCategories(filtered);
   }, [categories, searchTerm, filters, sortConfig]);
 
-  // Handlers
-  const handleSort = (field) => {
+  const handleSort = (field, order) => {
     setSortConfig((prev) => ({
       field,
-      order: prev.field === field && prev.order === "asc" ? "desc" : "asc",
+      order: order
+        ? order
+        : prev.field === field && prev.order === "asc"
+          ? "desc"
+          : "asc",
     }));
   };
 
@@ -210,14 +231,14 @@ const ManageCategories = () => {
   };
 
   const handleReorder = async (newOrder) => {
+    setFilteredCategories(newOrder);
     try {
-      setIsDragging(true);
       const ids = newOrder.map((cat) => cat._id);
       await reorderCategories(ids);
       toast.success("Categories reordered");
     } catch (err) {
       console.log(err);
-
+      fetchCategories();
       toast.error("Failed to reorder categories");
     } finally {
       setIsDragging(false);
@@ -245,301 +266,145 @@ const ManageCategories = () => {
     }
   };
 
-  const toggleSelectAll = () => {
-    if (selectedCategories.length === filteredCategories.length) {
-      setSelectedCategories([]);
-    } else {
-      setSelectedCategories(filteredCategories.map((cat) => cat._id));
-    }
-  };
-
-  const toggleSelectCategory = (id) => {
-    setSelectedCategories((prev) =>
-      prev.includes(id) ? prev.filter((catId) => catId !== id) : [...prev, id],
-    );
-  };
+  const { activeFilters, clearAllFilters, hasActiveFilters } = useActiveFilters(
+    {
+      filters,
+      setFilters,
+      config: manageCatfilterConfig,
+    },
+  );
 
   // Render table view
-  const renderTableView = () => (
-    <CardWrapper
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="rounded-xl shadow-lg overflow-hidden"
-    >
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50 dark:bg-neutral-500 whitespace-nowrap">
-            <tr>
-              <th className="px-6 py-3 w-8">
-                <input
-                  type="checkbox"
-                  checked={
-                    selectedCategories.length === filteredCategories.length
-                  }
-                  onChange={toggleSelectAll}
-                  className="rounded border-gray-300 text-red-600 focus:ring-red-500"
-                />
-              </th>
-              <th className="px-6 py-3 w-16"></th>
-              <th
-                className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer"
-                onClick={() => handleSort("name")}
-              >
-                <div className="flex items-center gap-2">
-                  Name
-                  {sortConfig.field === "name" &&
-                    (sortConfig.order === "asc" ? (
-                      <FaSortAmountUp />
-                    ) : (
-                      <FaSortAmountDown />
-                    ))}
-                </div>
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                Slug
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                Subcategories
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                Meta Fields
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                Featured
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 bg-gray-100 dark:bg-neutral-700 hover:bg-gray-100/40 hover:dark:bg-neutral-700/40">
-            <AnimatePresence>
-              {filteredCategories.map((category, index) => (
-                <motion.tr
-                  key={category._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="group "
-                >
-                  <td className="px-6 py-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedCategories.includes(category._id)}
-                      onChange={() => toggleSelectCategory(category._id)}
-                      className="rounded border-gray-300 text-red-600 focus:ring-red-500"
-                    />
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center">
-                      {category.image ? (
-                        <img
-                          src={category.image}
-                          alt={category.name}
-                          className="w-10 h-10 rounded-lg object-cover"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 bg-linear-to-br from-red-100 to-purple-100 rounded-lg flex items-center justify-center">
-                          <FaFolder className="text-red-600" />
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div>
-                      <div className="font-medium text-gray-400">
-                        {category.name}
-                      </div>
-                      <div className="text-sm text-gray-300">
-                        Level {category.level || 0}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-300">
-                    {category.slug}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                      {category.subCategories?.length || 0}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full">
-                      {category.metaFields?.length || 0}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() =>
-                        handleToggleStatus(category._id, category.isActive)
-                      }
-                      className={`relative inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        category.isActive
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {category.isActive ? (
-                        <>
-                          <FaCheck className="mr-1 text-xs" /> Active
-                        </>
-                      ) : (
-                        <>
-                          <FiX className="mr-1 text-xs" /> Inactive
-                        </>
-                      )}
-                    </button>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="flex place-content-center">
-                      {category.isFeatured ? "YES" : "NO"}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => handleFallbackClick(category)}
-                      className="p-2 text-gray-300 hover:bg-gray-500 rounded-lg transition-colors"
-                      title="See Actions"
-                    >
-                      <FiMoreVertical />
-                    </motion.button>
-                  </td>
-                </motion.tr>
-              ))}
-            </AnimatePresence>
-          </tbody>
-        </table>
-      </div>
-    </CardWrapper>
-  );
+  const columns = [
+    {
+      type: "image",
+    },
+    {
+      field: "name",
+      header: "Name",
+      sortable: true,
+      render: (item) => (
+        <div>
+          <div className="font-medium text-gray-900 dark:text-gray-100">
+            {item.name}
+          </div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            Level {item.level || 0}
+          </div>
+        </div>
+      ),
+    },
+    {
+      field: "subCategories",
+      header: "Subcategories",
+      render: (item) => (
+        <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 rounded-full">
+          {item.subCategories?.length || 0}
+        </span>
+      ),
+    },
+    {
+      field: "metaFields",
+      header: "Meta Fields",
+      render: (item) => (
+        <span className="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 rounded-full">
+          {item.metaFields?.length || 0}
+        </span>
+      ),
+    },
+    {
+      field: "isActive",
+      header: "Status",
+      render: (item) => (
+        <button
+          onClick={() => handleToggleStatus(item._id)}
+          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+            item.isActive
+              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+              : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400"
+          }`}
+        >
+          {item.isActive ? (
+            <FaCheck className="mr-1 text-xs" />
+          ) : (
+            <FiX className="mr-1 text-xs" />
+          )}
+          {item.isActive ? "Active" : "Inactive"}
+        </button>
+      ),
+    },
+    {
+      field: "isFeatured",
+      header: "Featured",
+      render: (item) => (
+        <span className="flex place-content-center">
+          {item.isFeatured ? <FaStar className="text-yellow-500" /> : "NO"}
+        </span>
+      ),
+    },
+  ];
 
-  // Render grid view
-  const renderGridView = () => (
-    <Reorder.Group
-      axis="y"
-      values={filteredCategories}
-      onReorder={handleReorder}
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-    >
-      <AnimatePresence>
-        {filteredCategories.map((category, index) => (
-          <Reorder.Item
-            key={category._id}
-            value={category}
-            whileDrag={{
-              scale: 1.05,
-              boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
-            }}
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ delay: index * 0.05 }}
-              className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
-            >
-              <div className="relative h-32 bg-linear-to-r from-red-500 to-purple-600">
-                {category.image && (
-                  <img
-                    src={category.image}
-                    alt={category.name}
-                    className="w-full h-full object-cover opacity-50"
-                  />
-                )}
-                <div className="absolute top-2 right-2 flex gap-2">
-                  <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      category.isActive
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {category.isActive ? "Active" : "Inactive"}
-                  </span>
-                  {category.isFeatured && (
-                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
-                      Featured
-                    </span>
-                  )}
-                </div>
-                <div className="absolute -bottom-6 left-4">
-                  {category.image ? (
-                    <img
-                      src={category.image}
-                      alt={category.name}
-                      className="w-12 h-12 rounded-lg border-4 border-white shadow-lg object-cover"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 bg-white rounded-lg border-4 border-white shadow-lg flex items-center justify-center">
-                      <FaFolder className="text-red-600 text-xl" />
-                    </div>
-                  )}
-                </div>
-                <div className="absolute top-2 left-2 cursor-grab active:cursor-grabbing">
-                  <FaGripVertical className="text-white opacity-50 group-hover:opacity-100" />
-                </div>
-              </div>
+  const customActions = [
+    {
+      label: "Edit Category",
+      icon: FiEdit,
+      onClick: (item) => navigate(`/category/${item._id}/edit`),
+    },
+    {
+      label: "View Details",
+      icon: FiEye,
+      onClick: (item) => navigate(`/category/${item._id}`),
+    },
+    // {
+    //   label: "Duplicate",
+    //   icon: FaCopy,
+    //   onClick: (item) => duplicateCategory(item),
+    //   type: "default",
+    // },
+    { divider: true },
+    {
+      label: "Deactivate",
+      icon: FaBan,
+      onClick: (item) => handleToggleStatus(item),
+      type: "warning",
+    },
+    {
+      label: "Activate",
+      icon: FaCheck,
+      onClick: (item) => handleToggleStatus(item),
+      type: "success",
+    },
+    {
+      label: "Delete",
+      icon: FiTrash,
+      onClick: (item) => handleDeleteClick(item),
+      type: "danger",
+    },
+  ];
 
-              <div className="pt-8 p-4">
-                <h3 className="font-semibold text-lg text-gray-900 mb-1">
-                  {category.name}
-                </h3>
-                <p className="text-sm text-gray-500 mb-3">{category.slug}</p>
-
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                    {category.subCategories?.length || 0} Subcategories
-                  </span>
-                  <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
-                    {category.metaFields?.length || 0} Meta Fields
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                  <span className="text-xs text-gray-400">
-                    Level {category.level || 0}
-                  </span>
-
-                  <div className="flex gap-2">
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => navigate(`/categories/${category._id}`)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    >
-                      <FaEdit />
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => handleFallbackClick(category)}
-                      className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                    >
-                      <FaRandom />
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => handleDeleteClick(category)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <FaTrash />
-                    </motion.button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </Reorder.Item>
-        ))}
-      </AnimatePresence>
-    </Reorder.Group>
-  );
+  const bulkActions = [
+    {
+      label: "Delete All",
+      icon: FaTrash,
+      onClick: (selectedIds) => handleBulkAction("delete", selectedIds),
+      className:
+        "whitespace-nowrap bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400",
+    },
+    {
+      label: "Activate All",
+      icon: FaCheck,
+      onClick: (selectedIds) => handleBulkAction("activate", selectedIds),
+      className:
+        "whitespace-nowrap bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400",
+    },
+    {
+      label: "Deactivate All",
+      icon: FaBan,
+      onClick: (selectedIds) => handleBulkAction("deactivate", selectedIds),
+      className:
+        "whitespace-nowrap bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-400",
+    },
+  ];
 
   // Render delete confirmation modal
   const renderDeleteModal = () => (
@@ -684,7 +549,7 @@ const ManageCategories = () => {
     );
   };
 
-  if (loading && !categories.length) {
+  if (loadingStates.fetchCategories && !categories.length) {
     return (
       <div className="h-[80vh] flex items-center justify-center">
         <Spinner label="Loading Categories" labelAnimation="typing" size="xl" />
@@ -803,7 +668,7 @@ const ManageCategories = () => {
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors ${
               showFilters
-                ? "border-blue-500 text-blue-600 bg-red-50"
+                ? "border-blue-500 text-blue-600 bg-blue-50"
                 : "border-gray-200 dark:border-gray-400/40 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-700/50"
             }`}
           >
@@ -837,7 +702,7 @@ const ManageCategories = () => {
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 mt-4 border-t border-gray-200">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 mt-4 border-t border-gray-200 dark:border-gray-300/40 px-2">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">
                     Status
@@ -926,7 +791,7 @@ const ManageCategories = () => {
                       parent: null,
                     })
                   }
-                  className="text-sm text-gray-600 hover:text-gray-900"
+                  className="text-sm text-gray-400 hover:text-gray-300"
                 >
                   Clear all filters
                 </button>
@@ -937,50 +802,96 @@ const ManageCategories = () => {
       </CardWrapper>
 
       {/* Categories display */}
-      {viewMode === "table" ? renderTableView() : renderGridView()}
+      {loadingStates.fetchCategories && categories.length > 0 && (
+        <div className="h-24 flex items-center justify-center">
+          <Spinner
+            label={"Fetching filtered categories..."}
+            labelAnimation="pulse"
+            size="lg"
+          />
+        </div>
+      )}
+
+      {hasActiveFilters && (
+        <FilterTags
+          activeFilters={activeFilters}
+          showRemoveAll
+          onRemoveAll={clearAllFilters}
+        />
+      )}
+      {viewMode === "table" ? (
+        <TableView
+          data={categories}
+          selectedItems={selectedCategories}
+          onSelectionChange={setSelectedCategories}
+          columns={columns}
+          onSelectAll={toggleSelectAll}
+          sortConfig={sortConfig}
+          onSort={handleSort}
+          actions={customActions}
+          bulkActions={bulkActions}
+          rowKey="_id"
+          // loading={loading}
+          imageFallback={FiFolder}
+          // loadingComponent={<Spinner size="lg" />}
+        />
+      ) : (
+        <CategoryGridView
+          filteredCategories={filteredCategories}
+          handleDeleteClick={handleDeleteClick}
+          onReorder={handleReorder}
+          handleFallbackClick={handleFallbackClick}
+        />
+      )}
 
       {/* Empty state */}
-      {filteredCategories.length === 0 && !loading && (
-        <CardWrapper
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center py-12 rounded-xl shadow-sm mt-4"
-        >
-          <div className="w-24 h-24 bg-gray-100 dark:bg-neutral-400 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FaFolder className="text-4xl text-gray-400 dark:text-gray-100" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            No categories found
-          </h3>
-          <p className="text-gray-300 mb-6">
+      {filteredCategories.length === 0 &&
+        !loadingStates.fetchCategories &&
+        viewMode === "grid" && (
+          <CardWrapper
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-12 rounded-xl shadow-sm mt-4"
+          >
+            <div className="w-24 h-24 bg-gray-100 dark:bg-neutral-400 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FaFolder className="text-4xl text-gray-400 dark:text-gray-100" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              No categories found
+            </h3>
+            <p className="text-gray-300 mb-6">
+              {searchTerm ||
+              filters.isActive !== null ||
+              filters.isFeatured !== null
+                ? "Try adjusting your filters"
+                : "Get started by creating your first category"}
+            </p>
             {searchTerm ||
             filters.isActive !== null ||
-            filters.isFeatured !== null
-              ? "Try adjusting your filters"
-              : "Get started by creating your first category"}
-          </p>
-          {searchTerm ||
-          filters.isActive !== null ||
-          filters.isFeatured !== null ? (
-            <button
-              onClick={() => {
-                setSearchTerm("");
-                setFilters({ isActive: null, isFeatured: null, parent: null });
-              }}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-            >
-              Clear filters
-            </button>
-          ) : (
-            <button
-              onClick={() => navigate("/categories/new")}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-            >
-              Add Category
-            </button>
-          )}
-        </CardWrapper>
-      )}
+            filters.isFeatured !== null ? (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setFilters({
+                    isActive: null,
+                    isFeatured: null,
+                    parent: null,
+                  });
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              >
+                Clear filters
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate("/categories/new")}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Add Category
+              </button>
+            )}
+          </CardWrapper>
+        )}
 
       {pagination && pagination.totalPages > 1 && (
         <div className="flex items-center justify-between mt-6">
