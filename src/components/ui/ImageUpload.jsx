@@ -62,7 +62,7 @@ const ImageUpload = ({
   return (
     <div className={className}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 uppercase">
           {label}
         </label>
       )}
@@ -72,9 +72,9 @@ const ImageUpload = ({
           <img
             src={preview}
             alt="Preview"
-            className="w-full h-48 object-cover rounded-lg border-2 border-gray-200 dark:border-neutral-700"
+            className="w-48 h-48 object-contain rounded-lg border-2 border-gray-200 dark:border-neutral-700"
           />
-          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2 w-48">
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -98,20 +98,20 @@ const ImageUpload = ({
           className={`
             border-2 border-dashed rounded-lg p-8
             flex flex-col items-center justify-center
-            cursor-pointer transition-colors
+            cursor-pointer transition-colors w-48
             ${
               isDragging
-                ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-                : "border-gray-300 dark:border-neutral-700 hover:border-red-500 dark:hover:border-red-500"
+                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                : "border-gray-300 dark:border-neutral-700 hover:border-blue-500  bg-gray-50 dark:bg-neutral-700 dark:hover:border-blue-500"
             }
           `}
         >
           <FiImage className="w-12 h-12 text-gray-400 mb-4" />
-          <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-2">
+          <p className="text-sm text-gray-600 dark:text-gray-300 text-center mb-2">
             Drag & drop or click to upload
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-500">
-            PNG, JPG, GIF up to {maxSize / (1024 * 1024)}MB
+          <p className="text-xs text-gray-400 text-center">
+            PNG, JPG, GIF, SVG up to {maxSize / (1024 * 1024)}MB
           </p>
           <input
             ref={fileInputRef}

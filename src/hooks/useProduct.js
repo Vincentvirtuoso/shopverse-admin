@@ -119,7 +119,9 @@ export const useProductForm = (initialValues = {}, options = {}) => {
   const { isEditMode = false, openJsonInput = null } = options;
 
   const [form, setForm] = useState(initialForm);
-  const [dirtyFields, setDirtyFields] = useState(new Set()); // Track changed fields
+  const [dirtyFields, setDirtyFields] = useState(new Set());
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [categoryMetaFields, setCategoryMetaFields] = useState({});
   const [mainImage, setMainImage] = useState([]);
   const [additionalImages, setAdditionalImages] = useState([]);
   const [initialMainImage, setInitialMainImage] = useState(null);
@@ -158,6 +160,7 @@ export const useProductForm = (initialValues = {}, options = {}) => {
     setErrors,
     mainImage,
     additionalImages,
+    selectedCategory,
   );
 
   const markDirty = useCallback(
@@ -409,6 +412,48 @@ export const useProductForm = (initialValues = {}, options = {}) => {
     }));
     markDirty("variants");
   };
+
+  const handleCategoryChange = useCallback(
+    (category) => {
+      setSelectedCategory(category);
+      console.log("cat", category);
+
+      // Update form with category ID
+      setForm((prev) => ({
+        ...prev,
+        category: category._id,
+        metaFields: {},
+      }));
+
+      // Initialize metaFields with default values from category
+      const defaultMetaFields = {};
+      category.metaFields?.forEach((field) => {
+        if (field.defaultValue !== undefined && field.defaultValue !== null) {
+          defaultMetaFields[field.key] = field.defaultValue;
+        }
+      });
+
+      setCategoryMetaFields(defaultMetaFields);
+      setForm((prev) => ({
+        ...prev,
+        metaFields: defaultMetaFields,
+      }));
+    },
+    [setForm],
+  );
+
+  const handleMetaFieldChange = useCallback(
+    (key, value) => {
+      setForm((prev) => ({
+        ...prev,
+        metaFields: {
+          ...prev.metaFields,
+          [key]: value,
+        },
+      }));
+    },
+    [setForm],
+  );
 
   const getChangedFields = useCallback(() => {
     if (!isEditMode) {
@@ -690,5 +735,9 @@ export const useProductForm = (initialValues = {}, options = {}) => {
     markDirty,
     handleJsonEditField,
     handleJsonAllFieldEdit,
+    selectedCategory,
+    categoryMetaFields,
+    handleCategoryChange,
+    handleMetaFieldChange,
   };
 };

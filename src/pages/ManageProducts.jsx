@@ -113,8 +113,11 @@ const ManageProducts = () => {
   const categories = useMemo(() => {
     const uniqueCategories = ["all"];
     products.forEach((product) => {
-      if (product.category && !uniqueCategories.includes(product.category)) {
-        uniqueCategories.push(product.category);
+      if (
+        product.category &&
+        !uniqueCategories.includes(product.category?.name)
+      ) {
+        uniqueCategories.push(product.category?.name);
       }
     });
     return uniqueCategories;
@@ -140,7 +143,8 @@ const ManageProducts = () => {
           product.sku?.toLowerCase().includes(searchTerm.toLowerCase());
 
         const matchesCategory =
-          selectedCategory === "all" || product.category === selectedCategory;
+          selectedCategory === "all" ||
+          product.category?.name === selectedCategory;
 
         const matchesStock =
           stockFilter === "all" ||
@@ -583,7 +587,7 @@ const ManageProducts = () => {
                     <td className="py-4 px-6">
                       <div className="flex flex-wrap gap-2">
                         <span className="px-3 py-1 bg-gray-100 dark:bg-neutral-400 text-gray-900 dark:text-gray-50 rounded-full text-sm">
-                          {product.category}
+                          {product.category?.name}
                         </span>
                         {product.subCategory && (
                           <span className="px-3 py-1 bg-gray-50 text-gray-400 rounded-full text-sm block">

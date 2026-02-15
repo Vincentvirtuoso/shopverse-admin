@@ -138,7 +138,7 @@ const MetaFields = ({
                               ? "shadow-2xl ring-4 ring-blue-500/20 border-l-blue-500 scale-[1.02]"
                               : "hover:shadow-md"
                           }`}
-                          bodyClassName="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg"
+                          bodyClassName="flex items-center gap-3 p-4 bg-white dark:bg-neutral-800 rounded-lg"
                           style={{
                             borderLeftColor: snapshot.isDragging
                               ? undefined

@@ -150,9 +150,7 @@ const CategoryGridView = ({
                       {/* Action Row */}
                       <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
                         <button
-                          onClick={() =>
-                            navigate(`/categories/${category._id}`)
-                          }
+                          onClick={() => navigate(`/category/${category._id}`)}
                           className="flex items-center gap-1.5 text-xs font-semibold text-cyan-600 hover:text-cyan-700 transition-colors"
                         >
                           Details <FiExternalLink />
@@ -168,7 +166,7 @@ const CategoryGridView = ({
                           </button>
                           <button
                             onClick={() =>
-                              navigate(`/categories/edit/${category._id}`)
+                              navigate(`/category/${category._id}/edit`)
                             }
                             className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
                           >

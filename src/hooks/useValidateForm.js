@@ -1,6 +1,10 @@
-import { isValidCategory } from "../assets/addProducts";
-
-const useValidateForm = (form, setErrors, mainImage, additionalImages) => {
+const useValidateForm = (
+  form,
+  setErrors,
+  mainImage,
+  additionalImages,
+  selectedCategory,
+) => {
   const validateForm = (step, general = false) => {
     const errors = {};
 
@@ -42,8 +46,19 @@ const useValidateForm = (form, setErrors, mainImage, additionalImages) => {
         addError("description", "Description cannot exceed 5000 characters");
 
       if (!category) addError("category", "Category is required");
-      else if (!isValidCategory(category))
-        addError("category", "Please select a valid category");
+
+      // Validate required metaFields from selected category
+      if (selectedCategory?.metaFields) {
+        const requiredFields = selectedCategory.metaFields.filter(
+          (f) => f.isRequired,
+        );
+        for (const field of requiredFields) {
+          const value = form.metaFields?.[field.key];
+          if (!value || (Array.isArray(value) && value.length === 0)) {
+            addError(`metaFields.${field.key}`, `${field.label} is required`);
+          }
+        }
+      }
     }
 
     if (shouldValidate(1)) {

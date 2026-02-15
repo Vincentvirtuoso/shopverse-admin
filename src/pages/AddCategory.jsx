@@ -3,54 +3,31 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   FaSave,
-  FaTimes,
-  FaTrash,
   FaPlus,
-  FaGripVertical,
-  FaImage,
   FaTag,
   FaCog,
   FaStar,
-  FaRegStar,
-  FaChevronDown,
-  FaChevronUp,
   FaInfoCircle,
   FaExclamationTriangle,
-  FaSpinner,
   FaEye,
   FaEyeSlash,
-  FaFilter,
-  FaSearch,
-  FaUpload,
   FaGlobe,
   FaLink,
   FaHashtag,
   FaCalendar,
   FaCheckSquare,
   FaList,
-  FaDollarSign,
-  FaPercent,
-  FaWeight,
-  FaRuler,
-  FaCube,
-  FaPalette,
-  FaSort,
-  FaArrowUp,
-  FaArrowDown,
   FaLightbulb,
   FaMobile,
   FaTshirt,
   FaHome,
   FaBook,
-  FaExclamationCircle,
-  FaCopy,
 } from "react-icons/fa";
 import CardWrapper from "../components/ui/CardWrapper";
 import { toast } from "react-hot-toast";
 import { useCategory } from "../hooks/useCategory";
 import WrapperBody from "../components/common/WrapperBody";
 import WrapperHeader from "../components/common/WrapperHeader";
-import WrapperFooter from "../components/common/WrapperFooter";
 import MiniFileUpload from "../components/common/MiniFileUpload";
 import RadioCard from "../components/common/RadioCard";
 import MultiInput from "../components/common/MultiInput";
@@ -58,6 +35,8 @@ import { LuArrowLeft } from "react-icons/lu";
 import Spinner from "../components/common/Spinner";
 import MetaFields from "../sections/addCategory/MetaFields";
 import MetaFieldModal from "../sections/addCategory/MetaFieldModal";
+import MetaFieldManagement from "../sections/addCategory/MetaFieldManagement";
+import ImageUpload from "../components/ui/ImageUpload";
 
 // Custom slug generator
 const generateSlug = (text) => {
@@ -68,38 +47,6 @@ const generateSlug = (text) => {
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
 };
-
-// Meta Field Types
-const META_FIELD_TYPES = [
-  { value: "string", label: "Text", icon: <FaTag /> },
-  { value: "number", label: "Number", icon: <FaHashtag /> },
-  { value: "boolean", label: "Yes/No", icon: <FaCheckSquare /> },
-  { value: "array", label: "List", icon: <FaList /> },
-  { value: "date", label: "Date", icon: <FaCalendar /> },
-];
-
-// Unit options for number fields
-const UNIT_OPTIONS = [
-  { value: "", label: "None" },
-  { value: "kg", label: "Kilograms (kg)" },
-  { value: "g", label: "Grams (g)" },
-  { value: "lb", label: "Pounds (lb)" },
-  { value: "oz", label: "Ounces (oz)" },
-  { value: "ml", label: "Milliliters (ml)" },
-  { value: "l", label: "Liters (l)" },
-  { value: "gal", label: "Gallons (gal)" },
-  { value: "cm", label: "Centimeters (cm)" },
-  { value: "m", label: "Meters (m)" },
-  { value: "in", label: "Inches (in)" },
-  { value: "ft", label: "Feet (ft)" },
-  { value: "px", label: "Pixels (px)" },
-  { value: "em", label: "Em (em)" },
-  { value: "rem", label: "Rem (rem)" },
-  { value: "%", label: "Percent (%)" },
-  { value: "USD", label: "US Dollar ($)" },
-  { value: "EUR", label: "Euro (€)" },
-  { value: "GBP", label: "British Pound (£)" },
-];
 
 const AddCategory = () => {
   const { id } = useParams();
@@ -115,9 +62,6 @@ const AddCategory = () => {
     updateCategory,
     getCategoryById,
     getAllCategories,
-    addSubCategory,
-    updateSubCategory,
-    removeSubCategory,
     addMetaField,
     updateMetaField,
     removeMetaField,
@@ -140,7 +84,6 @@ const AddCategory = () => {
       description: "",
       keywords: [],
     },
-    subCategories: [],
     metaFields: [],
   });
 
@@ -148,17 +91,6 @@ const AddCategory = () => {
   const [activeTab, setActiveTab] = useState("basic");
   const [autoGenerateSlug, setAutoGenerateSlug] = useState(true);
   const [showSEOSection, setShowSEOSection] = useState(false);
-  // const [keywordInput, setKeywordInput] = useState("");
-  const [expandedSections, setExpandedSections] = useState({
-    subcategories: true,
-    metafields: true,
-  });
-  const [subCategoryModal, setSubCategoryModal] = useState({
-    isOpen: false,
-    mode: "add", // 'add' or 'edit'
-    data: null,
-    index: null,
-  });
   const [metaFieldModal, setMetaFieldModal] = useState({
     isOpen: false,
     mode: "add", // 'add' or 'edit'
@@ -167,7 +99,7 @@ const AddCategory = () => {
   });
   const [deleteConfirm, setDeleteConfirm] = useState({
     isOpen: false,
-    type: null, // 'subcategory' or 'metafield'
+    type: null,
     index: null,
     name: "",
   });
@@ -204,7 +136,6 @@ const AddCategory = () => {
           description: data.meta?.description || "",
           keywords: data.meta?.keywords || [],
         },
-        subCategories: data.subCategories || [],
         metaFields: data.metaFields || [],
       });
       setImagePreview({
@@ -277,117 +208,11 @@ const AddCategory = () => {
     }
   };
 
-  // Toggle section expansion
-  const toggleSection = (section) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
+  const handleRemoveUpload = (type) => {
+    setImagePreview((prev) => ({ ...prev, [type]: null }));
+    setFormData((prev) => ({ ...prev, [type]: null }));
   };
 
-  const openAddSubCategory = () => {
-    setSubCategoryModal({
-      isOpen: true,
-      mode: "add",
-      data: {
-        name: "",
-        slug: "",
-        description: "",
-        image: "",
-        isActive: true,
-        sortOrder: formData.subCategories.length + 1,
-      },
-      index: null,
-    });
-  };
-
-  const openEditSubCategory = (index) => {
-    setSubCategoryModal({
-      isOpen: true,
-      mode: "edit",
-      data: { ...formData.subCategories[index] },
-      index,
-    });
-  };
-
-  const handleSubCategorySubmit = async () => {
-    const { mode, data, index } = subCategoryModal;
-
-    // Validate
-    if (!data.name) {
-      toast.error("Subcategory name is required");
-      return;
-    }
-
-    // Generate slug if empty
-    if (!data.slug && data.name) {
-      data.slug = generateSlug(data.name);
-    }
-
-    try {
-      if (isEditing) {
-        // API call for existing category
-        if (mode === "add") {
-          await addSubCategory(id, data);
-        } else {
-          await updateSubCategory(id, formData.subCategories[index].slug, data);
-        }
-
-        // Reload category to get updated data
-        await loadCategory(id);
-      } else {
-        // Local state update for new category
-        if (mode === "add") {
-          setFormData((prev) => ({
-            ...prev,
-            subCategories: [...prev.subCategories, { ...data }],
-          }));
-        } else {
-          setFormData((prev) => ({
-            ...prev,
-            subCategories: prev.subCategories.map((item, i) =>
-              i === index ? { ...item, ...data } : item,
-            ),
-          }));
-        }
-      }
-
-      toast.success(
-        `Subcategory ${mode === "add" ? "added" : "updated"} successfully`,
-      );
-      setSubCategoryModal({
-        isOpen: false,
-        mode: "add",
-        data: null,
-        index: null,
-      });
-    } catch (err) {
-      toast.error(err.message || `Failed to ${mode} subcategory`);
-    }
-  };
-
-  const handleDeleteSubCategory = async () => {
-    const { index } = deleteConfirm;
-
-    try {
-      if (isEditing) {
-        await removeSubCategory(id, formData.subCategories[index].slug);
-        await loadCategory(id);
-      } else {
-        setFormData((prev) => ({
-          ...prev,
-          subCategories: prev.subCategories.filter((_, i) => i !== index),
-        }));
-      }
-
-      toast.success("Subcategory deleted successfully");
-      setDeleteConfirm({ isOpen: false, type: null, index: null, name: "" });
-    } catch (err) {
-      toast.error(err.message || "Failed to delete subcategory");
-    }
-  };
-
-  // ==================== Meta Field Handlers ====================
   const openAddMetaField = () => {
     setMetaFieldModal({
       isOpen: true,
@@ -569,7 +394,6 @@ const AddCategory = () => {
   // Tabs configuration
   const tabs = [
     { id: "basic", label: "Basic Info", icon: <FaInfoCircle /> },
-    { id: "subcategories", label: "Subcategories", icon: <FaList /> },
     { id: "metafields", label: "Meta Fields", icon: <FaCog /> },
   ];
 
@@ -603,7 +427,7 @@ const AddCategory = () => {
           </h1>
           <p className="text-sm text-gray-400 mt-1">
             {isEditing
-              ? "Update category details, subcategories, and meta fields"
+              ? "Update category details and meta fields"
               : "Add a new category to organize your products"}
           </p>
         </div>
@@ -624,7 +448,7 @@ const AddCategory = () => {
                 ? loadingStates.updateCategory
                 : loadingStates.createCategory
             }
-            className="px-4 py-2 bg-linear-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-4 py-2 bg-linear-to-r from-red-600 to-pink-600 text-white rounded-lg hover:from-red-700 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isEditing ? (
               loadingStates.updateCategory
@@ -654,7 +478,7 @@ const AddCategory = () => {
             onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-2 font-medium text-sm flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
               activeTab === tab.id
-                ? "border-indigo-600 text-indigo-600"
+                ? "border-red-600 text-red-600"
                 : "border-transparent text-gray-400 hover:text-gray-300"
             }`}
           >
@@ -667,13 +491,14 @@ const AddCategory = () => {
       {/* Form */}
       <form id="category-form" onSubmit={handleSubmit}>
         {activeTab === "basic" && (
-          <CardWrapper
-            title="Basic Information"
-            className="mb-6"
-            bodyClassName="p-5"
-            headerClassName="p-4"
-          >
-            <WrapperBody.Grid cols={2} gap={6}>
+          <CardWrapper className="mb-6" bodyClassName="">
+            <WrapperHeader
+              title="Basic Information"
+              description="Organize your category hierarchy"
+              icon={<FaInfoCircle />}
+              className="bg-gray-50/50 dark:bg-neutral-800/50 p-5"
+            />
+            <WrapperBody.Grid cols={2} gap={6} className="mt-6 p-5">
               {/* Left Column */}
               <WrapperBody.Flex direction="col" gap={4} align="stretch">
                 {/* Name */}
@@ -686,7 +511,7 @@ const AddCategory = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 rounded-lg  focus:border-transparent"
+                    className="w-full px-3 py-2 rounded-lg bg-white dark:bg-neutral-800  focus:border-transparent"
                     placeholder="e.g., Electronics"
                     required
                   />
@@ -703,25 +528,22 @@ const AddCategory = () => {
                         type="checkbox"
                         checked={autoGenerateSlug}
                         onChange={(e) => setAutoGenerateSlug(e.target.checked)}
-                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        className="rounded border-gray-300 text-red-600 focus:ring-red-500"
                       />
                       Auto-generate
                     </label>
                   </div>
-                  {!autoGenerateSlug && (
-                    <div className="relative">
-                      <FaLink className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="text"
-                        name="slug"
-                        value={formData.slug}
-                        onChange={handleChange}
-                        disabled={autoGenerateSlug}
-                        className="w-full pl-10 pr-3 py-2 rounded-lg  focus:border-transparent disabled:bg-gray-100 dark:disabled:bg-neutral-700/40 disabled:text-gray-400"
-                        placeholder="electronics"
-                      />
-                    </div>
-                  )}
+                  <div className="relative">
+                    <FaLink className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      name="slug"
+                      value={formData.slug}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 rounded-xl border pl-10 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950/50 text-gray-500 font-mono text-sm disabled:opacity-70"
+                      placeholder="electronics"
+                    />
+                  </div>
                   <p className="text-xs text-gray-300 mt-1">
                     URL-friendly version of the name
                   </p>
@@ -737,7 +559,7 @@ const AddCategory = () => {
                     value={formData.description}
                     onChange={handleChange}
                     rows={4}
-                    className="w-full px-3 py-2 rounded-lg  focus:border-transparent"
+                    className="w-full px-3 py-2 rounded-lg bg-white dark:bg-neutral-800  focus:border-transparent"
                     placeholder="Describe this category..."
                   />
                 </div>
@@ -752,7 +574,7 @@ const AddCategory = () => {
                       name="parent"
                       value={formData.parent}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 rounded-lg  focus:border-transparent"
+                      className="w-full px-3 py-2 rounded-lg bg-white dark:bg-neutral-800  focus:border-transparent"
                     >
                       <option value="">None (Top Level)</option>
                       {categories
@@ -777,54 +599,55 @@ const AddCategory = () => {
                     value={formData.sortOrder}
                     onChange={handleChange}
                     min="0"
-                    className="w-full px-3 py-2 rounded-lg  focus:border-transparent"
+                    className="w-full px-3 py-2 rounded-lg bg-white dark:bg-neutral-800  focus:border-transparent"
                   />
                 </div>
               </WrapperBody.Flex>
 
               {/* Right Column */}
               <WrapperBody.Flex direction="col" gap={4}>
-                <MiniFileUpload
-                  label="Icon"
-                  imagePreview={imagePreview.icon}
-                  alt="Icon Preview"
-                  onChange={(e) => handleImageUpload("icon", e.target.files[0])}
-                  requirements="Recommended: 64x64px SVG or PNG"
-                />
-                <MiniFileUpload
-                  label="Cover Image"
-                  imagePreview={imagePreview.image}
-                  alt="Cover Image Preview"
-                  onChange={(e) =>
-                    handleImageUpload("image", e.target.files[0])
-                  }
-                  requirements=" Recommended: 1200x400px JPG or PNG"
-                />
+                <WrapperBody.Flex className="flex-wrap" gap={4}>
+                  <ImageUpload
+                    label="Category Icon"
+                    value={imagePreview?.icon}
+                    onRemove={() => handleRemoveUpload("icon")}
+                    onUpload={(file) => handleImageUpload("icon", file)}
+                  />
+                  <ImageUpload
+                    label="Category Image"
+                    value={imagePreview?.image}
+                    onRemove={() => handleRemoveUpload("image")}
+                    onUpload={(file) => handleImageUpload("image", file)}
+                  />
+                </WrapperBody.Flex>
 
                 {/* Status Toggles */}
-                <WrapperBody.Card padding="md" border className="mt-2 w-full">
-                  <WrapperBody.Flex direction="col" gap={3} align="stretch">
-                    {[
-                      {
-                        name: "isFeatured",
-                        isChecked: formData.isFeatured,
-                        label: "Featured Category",
-                        colors: { checked: "text-yellow-500", unChecked: "" },
-                        icon: FaStar,
-                      },
-                      {
-                        name: "isActive",
-                        isChecked: formData.isActive,
-                        label: "Active Status",
-                        colors: { checked: "text-green-500", unChecked: "" },
-                        icon: FaEye,
-                        iconAlt: FaEyeSlash,
-                      },
-                    ].map((item) => (
-                      <RadioCard {...item} handleChange={handleChange} />
-                    ))}
-                  </WrapperBody.Flex>
-                </WrapperBody.Card>
+                <WrapperBody.Flex
+                  direction="col"
+                  gap={3}
+                  align="stretch"
+                  className="flex-1"
+                >
+                  {[
+                    {
+                      name: "isFeatured",
+                      isChecked: formData.isFeatured,
+                      label: "Featured Category",
+                      colors: { checked: "text-yellow-500", unChecked: "" },
+                      icon: FaStar,
+                    },
+                    {
+                      name: "isActive",
+                      isChecked: formData.isActive,
+                      label: "Active Status",
+                      colors: { checked: "text-green-500", unChecked: "" },
+                      icon: FaEye,
+                      iconAlt: FaEyeSlash,
+                    },
+                  ].map((item) => (
+                    <RadioCard {...item} handleChange={handleChange} />
+                  ))}
+                </WrapperBody.Flex>
               </WrapperBody.Flex>
             </WrapperBody.Grid>
 
@@ -849,11 +672,7 @@ const AddCategory = () => {
                   exit={{ height: 0, opacity: 0 }}
                   className="overflow-hidden"
                 >
-                  <WrapperBody.Flex
-                    direction="col"
-                    gap={4}
-                    className="pt-4 px-2"
-                  >
+                  <WrapperBody.Flex direction="col" gap={4} className="p-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-400 mb-1">
                         Meta Title
@@ -863,7 +682,7 @@ const AddCategory = () => {
                         name="meta.title"
                         value={formData.meta.title}
                         onChange={handleChange}
-                        className="w-full px-3 py-2 rounded-lg  focus:border-transparent"
+                        className="w-full px-3 py-2 rounded-lg bg-white dark:bg-neutral-800  focus:border-transparent"
                         placeholder="SEO title (optional)"
                       />
                     </div>
@@ -877,7 +696,7 @@ const AddCategory = () => {
                         value={formData.meta.description}
                         onChange={handleChange}
                         rows={3}
-                        className="w-full px-3 py-2 rounded-lg  focus:border-transparent"
+                        className="w-full px-3 py-2 rounded-lg bg-white dark:bg-neutral-800  focus:border-transparent"
                         placeholder="SEO description (optional)"
                       />
                     </div>
@@ -913,8 +732,8 @@ const AddCategory = () => {
                       icon="keywords"
                       allowDuplicates={false}
                       styling={{
-                        primaryColor: "purple",
-                        numberBadgeGradient: "from-purple-500 to-purple-600",
+                        primaryColor: "pink",
+                        numberBadgeGradient: "from-pink-500 to-pink-600",
                       }}
                     />
                   </WrapperBody.Flex>
@@ -924,300 +743,16 @@ const AddCategory = () => {
           </CardWrapper>
         )}
 
-        {/* Tab: Subcategories */}
-        {activeTab === "subcategories" && (
-          <CardWrapper
-            title="Subcategory Management"
-            className="mb-6"
-            bodyClassName="p-4"
-            headerClassName="p-5"
-          >
-            <WrapperHeader
-              title="Subcategories"
-              description="Manage subcategories under this category"
-              icon={<FaList />}
-              isExpandable
-              expanded={expandedSections.subcategories}
-              toggleExpand={() => toggleSection("subcategories")}
-              // padding
-            >
-              <button
-                type="button"
-                onClick={openAddSubCategory}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2 text-sm"
-              >
-                <FaPlus /> Add Subcategory
-              </button>
-            </WrapperHeader>
-
-            <AnimatePresence>
-              {expandedSections.subcategories && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden"
-                >
-                  {formData.subCategories.length === 0 ? (
-                    <WrapperBody.Card
-                      padding="lg"
-                      className="text-center mt-4"
-                      border
-                    >
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <FaList className="text-2xl text-gray-400" />
-                      </div>
-                      <WrapperBody.Title as="h3" className="text-lg mb-2">
-                        No Subcategories Yet
-                      </WrapperBody.Title>
-                      <WrapperBody.Text muted className="mb-4">
-                        Add subcategories to organize products within this
-                        category
-                      </WrapperBody.Text>
-                      <button
-                        type="button"
-                        onClick={openAddSubCategory}
-                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 inline-flex items-center gap-2"
-                      >
-                        <FaPlus /> Add Your First Subcategory
-                      </button>
-                    </WrapperBody.Card>
-                  ) : (
-                    <WrapperBody.Flex direction="col" gap={3} className="mt-4">
-                      {formData.subCategories.map((sub, index) => (
-                        <CardWrapper
-                          key={sub._id || index}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 20 }}
-                          bodyClassName="flex items-center gap-3 p-4  hover:shadow-sm transition-shadow"
-                          bgColor="primary"
-                        >
-                          <div className="cursor-move text-gray-400">
-                            <FaGripVertical />
-                          </div>
-
-                          {sub.image && (
-                            <img
-                              src={sub.image}
-                              alt={sub.name}
-                              className="w-12 h-12 rounded-lg object-cover"
-                            />
-                          )}
-
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3">
-                              <h4 className="font-medium text-gray-900 dark:text-white">
-                                {sub.name}
-                              </h4>
-                              {!sub.isActive && (
-                                <span className="px-2 py-0.5 bg-gray-200 text-gray-400 rounded-full text-xs">
-                                  Inactive
-                                </span>
-                              )}
-                            </div>
-                            {/* <p className="text-sm text-gray-400">{sub.slug}</p> */}
-                            {sub.description && (
-                              <p className="text-sm text-gray-300 mt-1 line-clamp-1">
-                                {sub.description}
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => openEditSubCategory(index)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="Edit"
-                            >
-                              <FaCog />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setDeleteConfirm({
-                                  isOpen: true,
-                                  type: "subcategory",
-                                  index,
-                                  name: sub.name,
-                                })
-                              }
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Delete"
-                            >
-                              <FaTrash />
-                            </button>
-                          </div>
-                        </CardWrapper>
-                      ))}
-                    </WrapperBody.Flex>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </CardWrapper>
-        )}
-
-        {/* Tab: Meta Fields */}
-
         {activeTab === "metafields" && (
-          <CardWrapper className="mb-6" bodyClassName="p-4">
-            <WrapperHeader
-              title="Meta Field Management"
-              description="Define custom fields for products in this category"
-              showDivider
-              className="pb-4"
-              icon={<FaCog />}
-            >
-              <button
-                type="button"
-                onClick={openAddMetaField}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2 text-sm whitespace-nowrap shadow-sm hover:shadow-md transition-all place-self-start"
-                title="Create a new custom field for products in this category"
-              >
-                <FaPlus /> Add New Meta Field
-              </button>
-            </WrapperHeader>
-            <p className="text-sm text-gray-600 dark:text-gray-300 my-3">
-              Meta fields allow you to add custom data fields to products in
-              this category. For example, if you're selling electronics, you
-              might add fields like "Battery Life", "Screen Size", or "Processor
-              Type".
-            </p>
-
-            {/* Quick Guide for Meta Fields */}
-
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              {formData.metaFields.length === 0 ? (
-                <WrapperBody.Card
-                  padding="lg"
-                  className="text-center mt-6"
-                  border
-                >
-                  <div className="w-20 h-20 bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <FaCog className="text-3xl text-gray-500 dark:text-gray-400" />
-                  </div>
-
-                  <WrapperBody.Title as="h3" className="text-lg mb-2">
-                    Start Building Your Product Data Structure
-                  </WrapperBody.Title>
-
-                  <WrapperBody.Text muted className="mb-4 max-w-md mx-auto">
-                    Add custom fields to collect specific product attributes
-                    that aren't covered by default fields. This helps you
-                    organize product information consistently.
-                  </WrapperBody.Text>
-
-                  {/* Example Fields Preview */}
-                  <div className="mb-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 max-w-2xl mx-auto">
-                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-3 text-left">
-                      Example meta fields for different product types:
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="flex items-start gap-2 text-left">
-                        <div className="w-6 h-6 bg-indigo-100 dark:bg-indigo-900/30 rounded flex items-center justify-center shrink-0">
-                          <FaMobile className="text-xs text-indigo-600 dark:text-indigo-400" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium">Electronics</p>
-                          <p className="text-xs text-gray-500">
-                            Screen Size, RAM, Storage, Processor
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2 text-left">
-                        <div className="w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded flex items-center justify-center shrink-0">
-                          <FaTshirt className="text-xs text-green-600 dark:text-green-400" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium">Clothing</p>
-                          <p className="text-xs text-gray-500">
-                            Size, Material, Care Instructions
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2 text-left">
-                        <div className="w-6 h-6 bg-yellow-100 dark:bg-yellow-900/30 rounded flex items-center justify-center shrink-0">
-                          <FaHome className="text-xs text-yellow-600 dark:text-yellow-400" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium">Furniture</p>
-                          <p className="text-xs text-gray-500">
-                            Dimensions, Weight, Material, Assembly Required
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2 text-left">
-                        <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 rounded flex items-center justify-center shrink-0">
-                          <FaBook className="text-xs text-purple-600 dark:text-purple-400" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium">Books</p>
-                          <p className="text-xs text-gray-500">
-                            ISBN, Pages, Publisher, Language
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={openAddMetaField}
-                    className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 inline-flex items-center gap-2 font-medium shadow-sm hover:shadow-md transition-all"
-                  >
-                    <FaPlus /> Create Your First Meta Field
-                  </button>
-                </WrapperBody.Card>
-              ) : (
-                <>
-                  <div className="flex items-center justify-between mt-4 mb-2 flex-wrap gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-100">
-                        Custom Fields ({formData.metaFields.length})
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-300">
-                        • Drag to reorder • Click settings to edit
-                      </span>
-                    </div>
-                  </div>
-
-                  <MetaFields
-                    formData={formData}
-                    openEditMetaField={openEditMetaField}
-                    setDeleteConfirm={setDeleteConfirm}
-                    setFormData={setFormData}
-                  />
-
-                  <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg text-xs text-gray-600 dark:text-gray-400 flex items-start gap-2">
-                    <FaLightbulb className="text-yellow-500 shrink-0 mt-0.5" />
-                    <p>
-                      <span className="font-medium">Pro Tip:</span> Fields
-                      marked as filterable will appear in the category page
-                      sidebar. Searchable fields help customers find products
-                      using the search bar. You can change these settings
-                      anytime.
-                    </p>
-                  </div>
-                </>
-              )}
-            </motion.div>
-          </CardWrapper>
+          <MetaFieldManagement
+            formData={formData}
+            setFormData={setFormData}
+            openAddMetaField={openAddMetaField}
+            openEditMetaField={openEditMetaField}
+            setDeleteConfirm={setDeleteConfirm}
+          />
         )}
       </form>
-
-      {/* Subcategory Modal */}
-      <AnimatePresence>
-        {subCategoryModal.isOpen && (
-          
-        )}
-      </AnimatePresence>
 
       {/* Meta Field Modal */}
       <AnimatePresence>
@@ -1254,10 +789,7 @@ const AddCategory = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Delete{" "}
-                    {deleteConfirm.type === "subcategory"
-                      ? "Subcategory"
-                      : "Meta Field"}
+                    Delete Meta Field
                   </h3>
                   <p className="text-sm text-gray-400">
                     Are you sure you want to delete "{deleteConfirm.name}"?
@@ -1272,11 +804,7 @@ const AddCategory = () => {
                     <p className="font-medium mb-1">
                       This action cannot be undone
                     </p>
-                    <p>
-                      {deleteConfirm.type === "subcategory"
-                        ? "Products using this subcategory will need to be reassigned."
-                        : "Products using this meta field will lose this data."}
-                    </p>
+                    <p>Products using this meta field will lose this data.</p>
                   </div>
                 </div>
               </div>
@@ -1290,8 +818,7 @@ const AddCategory = () => {
                 >
                   Cancel
                 </button>
-                {loadingStates.removeSubCategory ||
-                loadingStates.removeMetaField ? (
+                {loadingStates.removeMetaField ? (
                   <Spinner
                     label="Deleting"
                     labelAnimation="typing"
@@ -1299,11 +826,10 @@ const AddCategory = () => {
                   />
                 ) : (
                   <button
-                    onClick={
-                      deleteConfirm.type === "subcategory"
-                        ? handleDeleteSubCategory
-                        : handleDeleteMetaField
-                    }
+                    onClick={() => {
+                      handleDeleteMetaField(deleteConfirm.index);
+                      setDeleteConfirm({ ...deleteConfirm, isOpen: false });
+                    }}
                     className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                   >
                     Delete

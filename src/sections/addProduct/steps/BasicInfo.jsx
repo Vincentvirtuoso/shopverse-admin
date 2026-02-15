@@ -1,130 +1,92 @@
 import React from "react";
 import { motion } from "framer-motion";
+import CategorySelector from "../../categories/CategorySelector";
+import DynamicMetaFields from "../../categories/DynamicMetaFields";
 
-const BasicInfo = ({ form, errors, handleChange }) => {
+const BasicInfo = ({
+  form,
+  errors,
+  handleChange,
+  onCategoryChange,
+  selectedCategory,
+  onMetaFieldChange,
+}) => {
+  const inputBase =
+    "w-full px-4 py-3 rounded-xl border bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all outline-none";
+
   return (
     <motion.div
-      key="basic"
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      className="space-y-6"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-8"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Product Name *
+        {/* Product Name */}
+        <div className="space-y-2">
+          <label className="text-sm font-bold text-neutral-600 dark:text-neutral-400 ml-1">
+            Product Name <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             name="name"
             value={form.name || ""}
             onChange={handleChange}
-            className={`w-full px-4 py-3 rounded-lg border ${
-              errors.name
-                ? "border-red-500"
-                : "border-gray-300 dark:border-gray-600"
-            } 
-                    bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all`}
-            placeholder="Enter product name"
+            className={`${inputBase} ${errors.name ? "border-red-500" : "border-neutral-200 dark:border-neutral-700"}`}
+            placeholder="e.g. iPhone 15 Pro Max"
           />
           {errors.name && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="mt-1 text-sm text-red-600 dark:text-red-400"
-            >
-              {errors.name}
-            </motion.p>
+            <p className="text-xs text-red-500 ml-1">{errors.name}</p>
           )}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Brand *
+        {/* Brand */}
+        <div className="space-y-2">
+          <label className="text-sm font-bold text-neutral-600 dark:text-neutral-400 ml-1">
+            Brand{" "}
+            <span className="text-neutral-400 font-normal">(Optional)</span>
           </label>
           <input
             type="text"
             name="brand"
             value={form.brand || ""}
             onChange={handleChange}
-            className={`w-full px-4 py-3 rounded-lg border ${
-              errors.brand
-                ? "border-red-500"
-                : "border-gray-300 dark:border-gray-600"
-            } 
-                    bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all`}
-            placeholder="Enter brand name"
+            className={`${inputBase} ${errors.brand ? "border-red-500" : "border-neutral-200 dark:border-neutral-700"}`}
+            placeholder="e.g. Apple"
           />
-          {errors.brand && (
-            <motion.p className="mt-1 text-sm text-red-600 dark:text-red-400">
-              {errors.brand}
-            </motion.p>
-          )}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Category *
-          </label>
-          <input
-            type="text"
-            name="category"
-            value={form.category || ""}
-            onChange={handleChange}
-            className={`w-full px-4 py-3 rounded-lg border ${
-              errors.category
-                ? "border-red-500"
-                : "border-gray-300 dark:border-gray-600"
-            } 
-                    bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all`}
-            placeholder="e.g., Electronics, Clothing"
-          />
-          {errors.category && (
-            <motion.p className="mt-1 text-sm text-red-600 dark:text-red-400">
-              {errors.category}
-            </motion.p>
-          )}
-        </div>
+        <CategorySelector
+          selectedCategory={selectedCategory}
+          onCategoryChange={onCategoryChange}
+          errors={errors}
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Sub Category
-          </label>
-          <input
-            type="text"
-            name="subCategory"
-            value={form.subCategory || ""}
-            onChange={handleChange}
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 
-                    bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-            placeholder="e.g., Headphones, T-Shirts"
-          />
+        {/* Dynamic Meta Fields Wrapper */}
+        <div className="md:col-span-2">
+          {selectedCategory && (
+            <DynamicMetaFields
+              category={selectedCategory}
+              values={form.metaFields || {}}
+              onChange={onMetaFieldChange}
+              errors={errors}
+            />
+          )}
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Description *
+      {/* Description */}
+      <div className="space-y-2">
+        <label className="text-sm font-bold text-neutral-600 dark:text-neutral-400 ml-1">
+          Product Description
         </label>
         <textarea
           name="description"
           value={form.description || ""}
           onChange={handleChange}
-          rows={4}
-          className={`w-full px-4 py-3 rounded-lg border ${
-            errors.description
-              ? "border-red-500"
-              : "border-gray-300 dark:border-gray-600"
-          } 
-                  bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all`}
-          placeholder="Describe your product in detail..."
+          rows={5}
+          className={`${inputBase} resize-none ${errors.description ? "border-red-500" : "border-neutral-200 dark:border-neutral-700"}`}
+          placeholder="Write a compelling description..."
         />
-        {errors.description && (
-          <motion.p className="mt-1 text-sm text-red-600 dark:text-red-400">
-            {errors.description}
-          </motion.p>
-        )}
       </div>
     </motion.div>
   );

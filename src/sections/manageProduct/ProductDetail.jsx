@@ -335,7 +335,7 @@ const ProductDetail = ({
                     </h3>
                     <div className="flex flex-wrap gap-2">
                       <span className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-medium">
-                        {selectedProduct.category}
+                        {selectedProduct.category?.name}
                       </span>
                       {selectedProduct.subCategory && (
                         <span className="px-3 py-1.5 bg-gray-50 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 rounded-lg text-sm">

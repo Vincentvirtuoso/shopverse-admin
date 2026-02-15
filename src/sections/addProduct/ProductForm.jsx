@@ -65,6 +65,10 @@ const ProductForm = ({
     initialForm,
     handleJsonAllFieldEdit,
     handleJsonEditField,
+    selectedCategory,
+
+    handleCategoryChange,
+    handleMetaFieldChange,
     // markDirty,
     getChangedFields,
     getChangedImages,
@@ -270,7 +274,14 @@ const ProductForm = ({
     switch (activeSection) {
       case "basic":
         return (
-          <BasicInfo form={form} errors={errors} handleChange={handleChange} />
+          <BasicInfo
+            form={form}
+            errors={errors}
+            handleChange={handleChange}
+            onCategoryChange={handleCategoryChange}
+            selectedCategory={selectedCategory}
+            onMetaFieldChange={handleMetaFieldChange}
+          />
         );
 
       case "pricing":

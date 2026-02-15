@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -33,7 +33,6 @@ import ConfirmationModal from "../components/ui/ConfirmationModal";
 import Tabs from "../components/ui/Tabs";
 import ImageUpload from "../components/ui/ImageUpload";
 import MetaFieldsManager from "../sections/categories/MetaFieldsManager";
-import SubCategoriesManager from "../sections/categories/SubCategoriesManager";
 
 // Inline Edit Field Component
 const InlineEditField = ({
@@ -278,15 +277,11 @@ const CategoryDetail = () => {
     updateCategoryStatus,
     deleteCategory,
     createCategory,
-    reorderSubCategories,
     renameMetaFieldKey,
     // setFallbackCategory,
     addMetaField,
     updateMetaField,
     removeMetaField,
-    addSubCategory,
-    updateSubCategory,
-    removeSubCategory,
     clearError,
   } = useCategory();
 
@@ -587,27 +582,6 @@ const CategoryDetail = () => {
               />
             </div>
           </CardWrapper>
-        </motion.div>
-      ),
-    },
-    {
-      id: "subcategories",
-      label: "Subcategories",
-      icon: FiList,
-      content: (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-        >
-          <SubCategoriesManager
-            categoryId={localCategory._id}
-            subCategories={localCategory.subCategories || []}
-            onAdd={addSubCategory}
-            onUpdate={updateSubCategory}
-            onRemove={removeSubCategory}
-            onReorder={(ids) => reorderSubCategories(localCategory._id, ids)}
-          />
         </motion.div>
       ),
     },

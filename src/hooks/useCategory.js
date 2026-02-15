@@ -4,7 +4,6 @@ import { useApi } from "./useApi";
 export const useCategory = () => {
   const { loading: apiLoading, error, setError, callApi } = useApi();
 
-  // Individual loading states
   const [loadingStates, setLoadingStates] = useState({
     fetchCategories: false,
     fetchCategory: false,
@@ -18,10 +17,6 @@ export const useCategory = () => {
     reorderCategories: false,
     updateStatus: false,
     setFallback: false,
-    addSubCategory: false,
-    updateSubCategory: false,
-    removeSubCategory: false,
-    reorderSubCategories: false,
     addMetaField: false,
     updateMetaField: false,
     renameMetaField: false,
@@ -318,144 +313,6 @@ export const useCategory = () => {
     [callApi, handleCategoryMutation, category, withLoading],
   );
 
-  const updateCategoryInState = useCallback(
-    (categoryId, updatedCategory) => {
-      setCategories((prev) =>
-        prev.map((c) => (c._id === categoryId ? updatedCategory : c)),
-      );
-      if (category?._id === categoryId) {
-        setCategory(updatedCategory);
-      }
-    },
-    [category],
-  );
-
-  const addSubCategory = useCallback(
-    async (categoryId, subCategoryData) => {
-      return withLoading("addSubCategory", async () => {
-        // Handle FormData for file uploads
-        let data;
-        let headers = { "Content-Type": "application/json" };
-
-        if (subCategoryData.image instanceof File) {
-          const formData = new FormData();
-          const { image, ...restData } = subCategoryData;
-
-          formData.append("data", JSON.stringify(restData));
-          formData.append("image", image);
-
-          data = formData;
-          headers = { "Content-Type": "multipart/form-data" };
-        } else {
-          data = subCategoryData;
-        }
-
-        const response = await handleCategoryMutation(
-          () =>
-            callApi(`/categories/${categoryId}/subcategories`, "POST", data, {
-              headers,
-            }),
-          {
-            onSuccess: (res) => updateCategoryInState(categoryId, res.data),
-          },
-        );
-
-        return response;
-      });
-    },
-    [callApi, handleCategoryMutation, updateCategoryInState, withLoading],
-  );
-
-  const updateSubCategory = useCallback(
-    async (categoryId, subCategorySlug, subCategoryData) => {
-      return withLoading("updateSubCategory", async () => {
-        // Handle FormData for file uploads
-        let data;
-        let headers = { "Content-Type": "application/json" };
-
-        if (
-          subCategoryData.image instanceof File ||
-          subCategoryData.image === null
-        ) {
-          const formData = new FormData();
-          const { image, ...restData } = subCategoryData;
-
-          formData.append("data", JSON.stringify(restData));
-
-          if (image instanceof File) {
-            formData.append("image", image);
-          } else if (image === null) {
-            formData.append("data", JSON.stringify({ ...restData, image: "" }));
-          }
-
-          data = formData;
-          headers = { "Content-Type": "multipart/form-data" };
-        } else {
-          data = subCategoryData;
-        }
-
-        const response = await handleCategoryMutation(
-          () =>
-            callApi(
-              `/categories/${categoryId}/subcategories/${subCategorySlug}`,
-              "PATCH",
-              data,
-              { headers },
-            ),
-          {
-            onSuccess: (res) => updateCategoryInState(categoryId, res.data),
-          },
-        );
-
-        return response;
-      });
-    },
-    [callApi, handleCategoryMutation, updateCategoryInState, withLoading],
-  );
-
-  const removeSubCategory = useCallback(
-    async (categoryId, subCategorySlug) => {
-      return withLoading("removeSubCategory", async () => {
-        const response = await handleCategoryMutation(
-          () =>
-            callApi(
-              `/categories/${categoryId}/subcategories/${subCategorySlug}`,
-              "DELETE",
-            ),
-          {
-            onSuccess: (res) => updateCategoryInState(categoryId, res.data),
-          },
-        );
-
-        return response;
-      });
-    },
-    [callApi, handleCategoryMutation, updateCategoryInState, withLoading],
-  );
-
-  const reorderSubCategories = useCallback(
-    async (categoryId, ids) => {
-      return withLoading("reorderSubCategories", async () => {
-        const response = await handleCategoryMutation(
-          () =>
-            callApi(
-              `/categories/${categoryId}/subcategories/reorder`,
-              "PATCH",
-              {
-                ids,
-              },
-            ),
-          {
-            onSuccess: (res) => updateCategoryInState(categoryId, res.data),
-          },
-        );
-
-        return response;
-      });
-    },
-    [callApi, handleCategoryMutation, updateCategoryInState, withLoading],
-  );
-
   const updateMetaFieldInState = useCallback(
     (categoryId, response) => {
       setCategories((prev) =>
@@ -596,10 +453,6 @@ export const useCategory = () => {
       reorderCategories: false,
       updateStatus: false,
       setFallback: false,
-      addSubCategory: false,
-      updateSubCategory: false,
-      removeSubCategory: false,
-      reorderSubCategories: false,
       addMetaField: false,
       updateMetaField: false,
       renameMetaField: false,
@@ -610,8 +463,8 @@ export const useCategory = () => {
 
   return {
     // States
-    loading: apiLoading, // Keep the original loading state from useApi if needed
-    loadingStates, // Individual loading states
+    loading: apiLoading,
+    loadingStates,
     error,
     categories,
     category,
@@ -631,11 +484,6 @@ export const useCategory = () => {
     reorderCategories,
     updateCategoryStatus,
     setFallbackCategory,
-
-    addSubCategory,
-    updateSubCategory,
-    removeSubCategory,
-    reorderSubCategories,
 
     addMetaField,
     updateMetaField,

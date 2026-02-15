@@ -293,7 +293,7 @@ const MultiInput = ({
             className={`px-6 font-medium transition-all duration-200 flex items-center gap-2 text-sm
               ${
                 inputValue.trim() && !isAtLimit
-                  ? `bg-${defaultStyling.primaryColor}-500 text-white hover:bg-${defaultStyling.primaryColor}-600`
+                  ? `bg-${defaultStyling.primaryColor}-400 text-white hover:bg-${defaultStyling.primaryColor}-600`
                   : "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
               }`}
           >
@@ -363,7 +363,7 @@ const MultiInput = ({
                 setInputValue("");
                 setValidationError("");
               }}
-              className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium"
+              className="text-xs text-gray-400 hover:text-gray-300 dark:hover:text-gray-300 font-medium"
             >
               Clear
             </button>
