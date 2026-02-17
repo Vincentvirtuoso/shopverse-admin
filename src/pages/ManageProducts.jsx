@@ -246,7 +246,7 @@ const ManageProducts = () => {
   // Loading state
   if (loading && products.length === 0) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 p-6">
         {/* Header Skeleton */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-2">
@@ -296,7 +296,7 @@ const ManageProducts = () => {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
         <div className="text-center max-w-md mx-auto px-4">
           <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
             <FiAlertCircle className="w-12 h-12 text-red-500" />
@@ -320,12 +320,12 @@ const ManageProducts = () => {
 
   if (!loading && products.length === 0 && !error) {
     return (
-      <div className="min-h-[calc(100vh-200px)] flex items-center justify-center px-4">
+      <div className="min-h-[calc(100vh-200px)] flex items-center justify-center p-6">
         <div className="text-center">
           {/* Illustration/Icon */}
           <div className="w-32 h-32 mx-auto mb-6 relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-pink-500/10 rounded-full blur-xl"></div>
-            <div className="relative w-full h-full flex items-center justify-center bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800">
+            <div className="absolute inset-0 bg-linear-to-r from-red-500/10 to-pink-500/10 rounded-full blur-xl"></div>
+            <div className="relative w-full h-full flex items-center justify-center bg-linear-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800">
               <FiPackage className="w-16 h-16 text-gray-300 dark:text-gray-600" />
             </div>
           </div>
@@ -346,7 +346,7 @@ const ManageProducts = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
               onClick={handleAddProduct}
-              className="group px-8 py-3.5 bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold rounded-xl 
+              className="group px-8 py-3.5 bg-linear-to-r from-red-600 to-red-700 text-white font-semibold rounded-xl 
                        hover:from-red-700 hover:to-red-800 active:scale-[0.98] transition-all duration-200 
                        shadow-lg hover:shadow-xl shadow-red-200/50 dark:shadow-red-900/30
                        flex items-center justify-center space-x-3"
@@ -424,7 +424,7 @@ const ManageProducts = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>

@@ -198,10 +198,12 @@ const ProductForm = ({
       const changedFields = getChangedFields();
       const changedImages = getChangedImages();
 
-      changedFields.id = initialForm.id;
-
+      console.log(changedFields);
       if (Object.keys(changedFields).length > 0) {
-        formData.append("product", JSON.stringify(changedFields));
+        // changedFields.id = initialForm.id;
+        const { id, ...fieldsToUpdate } = changedFields;
+        formData.append("productId", id);
+        formData.append("product", JSON.stringify(fieldsToUpdate));
       }
 
       if (changedImages.mainImage instanceof File) {
@@ -428,8 +430,8 @@ const ProductForm = ({
           // Show regular form layout
           <div className="flex flex-col lg:flex-row gap-5">
             {/* Sidebar Navigation */}
-            <CardWrapper className="lg:w-1/4 p-4">
-              <div className="flex flex-col gap-2 sticky bottom-24">
+            <div className="lg:w-1/4 ">
+              <CardWrapper className="flex flex-col gap-2 p-4 sticky top-24">
                 {/* Quick Action Buttons */}
                 {/* {!isEdit && (
                   <button
@@ -442,7 +444,7 @@ const ProductForm = ({
                   </button>
                 )} */}
 
-                <nav className="space-y-2.5 mb-8 flex-1">
+                <nav className="space-y-2.5 mb-8">
                   {sections.map((section) => {
                     const Icon = section.icon;
                     return (
@@ -495,8 +497,8 @@ const ProductForm = ({
                     />
                   </div>
                 </div>
-              </div>
-            </CardWrapper>
+              </CardWrapper>
+            </div>
 
             {/* Main Form */}
             <CardWrapper className="lg:w-3/4">

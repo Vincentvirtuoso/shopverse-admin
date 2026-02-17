@@ -13,27 +13,16 @@ import {
   FaEyeSlash,
   FaGlobe,
   FaLink,
-  FaHashtag,
-  FaCalendar,
-  FaCheckSquare,
-  FaList,
-  FaLightbulb,
-  FaMobile,
-  FaTshirt,
-  FaHome,
-  FaBook,
 } from "react-icons/fa";
 import CardWrapper from "../components/ui/CardWrapper";
 import { toast } from "react-hot-toast";
 import { useCategory } from "../hooks/useCategory";
 import WrapperBody from "../components/common/WrapperBody";
 import WrapperHeader from "../components/common/WrapperHeader";
-import MiniFileUpload from "../components/common/MiniFileUpload";
 import RadioCard from "../components/common/RadioCard";
 import MultiInput from "../components/common/MultiInput";
 import { LuArrowLeft } from "react-icons/lu";
 import Spinner from "../components/common/Spinner";
-import MetaFields from "../sections/addCategory/MetaFields";
 import MetaFieldModal from "../sections/addCategory/MetaFieldModal";
 import MetaFieldManagement from "../sections/addCategory/MetaFieldManagement";
 import ImageUpload from "../components/ui/ImageUpload";
@@ -732,8 +721,8 @@ const AddCategory = () => {
                       icon="keywords"
                       allowDuplicates={false}
                       styling={{
-                        primaryColor: "pink",
-                        numberBadgeGradient: "from-pink-500 to-pink-600",
+                        primaryColor: "blue",
+                        numberBadgeGradient: "from-blue-500 to-blue-600",
                       }}
                     />
                   </WrapperBody.Flex>

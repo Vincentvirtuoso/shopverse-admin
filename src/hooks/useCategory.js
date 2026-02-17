@@ -314,11 +314,14 @@ export const useCategory = () => {
   );
 
   const updateMetaFieldInState = useCallback(
-    (categoryId, response) => {
+    (response) => {
       setCategories((prev) =>
-        prev.map((c) => (c._id === categoryId ? response.data : c)),
+        prev.map((c) => (c._id === response.data._id ? response.data : c)),
       );
-      if (category?._id === categoryId) {
+
+      if (category?._id === response.data._id) {
+        console.log("yes");
+
         setCategory(response.data);
       }
     },
@@ -327,7 +330,9 @@ export const useCategory = () => {
 
   const addMetaField = useCallback(
     async (categoryId, metaFieldData) => {
-      return withLoading("addMetaField", async () => {
+      try {
+        setLoadingStates((prev) => ({ ...prev, addMetaField: true }));
+        setError(null);
         const response = await handleCategoryMutation(
           () =>
             callApi(
@@ -336,14 +341,28 @@ export const useCategory = () => {
               metaFieldData,
             ),
           {
-            onSuccess: (res) => updateMetaFieldInState(categoryId, res),
+            onSuccess: (res) => {
+              updateMetaFieldInState(res);
+            },
           },
         );
 
+        await getCategoryById(categoryId);
+
         return response;
-      });
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoadingStates((prev) => ({ ...prev, addMetaField: false }));
+      }
     },
-    [callApi, handleCategoryMutation, updateMetaFieldInState, withLoading],
+    [
+      callApi,
+      handleCategoryMutation,
+      updateMetaFieldInState,
+      setLoadingStates,
+      setError,
+    ],
   );
 
   const updateMetaField = useCallback(
@@ -357,7 +376,7 @@ export const useCategory = () => {
               metaFieldData,
             ),
           {
-            onSuccess: (res) => updateMetaFieldInState(categoryId, res),
+            onSuccess: (res) => updateMetaFieldInState(res),
           },
         );
 
@@ -378,7 +397,7 @@ export const useCategory = () => {
               { newKey },
             ),
           {
-            onSuccess: (res) => updateMetaFieldInState(categoryId, res),
+            onSuccess: (res) => updateMetaFieldInState(res),
           },
         );
 
@@ -395,7 +414,7 @@ export const useCategory = () => {
           () =>
             callApi(`/categories/${categoryId}/metafields/${key}`, "DELETE"),
           {
-            onSuccess: (res) => updateMetaFieldInState(categoryId, res),
+            onSuccess: (res) => updateMetaFieldInState(res),
           },
         );
 
@@ -414,7 +433,7 @@ export const useCategory = () => {
               ids: keys,
             }),
           {
-            onSuccess: (res) => updateMetaFieldInState(categoryId, res),
+            onSuccess: (res) => updateMetaFieldInState(res),
           },
         );
 

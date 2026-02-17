@@ -27,6 +27,7 @@ import {
 import CardWrapper from "../../components/ui/CardWrapper";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
 import toast from "react-hot-toast";
+import MetaFieldModal from "../addCategory/MetaFieldModal";
 
 // Field type configurations
 const fieldTypeConfig = {
@@ -62,12 +63,12 @@ const fieldTypeConfig = {
   },
 };
 
-// Inline Edit Component for Meta Field
 const MetaFieldInlineEdit = ({
   field,
   onSave,
   onCancel,
   onDelete,
+  loading,
   isNew = false,
 }) => {
   const [editData, setEditData] = useState({
@@ -445,7 +446,6 @@ const MetaFieldInlineEdit = ({
   );
 };
 
-// Meta Field Card Component
 const MetaFieldCard = ({
   field,
   onEdit,
@@ -595,7 +595,7 @@ const MetaFieldCard = ({
 
       {/* Sort Order Badge */}
       <div className="absolute top-2 right-2 text-xs text-gray-400">
-        #{field.sortOrder || 0}
+        #{index || field.sortOrder || 0}
       </div>
 
       {/* Drag Handle */}
@@ -615,12 +615,18 @@ const MetaFieldsManager = ({
   onRemove,
   onRename,
   onReorder,
-  loading = false,
+  loading = {},
 }) => {
   const [fields, setFields] = useState(metaFields);
   const [editingField, setEditingField] = useState(null);
-  const [isAdding, setIsAdding] = useState(false);
   const [deleteField, setDeleteField] = useState(null);
+  const [modal, setModal] = useState({
+    isOpen: false,
+    type: null,
+    field: null,
+    data: null,
+  });
+  const { removeMetaField, updateMetaField, addMetaField } = loading || {};
 
   // Update local state when props change
   useState(() => {
@@ -630,7 +636,7 @@ const MetaFieldsManager = ({
   const handleAdd = async (fieldData) => {
     try {
       await onAdd(categoryId, fieldData);
-      setIsAdding(false);
+      setModal({ isOpen: false, type: null, field: null, data: null });
       toast.success("Meta field added successfully");
     } catch (error) {
       toast.error(error.message || "Failed to add meta field");
@@ -710,8 +716,28 @@ const MetaFieldsManager = ({
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => setIsAdding(true)}
-          disabled={loading}
+          onClick={() => {
+            setModal({
+              isOpen: true,
+              mode: "add",
+              data: {
+                key: "",
+                label: "",
+                type: "text",
+                unit: "",
+                placeholder: "",
+                options: [],
+                defaultValue: "",
+                isRequired: false,
+                isFilterable: false,
+                isSearchable: false,
+                isVisibleOnProductPage: true,
+                sortOrder: metaFields?.length + 1 || 0,
+                loading: addMetaField,
+              },
+              index: null,
+            });
+          }}
           className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <FiPlus /> Add Meta Field
@@ -720,25 +746,12 @@ const MetaFieldsManager = ({
 
       {/* Add Form */}
       <AnimatePresence>
-        {isAdding && (
-          <MetaFieldInlineEdit
-            field={{
-              key: "",
-              label: "",
-              type: "text",
-              unit: "",
-              placeholder: "",
-              options: [],
-              defaultValue: "",
-              isRequired: false,
-              isFilterable: false,
-              isSearchable: false,
-              isVisibleOnProductPage: true,
-              sortOrder: fields.length,
-            }}
-            onSave={handleAdd}
-            onCancel={() => setIsAdding(false)}
-            isNew
+        {modal.isOpen && (
+          <MetaFieldModal
+            isOpen={modal.isOpen}
+            metaFieldModal={modal}
+            setMetaFieldModal={setModal}
+            handleMetaFieldSubmit={handleAdd}
           />
         )}
       </AnimatePresence>
@@ -760,6 +773,7 @@ const MetaFieldsManager = ({
                     onSave={handleUpdate}
                     onCancel={() => setEditingField(null)}
                     onDelete={() => setDeleteField(field)}
+                    loading={updateMetaField}
                   />
                 ) : (
                   <MetaFieldCard
@@ -795,7 +809,9 @@ const MetaFieldsManager = ({
         title="Delete Meta Field"
         message={`Are you sure you want to delete "${deleteField?.label}"? This will remove this field from all products in this category.`}
         type="danger"
+        size="sm"
         confirmText="Delete"
+        loading={removeMetaField}
       />
     </CardWrapper>
   );

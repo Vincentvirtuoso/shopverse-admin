@@ -118,7 +118,7 @@ export const useProductForm = (initialValues = {}, options = {}) => {
 
   const { isEditMode = false, openJsonInput = null } = options;
 
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState({});
   const [dirtyFields, setDirtyFields] = useState(new Set());
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [categoryMetaFields, setCategoryMetaFields] = useState({});
@@ -127,10 +127,10 @@ export const useProductForm = (initialValues = {}, options = {}) => {
   const [initialMainImage, setInitialMainImage] = useState(null);
   const [_, setInitialAdditionalImages] = useState([]);
 
+  const saved = localStorage.getItem(STORAGE_KEY);
   useEffect(() => {
-    if (!initialForm) return;
-
     if (isEditMode) {
+      if (!initialForm) return;
       setForm(initialForm);
       setDirtyFields(new Set());
 
@@ -144,13 +144,12 @@ export const useProductForm = (initialValues = {}, options = {}) => {
         setInitialAdditionalImages([...initialForm.images]);
       }
     } else {
-      const saved = localStorage.getItem(STORAGE_KEY);
       setForm(saved ? { ...initialForm, ...JSON.parse(saved) } : initialForm);
       setMainImage([]);
       setAdditionalImages([]);
       setDirtyFields(new Set());
     }
-  }, [initialForm, isEditMode]);
+  }, [isEditMode]);
 
   const [errors, setErrors] = useState({});
   const [keywordInput, setKeywordInput] = useState("");
@@ -162,6 +161,16 @@ export const useProductForm = (initialValues = {}, options = {}) => {
     additionalImages,
     selectedCategory,
   );
+
+  useEffect(() => {
+    if (!isEditMode) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(!form ? saved : form));
+      } catch (err) {
+        console.warn("Failed to save product form:", err);
+      }
+    }
+  }, [form]);
 
   const markDirty = useCallback(
     (fieldPath) => {
@@ -416,9 +425,7 @@ export const useProductForm = (initialValues = {}, options = {}) => {
   const handleCategoryChange = useCallback(
     (category) => {
       setSelectedCategory(category);
-      console.log("cat", category);
 
-      // Update form with category ID
       setForm((prev) => ({
         ...prev,
         category: category._id,
@@ -438,8 +445,10 @@ export const useProductForm = (initialValues = {}, options = {}) => {
         ...prev,
         metaFields: defaultMetaFields,
       }));
+      markDirty("category");
+      markDirty("metaFields");
     },
-    [setForm],
+    [setForm, markDirty],
   );
 
   const handleMetaFieldChange = useCallback(
@@ -692,16 +701,6 @@ export const useProductForm = (initialValues = {}, options = {}) => {
     setDirtyFields(new Set());
     localStorage.removeItem(STORAGE_KEY);
   };
-
-  useEffect(() => {
-    if (!isEditMode) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
-      } catch (err) {
-        console.warn("Failed to save product form:", err);
-      }
-    }
-  }, [form, isEditMode]);
 
   return {
     form,

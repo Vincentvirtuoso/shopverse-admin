@@ -34,7 +34,7 @@ const CategorySelector = ({ selectedCategory, onCategoryChange, errors }) => {
   );
 
   const selectedData = filteredCategories.find(
-    (cat) => cat._id === selectedCategory?._id,
+    (cat) => cat?._id === selectedCategory?._id,
   );
   useEffect(() => {
     console.log("selectedCategory", selectedCategory);
@@ -89,7 +89,7 @@ const CategorySelector = ({ selectedCategory, onCategoryChange, errors }) => {
                 <div className="relative">
                   <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                   <input
-                    className="w-full pl-10 pr-4 py-2 bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-red-500/20 outline-none"
+                    className="w-full pl-10 pr-4 py-2 bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg text-sm outline-none"
                     placeholder="Search all categories..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -98,10 +98,12 @@ const CategorySelector = ({ selectedCategory, onCategoryChange, errors }) => {
               </div>
 
               {loadingStates.fetchCategories ? (
-                <Spinner />
+                <div className="py-15 ">
+                  <Spinner size="lg" />
+                </div>
               ) : (
                 filteredCategories.length > 0 && (
-                  <div className="max-h-64 overflow-y-auto p-2 custom-scrollbar">
+                  <div className="max-h-44 overflow-y-auto p-2 custom-scrollbar">
                     {filteredCategories.map((cat) => (
                       <button
                         key={cat._id}
@@ -111,17 +113,17 @@ const CategorySelector = ({ selectedCategory, onCategoryChange, errors }) => {
                           setIsOpen(false);
                         }}
                         className={`w-full p-3 text-left rounded-xl flex items-center justify-between group transition-colors
-                      ${selectedCategory === cat._id ? "bg-red-50 dark:bg-red-900/20" : "hover:bg-neutral-50 dark:hover:bg-neutral-800"}`}
+                      ${selectedCategory?._id === cat?._id ? "bg-red-50 dark:bg-red-900/20" : "hover:bg-neutral-50 dark:hover:bg-neutral-800"}`}
                       >
                         <div>
                           <div className="text-sm font-bold text-neutral-800 dark:text-neutral-200">
                             {cat.name}
                           </div>
-                          <div className="text-[10px] text-neutral-400 uppercase tracking-tighter">
-                            {cat.fullSlug}
+                          <div className="text-[11px] text-neutral-400 tracking-tighter">
+                            {cat.slug}
                           </div>
                         </div>
-                        {selectedCategory === cat._id && (
+                        {selectedCategory?._id === cat?._id && (
                           <FiCheck className="text-red-600" />
                         )}
                       </button>

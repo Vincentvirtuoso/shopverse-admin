@@ -295,15 +295,6 @@ const ManageCategories = () => {
       ),
     },
     {
-      field: "subCategories",
-      header: "Subcategories",
-      render: (item) => (
-        <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 rounded-full">
-          {item.subCategories?.length || 0}
-        </span>
-      ),
-    },
-    {
       field: "metaFields",
       header: "Meta Fields",
       render: (item) => (
@@ -570,7 +561,7 @@ const ManageCategories = () => {
             Categories
           </h1>
           <p className="text-sm text-gray-400 mt-1">
-            Manage your product categories, subcategories, and meta fields
+            Manage your product categories and meta fields
           </p>
         </div>
 

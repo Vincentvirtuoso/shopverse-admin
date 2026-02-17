@@ -43,7 +43,7 @@ const AddProduct = () => {
   // }, [notification]);
 
   return (
-    <div className="relative">
+    <div className="relative p-6">
       {/* Notification */}
       <AnimatePresence>
         {notification && (

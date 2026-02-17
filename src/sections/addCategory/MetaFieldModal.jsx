@@ -12,7 +12,7 @@ import WrapperHeader from "../../components/common/WrapperHeader";
 import WrapperBody from "../../components/common/WrapperBody";
 import WrapperFooter from "../../components/common/WrapperFooter";
 import RadioCard from "../../components/common/RadioCard";
-import { FiEdit } from "react-icons/fi";
+import Spinner from "../../components/common/Spinner";
 
 const MetaFieldModal = ({
   isOpen,
@@ -20,14 +20,15 @@ const MetaFieldModal = ({
   setMetaFieldModal,
   handleMetaFieldSubmit,
 }) => {
-  if (!isOpen) return null;
-
   const updateData = (updates) => {
     setMetaFieldModal((prev) => ({
       ...prev,
       data: { ...prev.data, ...updates },
     }));
   };
+  const loading = metaFieldModal?.data?.loading || false;
+
+  if (!isOpen) return null;
 
   return (
     <div
@@ -281,13 +282,28 @@ const MetaFieldModal = ({
               </button>
               <button
                 type="button"
-                onClick={handleMetaFieldSubmit}
+                onClick={() => {
+                  const { loading, ...rest } = metaFieldModal.data;
+                  handleMetaFieldSubmit(rest);
+                }}
                 className="px-8 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-red-200 dark:shadow-none transition-all flex items-center gap-2"
               >
-                <FaCheck />{" "}
-                {metaFieldModal.mode === "add"
-                  ? "Create Field"
-                  : "Update Field"}
+                {loading ? (
+                  <Spinner
+                    label={
+                      metaFieldModal.mode === "add" ? "Creating" : "Updating"
+                    }
+                    labelPosition="right"
+                    labelAnimation="pulse"
+                  />
+                ) : (
+                  <>
+                    <FaCheck />{" "}
+                    {metaFieldModal.mode === "add"
+                      ? "Create Field"
+                      : "Update Field"}
+                  </>
+                )}
               </button>
             </div>
           </WrapperFooter>

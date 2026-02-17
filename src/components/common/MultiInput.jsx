@@ -45,11 +45,10 @@ const MultiInput = ({
   const [validationError, setValidationError] = useState("");
 
   const defaultStyling = {
-    primaryColor: "blue",
+    ...styling,
+    // primaryColor: "blue",
     itemBgGradient:
       "from-white to-gray-50 dark:from-gray-800/50 dark:to-gray-900/30",
-    numberBadgeGradient: "from-blue-500 to-blue-600",
-    ...styling,
   };
 
   // Icon mapping

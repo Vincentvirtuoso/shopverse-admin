@@ -167,8 +167,8 @@ const ConfirmationModal = ({
   overlayClassName = "",
   modalClassName = "",
   reverseButtons = false,
-  confirmButtonVariant = "solid", // solid, outline, ghost
-  cancelButtonVariant = "solid", // solid, outline, ghost
+  confirmButtonVariant = "solid",
+  cancelButtonVariant = "solid",
   zIndex = 50,
 }) => {
   const config = typeConfig[type] || typeConfig.danger;
@@ -288,72 +288,51 @@ const ConfirmationModal = ({
   return (
     <AnimatePresence mode="wait" onExitComplete={onAfterClose}>
       {isOpen && (
-        <div
-          className={`fixed inset-0 z-${zIndex} overflow-y-auto`}
-          aria-labelledby="modal-title"
-          role="dialog"
-          aria-modal="true"
-        >
+        <>
+          <motion.div
+            variants={overlayVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className={`fixed inset-0 bg-gray-500 dark:bg-neutral-900/75 transition-opacity ${overlayClassName}`}
+            aria-hidden="true"
+          />
           <div
-            className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0"
-            onClick={handleOverlayClick}
+            className={`fixed inset-0 z-${zIndex} overflow-y-auto`}
+            aria-labelledby="modal-title"
+            role="dialog"
+            aria-modal="true"
           >
-            {/* Background overlay */}
-            <motion.div
-              variants={overlayVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className={`fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-neutral-900 dark:bg-opacity-75 transition-opacity ${overlayClassName}`}
-              aria-hidden="true"
-            />
-
-            {/* Modal positioning trick */}
-            <span
-              className="hidden sm:inline-block sm:align-middle sm:h-screen"
-              aria-hidden="true"
+            <div
+              className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0"
+              onClick={handleOverlayClick}
             >
-              &#8203;
-            </span>
-
-            {/* Modal */}
-            <motion.div
-              variants={modalVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className={`
-                inline-block 
-                ${sizes.modal} 
-                w-full 
-                ${sizes.padding}
-                bg-white dark:bg-neutral-800 
-                rounded-2xl 
-                text-left 
-                shadow-2xl 
-                transform 
-                transition-all 
-                sm:my-8 
-                sm:align-middle
-                ${modalClassName}
-                ${className}
-              `}
-            >
-              {/* Close button */}
-              <button
-                onClick={onClose}
-                disabled={loading}
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors disabled:opacity-50"
-                aria-label="Close"
+              {/* Modal */}
+              <motion.div
+                variants={modalVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className={`inline-block ${sizes.modal} w-full ${sizes.padding} bg-white dark:bg-neutral-800 
+                rounded-2xl text-left 
+                shadow-2xl transform transition-all sm:my-8 relative sm:align-middle ${modalClassName}
+                ${className}`}
               >
-                <FiX className="w-5 h-5" />
-              </button>
+                {/* Close button */}
+                <button
+                  onClick={onClose}
+                  disabled={loading}
+                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors disabled:opacity-50"
+                  aria-label="Close"
+                >
+                  <FiX className="w-5 h-5" />
+                </button>
 
-              <div className="flex items-start">
-                {/* Icon */}
-                {showIcon && (
-                  <div
-                    className={`
+                <div className="flex items-start">
+                  {/* Icon */}
+                  {showIcon && (
+                    <div
+                      className={`
                       shrink-0 
                       ${sizes.iconSize} 
                       ${config.iconBg} 
@@ -363,48 +342,51 @@ const ConfirmationModal = ({
                       justify-center 
                       mr-4
                     `}
-                  >
-                    <Icon className={`${sizes.iconSize} ${config.iconColor}`} />
-                  </div>
-                )}
+                    >
+                      <Icon
+                        className={`${sizes.iconSize} ${config.iconColor}`}
+                      />
+                    </div>
+                  )}
 
-                {/* Content */}
-                <div className="flex-1">
-                  <h3
-                    id="modal-title"
-                    className={`
+                  {/* Content */}
+                  <div className="flex-1">
+                    <h3
+                      id="modal-title"
+                      className={`
                       ${sizes.titleSize} 
                       font-semibold 
                       ${config.titleColor} 
                       mb-2
                     `}
-                  >
-                    {title}
-                  </h3>
-
-                  {message && (
-                    <p
-                      className={`${sizes.messageSize} text-gray-600 dark:text-gray-400`}
                     >
-                      {message}
-                    </p>
-                  )}
+                      {title}
+                    </h3>
 
-                  {children}
+                    {message && (
+                      <p
+                        className={`${sizes.messageSize} text-gray-600 dark:text-gray-400`}
+                      >
+                        {message}
+                      </p>
+                    )}
 
-                  {/* Buttons */}
-                  {reverseButtons ? (
-                    <div className="flex flex-row-reverse gap-3 mt-6">
-                      {buttons.props.children}
-                    </div>
-                  ) : (
-                    buttons
-                  )}
+                    {children}
+
+                    {/* Buttons */}
+                    {reverseButtons ? (
+                      <div className="flex flex-row-reverse gap-3 mt-6">
+                        {buttons.props.children}
+                      </div>
+                    ) : (
+                      buttons
+                    )}
+                  </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </AnimatePresence>
   );

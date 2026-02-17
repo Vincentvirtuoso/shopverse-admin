@@ -7,9 +7,12 @@ const CardWrapper = ({
   title,
   footer,
   children,
+  description = "",
   bodyClassName = "",
   headerClassName = "",
   padding = false,
+  headerProps = {},
+  showDivider = false,
   ...props
 }) => {
   return (
@@ -20,7 +23,13 @@ const CardWrapper = ({
       className={`bg-white dark:bg-neutral-600 rounded-xl shadow-sm border border-gray-200 dark:border-gray-400/50 overflow-hidden ${className} ${padding && "p-6"}`}
     >
       {title && (
-        <WrapperHeader title={title} className={headerClassName} showDivider />
+        <WrapperHeader
+          title={title}
+          className={headerClassName}
+          description={description}
+          showDivider={showDivider}
+          {...headerProps}
+        />
       )}
 
       {/* Body */}
