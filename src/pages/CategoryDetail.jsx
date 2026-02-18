@@ -800,11 +800,11 @@ const CategoryDetailsPage = () => {
 
   useEffect(() => {
     getAllCategories();
-    if (!id && !state.slug) return;
-    if (state.slug) {
+    if (!id && !state?.slug) return;
+    if (state?.slug) {
       getCategoryBySlug(state?.slug);
     } else getCategoryById(id);
-  }, [id, state.slug]);
+  }, [id, state?.slug]);
 
   useEffect(() => {
     if (!category?._id) return;
@@ -826,7 +826,7 @@ const CategoryDetailsPage = () => {
             <Btn
               variant="secondary"
               onClick={() => {
-                if (state.slug) {
+                if (state?.slug) {
                   getCategoryBySlug(state?.slug);
                 } else getCategoryById(id);
               }}
