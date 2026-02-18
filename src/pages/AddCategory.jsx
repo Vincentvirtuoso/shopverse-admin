@@ -99,7 +99,7 @@ const AddCategory = () => {
 
   // Load data on mount
   useEffect(() => {
-    getAllCategories({ isActive: true, isArchived: false });
+    getAllCategories();
     if (isEditing && id) {
       loadCategory(id);
     }
