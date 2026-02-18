@@ -34,6 +34,7 @@ const router = createBrowserRouter([
               { path: "/categories", element: <ManageCategories /> },
               { path: "/categories/new", element: <AddCategory /> },
               { path: "/category/:id", element: <CategoryDetail /> },
+              { path: "/category/", element: <CategoryDetail /> },
               // { path: "/category/:id/edit", element: <AddCategory /> },
               { path: "/manage-products", element: <ManageProducts /> },
               { path: "/add-product", element: <AddProduct /> },

@@ -1,12 +1,6 @@
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  FaTimes,
-  FaCode,
-  FaCheck,
-  FaInfoCircle,
-  FaKeyboard,
-} from "react-icons/fa";
+import { motion } from "framer-motion";
+import { FaTimes, FaCode, FaCheck, FaKeyboard } from "react-icons/fa";
 import CardWrapper from "../../components/ui/CardWrapper";
 import WrapperHeader from "../../components/common/WrapperHeader";
 import WrapperBody from "../../components/common/WrapperBody";
@@ -89,7 +83,7 @@ const MetaFieldModal = ({
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                  <FaCode className="text-red-500" /> API / Field Key
+                  <FaCode className="text-red-500" /> Field Key
                 </label>
                 <div className="relative">
                   <input

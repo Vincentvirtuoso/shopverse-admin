@@ -139,16 +139,12 @@ const TableView = ({
   // // Featured toggle
   // onFeaturedToggle,
   // featuredField = "isFeatured",
-
-  // UI Customization
   className = "",
   tableClassName = "",
   headerClassName = "",
   rowClassName = "",
   cellClassName = "",
   imageFallback: ImageFallback = FaFolder,
-
-  // Empty state
   emptyState = {
     icon: FaFolder,
     title: "No data found",
@@ -372,15 +368,17 @@ const TableView = ({
                   {/* Image Cell */}
                   {columns.some((col) => col.type === "image") && (
                     <td className="px-6 py-4">
-                      <div className="flex items-center">
+                      <div className={"flex items-center"}>
                         {item.icon || item.image ? (
-                          <img
-                            src={item.icon || item.image}
-                            alt={item.name}
-                            className="w-10 h-10 rounded-lg object-contain shrink-0"
-                          />
+                          <div>
+                            <img
+                              src={item.icon || item.image}
+                              alt={item.name}
+                              className="w-10 h-10 rounded-lg object-contain shrink-0"
+                            />
+                          </div>
                         ) : (
-                          <div className="w-10 h-10 bg-linear-to-br from-red-100 to-purple-100 dark:from-red-900/40 dark:to-purple-900/40 rounded-lg flex items-center justify-center">
+                          <div className="w-10 h-10 bg-linear-to-br from-red-100 to-purple-100 dark:from-red-900/40 dark:to-purple-900/40 rounded-lg flex items-center justify-center ">
                             {
                               <ImageFallback className="text-red-600 dark:text-red-400" />
                             }

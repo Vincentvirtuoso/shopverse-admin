@@ -60,7 +60,7 @@ const Home = () => {
   ];
 
   return (
-    <div className="p-2">
+    <div className="p-6">
       {/* Page Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-200">
@@ -111,8 +111,8 @@ const Home = () => {
                             order.status === "Delivered"
                               ? "bg-green-100 text-green-800"
                               : order.status === "Processing"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-yellow-100 text-yellow-800"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-yellow-100 text-yellow-800"
                           }`}
                         >
                           {order.status}

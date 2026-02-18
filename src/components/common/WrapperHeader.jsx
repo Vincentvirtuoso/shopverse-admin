@@ -17,7 +17,7 @@ const WrapperHeader = ({
   iconBgColor = "bg-blue-50 dark:bg-blue-500/60",
   iconSize = "p-2",
   titleClassName = "",
-  descriptionClassName = "text-gray-600",
+  descriptionClassName = "text-gray-300",
   containerClassName = "",
   showDivider = false,
   disabled = false,
@@ -68,18 +68,14 @@ const WrapperHeader = ({
           {/* Main content */}
           <div className="flex flex-col min-w-0 flex-1">
             <div className="flex items-center flex-wrap -mb-1">
-              <h2
+              <b
                 className={`text-xl font-bold text-gray-900 dark:text-gray-200 ${titleClassName} line-clamp-1`}
               >
                 {title}
-              </h2>
+              </b>
             </div>
             {description && (
-              <p
-                className={`text-gray-900 dark:text-white ${descriptionClassName}`}
-              >
-                {description}
-              </p>
+              <p className={`mt-2 ${descriptionClassName}`}>{description}</p>
             )}
           </div>
         </div>

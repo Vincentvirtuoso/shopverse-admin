@@ -30,11 +30,13 @@ import {
   FiTrash,
   FiX,
 } from "react-icons/fi";
+import { LuNetwork } from "react-icons/lu";
 import { useActiveFilters } from "../hooks/useActiveFilters";
 import { manageCatfilterConfig } from "../assets/filterConfigs";
 import FilterTags from "../components/common/FilterTags";
 import TableView from "../components/ui/TableView";
 import CategoryGridView from "../sections/categories/CategoryGridView";
+import CategoryHierarchyView from "../sections/categories/CategoryHierarchyView";
 
 const ManageCategories = () => {
   const {
@@ -47,6 +49,7 @@ const ManageCategories = () => {
     updateCategoryStatus,
     reorderCategories,
     setFallbackCategory,
+    getCategoryHierarchy,
     // clearError,
   } = useCategory();
 
@@ -64,6 +67,8 @@ const ManageCategories = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [expandedNodes, setExpandedNodes] = useState({});
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showFallbackModal, setShowFallbackModal] = useState(false);
@@ -76,6 +81,13 @@ const ManageCategories = () => {
   ] = useState(false);
   const [selectedFallback, setSelectedFallback] = useState("");
   const [viewMode, setViewMode] = useState("table");
+
+  const handleToggleNode = (categoryId, isExpanded) => {
+    setExpandedNodes((prev) => ({
+      ...prev,
+      [categoryId]: isExpanded,
+    }));
+  };
 
   const toggleSelectAll = (selectMode) => {
     if (
@@ -93,18 +105,20 @@ const ManageCategories = () => {
     fetchCategories();
     toggleSelectAll("unselect");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, pageSize, sortConfig, filters]);
+  }, [currentPage, pageSize, sortConfig, filters, viewMode]);
 
   const fetchCategories = async () => {
     try {
-      await getAllCategories({
-        page: currentPage,
-        limit: pageSize,
-        sortBy: sortConfig.field,
-        sortOrder: sortConfig.order,
-        search: searchTerm,
-        ...filters,
-      });
+      viewMode === "hierarchy"
+        ? await getCategoryHierarchy()
+        : await getAllCategories({
+            page: currentPage,
+            limit: pageSize,
+            sortBy: sortConfig.field,
+            sortOrder: sortConfig.order,
+            search: searchTerm,
+            ...filters,
+          });
     } catch (err) {
       console.log(err);
 
@@ -346,23 +360,22 @@ const ManageCategories = () => {
       icon: FiEye,
       onClick: (item) => navigate(`/category/${item._id}`),
     },
-    // {
-    //   label: "Duplicate",
-    //   icon: FaCopy,
-    //   onClick: (item) => duplicateCategory(item),
-    //   type: "default",
-    // },
+    {
+      label: "Set Fallback",
+      icon: FaRandom,
+      onClick: (item) => handleFallbackClick(item),
+    },
     { divider: true },
     {
       label: "Deactivate",
       icon: FaBan,
-      onClick: (item) => handleToggleStatus(item),
+      onClick: (item) => handleToggleStatus(item._id, item.isActive),
       type: "warning",
     },
     {
       label: "Activate",
       icon: FaCheck,
-      onClick: (item) => handleToggleStatus(item),
+      onClick: (item) => handleToggleStatus(item._id, item.isActive),
       type: "success",
     },
     {
@@ -552,7 +565,7 @@ const ManageCategories = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className=""
+      className="p-6"
     >
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -616,6 +629,16 @@ const ManageCategories = () => {
             >
               <FaFolder />
             </button>
+            <button
+              onClick={() => setViewMode("hierarchy")}
+              className={`p-2 rounded-md transition-colors ${
+                viewMode === "hierarchy"
+                  ? "bg-white dark:bg-neutral-500/90 shadow"
+                  : "text-gray-400"
+              }`}
+            >
+              <LuNetwork />
+            </button>
           </div>
 
           {/* Add category button */}
@@ -638,7 +661,6 @@ const ManageCategories = () => {
           </motion.button>
         </div>
       </div>
-
       {/* Filters and Search */}
       <CardWrapper className="bg-white rounded-xl shadow-sm p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4">
@@ -791,7 +813,6 @@ const ManageCategories = () => {
           )}
         </AnimatePresence>
       </CardWrapper>
-
       {/* Categories display */}
       {loadingStates.fetchCategories && categories.length > 0 && (
         <div className="h-24 flex items-center justify-center">
@@ -802,7 +823,6 @@ const ManageCategories = () => {
           />
         </div>
       )}
-
       {hasActiveFilters && (
         <FilterTags
           activeFilters={activeFilters}
@@ -810,7 +830,7 @@ const ManageCategories = () => {
           onRemoveAll={clearAllFilters}
         />
       )}
-      {viewMode === "table" ? (
+      {viewMode === "table" && (
         <TableView
           data={categories}
           selectedItems={selectedCategories}
@@ -826,7 +846,8 @@ const ManageCategories = () => {
           imageFallback={FiFolder}
           // loadingComponent={<Spinner size="lg" />}
         />
-      ) : (
+      )}
+      {viewMode === "grid" && (
         <CategoryGridView
           filteredCategories={filteredCategories}
           handleDeleteClick={handleDeleteClick}
@@ -834,7 +855,20 @@ const ManageCategories = () => {
           handleFallbackClick={handleFallbackClick}
         />
       )}
-
+      {viewMode === "hierarchy" && (
+        <CategoryHierarchyView
+          categories={categories}
+          // onEdit={onEditCategory}
+          onDelete={handleDeleteClick}
+          // onAddSubcategory={onAddSubcategory}
+          // onMoveCategory={onMoveCategory}
+          onSelectCategory={setSelectedCategoryId}
+          selectedCategoryId={selectedCategoryId}
+          expandedNodes={expandedNodes}
+          onToggleNode={handleToggleNode}
+          loading={loadingStates.fetchHierarchy}
+        />
+      )}
       {/* Empty state */}
       {filteredCategories.length === 0 &&
         !loadingStates.fetchCategories &&
@@ -883,7 +917,6 @@ const ManageCategories = () => {
             )}
           </CardWrapper>
         )}
-
       {pagination && pagination.totalPages > 1 && (
         <div className="flex items-center justify-between mt-6">
           <div className="text-sm text-gray-500">
@@ -970,7 +1003,6 @@ const ManageCategories = () => {
           </select>
         </div>
       )}
-
       {renderDeleteModal()}
       {renderFallbackModal()}
     </motion.div>

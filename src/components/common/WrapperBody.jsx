@@ -38,7 +38,7 @@ const WrapperBody = ({
   const bgColorClasses = {
     white: "bg-white dark:bg-neutral-700",
     gray: "bg-gray-50 dark:bg-gray-800/80",
-    primary: "bg-red-50 dark:bg-red-900/20",
+    primary: "bg-blue-50 dark:bg-blue-900/20",
     secondary: "bg-purple-50 dark:bg-purple-900/20",
     transparent: "bg-transparent",
   };

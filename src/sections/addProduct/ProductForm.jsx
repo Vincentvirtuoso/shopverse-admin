@@ -362,7 +362,7 @@ const ProductForm = ({
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen p-6">
       <ScrollToTop shouldScroll={activeSection} />
       <motion.div
         initial={{ opacity: 0, y: -20 }}

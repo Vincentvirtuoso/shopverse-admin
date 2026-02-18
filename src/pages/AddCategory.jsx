@@ -704,20 +704,6 @@ const AddCategory = () => {
                       maxLength={30}
                       minLength={2}
                       helperText="Tags help customers find your product. Use comma-separated values for bulk entry."
-                      suggestions={[
-                        "electronics",
-                        "gadget",
-                        "tech",
-                        "innovative",
-                        "bestseller",
-                        "new-arrival",
-                        "premium",
-                        "affordable",
-                        "durable",
-                        "portable",
-                        "wireless",
-                        "smart",
-                      ]}
                       icon="keywords"
                       allowDuplicates={false}
                       styling={{

@@ -16,7 +16,7 @@ const ImageUpload = ({
   accept = "image/*",
   maxSize = 5 * 1024 * 1024,
 }) => {
-  const [preview, setPreview] = useState(value);
+  const [preview, setPreview] = useState(() => value);
   const [error, setError] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -151,7 +151,7 @@ const ImageUpload = ({
               <button
                 onClick={handleRemoveBackground}
                 disabled={isProcessing}
-                className="flex items-center gap-2 px-3 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-md text-xs font-medium hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-3 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-md text-xs hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors disabled:opacity-50 font-semibold"
               >
                 {isProcessing ? (
                   <Spinner
@@ -166,6 +166,12 @@ const ImageUpload = ({
                     <FiScissors /> Remove Bg
                   </>
                 )}
+              </button>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="dark:bg-slate-800 dark:hover:bg-slate-700 bg-gray-100 hover::bg-gray-400 dark:text-white text-xs font-semibold text-gray-400 px-3 py-2 rounded-md"
+              >
+                {preview ? "Replace Image" : "Upload Image"}
               </button>
             </div>
           </div>
