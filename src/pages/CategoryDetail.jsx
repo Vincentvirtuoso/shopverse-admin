@@ -418,7 +418,7 @@ const SeoSection = ({ category, loadingStates, actions, toast }) => {
     setForm({
       title: category.meta.title || "",
       description: category.meta.description || "",
-      keywords: (category.meta.keywords || []).join(", "),
+      keywords: category.meta.keywords || [],
     });
   }, [category?.meta]);
 
@@ -525,9 +525,9 @@ const SeoSection = ({ category, loadingStates, actions, toast }) => {
               + Add
             </Btn>
           </WrapperBody.Flex>
-          {keywords.length > 0 && (
+          {keywords?.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
-              {keywords.map((kw) => (
+              {keywords?.map((kw) => (
                 <Badge
                   key={kw}
                   color="slate"
@@ -799,7 +799,12 @@ const CategoryDetailsPage = () => {
   };
 
   useEffect(() => {
-    getAllCategories();
+    getAllCategories({
+      isActive: true,
+      limit: 100,
+      isFeatured: null,
+      parent: null,
+    });
     if (!id && !state?.slug) return;
     if (state?.slug) {
       getCategoryBySlug(state?.slug);

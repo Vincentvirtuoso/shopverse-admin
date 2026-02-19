@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { LuList } from "react-icons/lu";
 import { FaBan } from "react-icons/fa";
 
@@ -19,17 +19,13 @@ const MetaFieldsSection = ({ category, loadingStates, actions, toast }) => {
   /**
    * Sort by sortOrder
    */
-  const sorted = useMemo(() => {
-    if (!category?.metaFields) return [];
-    return [...category.metaFields].sort((a, b) => a.sortOrder - b.sortOrder);
-  }, [category?.metaFields]);
 
   /**
    * Sync orderedIds whenever backend order changes
    */
   useEffect(() => {
-    setOrderedIds(sorted.map((f) => f._id));
-  }, [sorted]);
+    setOrderedIds(category.metaFields.map((f) => f._id));
+  }, [category.metaFields]);
 
   /**
    * Reorder Helpers
@@ -66,8 +62,10 @@ const MetaFieldsSection = ({ category, loadingStates, actions, toast }) => {
   /**
    * Determine what to render
    */
-  const displayedFields = (reordering ? orderedIds : sorted.map((f) => f._id))
-    .map((id) => sorted.find((f) => f._id === id))
+  const displayedFields = (
+    reordering ? orderedIds : category.metaFields.map((f) => f._id)
+  )
+    .map((id) => category.metaFields.find((f) => f._id === id))
     .filter(Boolean);
 
   const anyLoading =
@@ -97,7 +95,7 @@ const MetaFieldsSection = ({ category, loadingStates, actions, toast }) => {
                 size="sm"
                 onClick={() => {
                   setReordering(false);
-                  setOrderedIds(sorted.map((f) => f._id));
+                  setOrderedIds(category.metaFields.map((f) => f._id));
                 }}
               >
                 Cancel
@@ -118,7 +116,7 @@ const MetaFieldsSection = ({ category, loadingStates, actions, toast }) => {
                 variant="secondary"
                 size="sm"
                 onClick={() => setReordering(true)}
-                disabled={sorted.length < 2}
+                disabled={category.metaFields.length < 2}
               >
                 ↕ Reorder
               </Btn>
@@ -148,7 +146,7 @@ const MetaFieldsSection = ({ category, loadingStates, actions, toast }) => {
         ))}
       </div>
 
-      {sorted.length === 0 ? (
+      {category.metaFields.length === 0 ? (
         <div className="py-10 sm:py-14 flex flex-col items-center gap-3 text-slate-600 border-2 border-dashed border-slate-800 rounded-2xl">
           <span className="text-3xl">
             <FaBan />
@@ -183,7 +181,7 @@ const MetaFieldsSection = ({ category, loadingStates, actions, toast }) => {
               loadingStates={loadingStates}
               actions={actions}
               toast={toast}
-              allIds={sorted.map((f) => f._id)}
+              allIds={category.metaFields.map((f) => f._id)}
             />
           ))}
         </div>
@@ -193,7 +191,7 @@ const MetaFieldsSection = ({ category, loadingStates, actions, toast }) => {
         open={addOpen}
         onClose={() => setAddOpen(false)}
         categoryId={category?._id}
-        existingIds={sorted.map((f) => f._id)}
+        existingIds={category.metaFields.map((f) => f._id)}
         loadingStates={loadingStates}
         actions={actions}
         toast={toast}

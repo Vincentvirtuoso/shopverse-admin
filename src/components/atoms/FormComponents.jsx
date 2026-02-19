@@ -1,5 +1,5 @@
 const inputBase =
-  "w-full rounded-lg px-3 py-2 text-sm font-mono placeholder-slate-600 transition-colors duration-150 focus:outline-none bg-white dark:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed";
+  "w-full rounded-lg px-3 py-2 text-sm placeholder-slate-600 transition-colors duration-150 focus:outline-none bg-white dark:bg-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed";
 
 const Input = ({ className = "", ...props }) => (
   <input className={`${inputBase} ${className}`} {...props} />

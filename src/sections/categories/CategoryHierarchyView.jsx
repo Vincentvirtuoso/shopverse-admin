@@ -11,6 +11,7 @@ import {
 } from "react-icons/lu";
 import { FiEdit2 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import Spinner from "../../components/common/Spinner";
 
 const buildCategoryTree = (categories) => {
   const map = new Map();
@@ -263,10 +264,11 @@ const CategoryHierarchyView = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64 bg-neutral-900 rounded-lg border border-neutral-700">
-        <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-neutral-400" />
-          <span className="text-sm text-neutral-400">Loading categories…</span>
-        </div>
+        <Spinner
+          label="Loading categories"
+          labelAnimation="shimmer"
+          size="lg"
+        />
       </div>
     );
   }

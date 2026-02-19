@@ -58,7 +58,7 @@ const RadioCard = ({
         )}
         <Toggle
           checked={isChecked}
-          onChange={handleChange}
+          onChange={(val) => handleChange(val, name)}
           disabled={disabled}
         />
       </div>

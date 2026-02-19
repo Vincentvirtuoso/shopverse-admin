@@ -1,4 +1,7 @@
+import { useNavigate } from "react-router-dom";
 import Badge from "../../../components/atoms/Badge";
+import Btn from "../../../components/atoms/Btn";
+import WrapperBody from "../../../components/common/WrapperBody";
 import WrapperHeader from "../../../components/common/WrapperHeader";
 import { LuArrowLeft } from "react-icons/lu";
 
@@ -6,6 +9,7 @@ const CategoryHeader = ({ category, onBack }) => {
   const crumbs = ["Categories", category?.parent?.name, category?.name].filter(
     Boolean,
   );
+  const navigate = useNavigate();
 
   return (
     <div className="sticky top-22 z-30  backdrop-blur-md bg-gray-50 dark:bg-neutral-800/70 p-2">
@@ -42,12 +46,17 @@ const CategoryHeader = ({ category, onBack }) => {
           </nav>
         }
       >
-        <button
-          onClick={onBack}
-          className="text-slate-400 hover:text-slate-200 text-xs sm:text-sm flex items-center gap-1.5 transition-colors shrink-0 border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg place-self-start"
-        >
-          <LuArrowLeft /> Back
-        </button>
+        <WrapperBody.Flex>
+          <button
+            onClick={onBack}
+            className="text-slate-400 hover:text-slate-200 text-xs sm:text-sm flex items-center gap-1.5 transition-colors shrink-0 border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg place-self-start"
+          >
+            <LuArrowLeft /> Back
+          </button>
+          <Btn size="sm" onClick={() => navigate("edit")}>
+            Full Edit
+          </Btn>
+        </WrapperBody.Flex>
       </WrapperHeader>
     </div>
   );

@@ -19,7 +19,12 @@ const CategorySelector = ({ selectedCategory, onCategoryChange, errors }) => {
 
   const loadCategories = async () => {
     try {
-      const response = await getAllCategories({ isActive: true, limit: 100 });
+      const response = await getAllCategories({
+        isActive: true,
+        limit: 100,
+        isFeatured: null,
+        parent: null,
+      });
 
       setCategories(response.data || []);
     } catch (error) {

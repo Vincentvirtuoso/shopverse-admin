@@ -4,6 +4,7 @@ import { FaSortAmountUp, FaSortAmountDown, FaFolder } from "react-icons/fa";
 import { FiMoreVertical } from "react-icons/fi";
 import CardWrapper from "./CardWrapper";
 import { toggleIdInArray } from "../../utils/helpers";
+import Spinner from "../common/Spinner";
 
 // Dropdown Menu Component
 const DropdownMenu = ({
@@ -24,8 +25,8 @@ const DropdownMenu = ({
 
   const sizeClasses = {
     sm: "min-w-32 py-1 text-sm",
-    md: "min-w-40 py-1.5 text-base",
-    lg: "min-w-48 py-2 text-lg",
+    md: "min-w-44 py-1.5 text-base",
+    lg: "min-w-50 py-2 text-lg",
   };
 
   return (
@@ -57,7 +58,7 @@ const DropdownMenu = ({
               `}
             >
               {items.map((item, index) => (
-                <DropdownItem key={index} {...item} />
+                <DropdownItem key={index} {...item} setIsOpen={setIsOpen} />
               ))}
             </motion.div>
           </>
@@ -75,7 +76,15 @@ const DropdownItem = ({
   divider = false,
   disabled = false,
   className = "",
+  setIsOpen,
+  loading,
+  closeAfter = true,
+  loadingText,
+  showIf,
 }) => {
+  const show = showIf?.();
+  console.log(closeAfter);
+
   const typeClasses = {
     default:
       "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-700",
@@ -91,9 +100,16 @@ const DropdownItem = ({
     return <hr className="my-1 border-gray-200 dark:border-neutral-700" />;
   }
 
+  if (!show) return null;
+
   return (
     <button
-      onClick={onClick}
+      onClick={() => {
+        if (closeAfter) {
+          setIsOpen(false);
+        }
+        onClick();
+      }}
       disabled={disabled}
       className={`
         w-full text-left px-4 py-2 
@@ -104,8 +120,21 @@ const DropdownItem = ({
         ${className}
       `}
     >
-      {Icon && <Icon className="w-4 h-4" />}
-      <span className="flex-1">{label}</span>
+      {loading ? (
+        <Spinner
+          label={loadingText ? loadingText : `Running "${label}" action`}
+          color="white"
+          labelPosition="right"
+          labelSize="xs"
+          size="xs"
+          labelAnimation="pulse"
+        />
+      ) : (
+        <>
+          {Icon && <Icon className="w-4 h-4" />}
+          <span className="flex-1">{label}</span>
+        </>
+      )}
     </button>
   );
 };
@@ -414,6 +443,10 @@ const TableView = ({
                       items={finalActions.map((action) => ({
                         ...action,
                         onClick: () => action.onClick(item),
+                        showIf: () => action.showIf?.(item) ?? true,
+                        closeAfter: action.closeAfter
+                          ? action.closeAfter
+                          : true,
                       }))}
                       key={index}
                       index={index}

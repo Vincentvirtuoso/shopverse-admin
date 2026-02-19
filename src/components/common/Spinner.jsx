@@ -5,6 +5,7 @@ const Spinner = ({
   className = "",
   svgClassName = "",
   label = "",
+  labelSize = "sm",
   labelPosition = "bottom",
   labelAnimation = "none",
   showBackground = true,
@@ -21,6 +22,12 @@ const Spinner = ({
     "2xl": "w-14 h-14",
     "3xl": "w-20 h-20",
     "4xl": "w-24 h-24",
+  };
+  const labelSizeClasses = {
+    xs: "text-xs",
+    sm: "text-sm",
+    md: "text-md",
+    lg: "text-lg",
   };
 
   // Color mappings for SVG strokes and fills
@@ -138,7 +145,7 @@ const Spinner = ({
       {label && (
         <span
           className={`
-          text-sm 
+            ${labelSizeClasses[labelSize]} 
           ${spinnerColor}
           ${animationClass}
           transition-all duration-300

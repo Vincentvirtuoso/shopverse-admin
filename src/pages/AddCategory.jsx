@@ -26,6 +26,7 @@ import Spinner from "../components/common/Spinner";
 import MetaFieldModal from "../sections/addCategory/MetaFieldModal";
 import MetaFieldManagement from "../sections/addCategory/MetaFieldManagement";
 import ImageUpload from "../components/ui/ImageUpload";
+import { SelectField } from "../components/atoms/FormComponents";
 
 // Custom slug generator
 const generateSlug = (text) => {
@@ -64,7 +65,7 @@ const AddCategory = () => {
     description: "",
     icon: "",
     image: "",
-    // parent: "",
+    parent: "",
     sortOrder: 0,
     isFeatured: false,
     isActive: true,
@@ -99,7 +100,12 @@ const AddCategory = () => {
 
   // Load data on mount
   useEffect(() => {
-    getAllCategories();
+    getAllCategories({
+      isActive: true,
+      limit: 100,
+      isFeatured: null,
+      parent: null,
+    });
     if (isEditing && id) {
       loadCategory(id);
     }
@@ -160,6 +166,13 @@ const AddCategory = () => {
         setFormData((prev) => ({ ...prev, slug: generateSlug(value) }));
       }
     }
+  };
+
+  const handleRadioChange = (value, name) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   // Handle keywords
@@ -331,7 +344,6 @@ const AddCategory = () => {
     }
   };
 
-  // ==================== Form Submission ====================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -342,13 +354,11 @@ const AddCategory = () => {
         return;
       }
 
-      // Generate slug if empty
-      if (!formData.slug && formData.name) {
-        formData.slug = generateSlug(formData.name);
-      }
-
-      // Prepare data for submission
-      const submitData = { ...formData };
+      const submitData = {
+        ...formData,
+        parent: formData.parent === "" ? null : formData.parent,
+        slug: formData.slug || generateSlug(formData.name),
+      };
 
       // Handle file uploads
       if (submitData.icon instanceof File) {
@@ -357,6 +367,8 @@ const AddCategory = () => {
       if (submitData.image instanceof File) {
         // Will be handled by FormData in the hook
       }
+
+      if (submitData.parent === "") submitData.parent = null;
 
       let response;
       if (isEditing) {
@@ -385,19 +397,27 @@ const AddCategory = () => {
     { id: "basic", label: "Basic Info", icon: <FaInfoCircle /> },
     { id: "metafields", label: "Meta Fields", icon: <FaCog /> },
   ];
+  const isLoading = isEditing
+    ? loadingStates.updateCategory
+    : loadingStates.createCategory;
 
-  if (isEditing && loadingStates.fetchCategory) {
+  console.log(categories);
+
+  if (
+    (isEditing && loadingStates.fetchCategory) ||
+    loadingStates.fetchCategories
+  ) {
     return (
-      <div>
-        <Spinner size="lg" />
+      <div className="h-[calc(100vh-100px)] flex items-center justify-center">
+        <Spinner size="xl" />
       </div>
     );
   }
 
   if (loadingStates.fetchCategories && !categories) {
     return (
-      <div>
-        <Spinner size="lg" />
+      <div className="h-[calc(100vh-100px)] flex items-center justify-center">
+        <Spinner size="xl" />
       </div>
     );
   }
@@ -406,7 +426,7 @@ const AddCategory = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className=""
+      className="p-6"
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
@@ -424,7 +444,7 @@ const AddCategory = () => {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => navigate("/categories")}
+            onClick={() => navigate(-1)}
             className="px-4 py-2 rounded-lg text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center gap-2"
           >
             <LuArrowLeft /> Back
@@ -432,16 +452,10 @@ const AddCategory = () => {
           <button
             type="submit"
             form="category-form"
-            disabled={
-              isEditing
-                ? loadingStates.updateCategory
-                : loadingStates.createCategory
-            }
+            disabled={isLoading}
             className="px-4 py-2 bg-linear-to-r from-red-600 to-pink-600 text-white rounded-lg hover:from-red-700 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            {isEditing ? (
-              loadingStates.updateCategory
-            ) : loadingStates.createCategory ? (
+            {isLoading ? (
               <Spinner
                 label="Saving"
                 labelPosition="right"
@@ -449,7 +463,8 @@ const AddCategory = () => {
               />
             ) : (
               <>
-                <FaSave /> {isEditing ? "Update" : "Create"}
+                <FaSave />
+                {isEditing ? "Update" : "Create"}
               </>
             )}
           </button>
@@ -559,21 +574,20 @@ const AddCategory = () => {
                     <label className="block text-sm font-medium text-gray-400 mb-1">
                       Parent Category
                     </label>
-                    <select
+                    <SelectField
                       name="parent"
                       value={formData.parent}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 rounded-lg bg-white dark:bg-neutral-800  focus:border-transparent"
                     >
                       <option value="">None (Top Level)</option>
                       {categories
-                        ?.filter((cat) => !isEditing || cat._id !== id)
+                        ?.filter((cat) => cat._id !== id)
                         .map((cat) => (
                           <option key={cat._id} value={cat._id}>
                             {cat.name} {!cat.isActive && "(Inactive)"}
                           </option>
                         ))}
-                    </select>
+                    </SelectField>
                   </div>
                 )}
 
@@ -634,7 +648,7 @@ const AddCategory = () => {
                       iconAlt: FaEyeSlash,
                     },
                   ].map((item) => (
-                    <RadioCard {...item} handleChange={handleChange} />
+                    <RadioCard {...item} handleChange={handleRadioChange} />
                   ))}
                 </WrapperBody.Flex>
               </WrapperBody.Flex>

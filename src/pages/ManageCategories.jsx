@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FaPlus,
@@ -26,6 +27,7 @@ import {
   FiEdit,
   FiEye,
   FiFolder,
+  FiMove,
   FiRefreshCcw,
   FiTrash,
   FiX,
@@ -37,6 +39,9 @@ import FilterTags from "../components/common/FilterTags";
 import TableView from "../components/ui/TableView";
 import CategoryGridView from "../sections/categories/CategoryGridView";
 import CategoryHierarchyView from "../sections/categories/CategoryHierarchyView";
+import MoveCategoryModal from "../sections/categories/MoveCategoryModal";
+import DeleteModal from "../sections/categories/DeleteModal";
+import FallbackModal from "../sections/categories/FallbackModal";
 
 const ManageCategories = () => {
   const {
@@ -50,6 +55,7 @@ const ManageCategories = () => {
     reorderCategories,
     setFallbackCategory,
     getCategoryHierarchy,
+    updateCategory,
     // clearError,
   } = useCategory();
 
@@ -65,15 +71,17 @@ const ManageCategories = () => {
     order: "asc",
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(20);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [expandedNodes, setExpandedNodes] = useState({});
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showFallbackModal, setShowFallbackModal] = useState(false);
+  const [showMoveCategoryModal, setShowMoveCategoryModal] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [categoryForFallback, setCategoryForFallback] = useState(null);
+  const [categoryForMoving, setCategoryForMoving] = useState(null);
   const [
     //isDragging
     _,
@@ -108,8 +116,9 @@ const ManageCategories = () => {
   }, [currentPage, pageSize, sortConfig, filters, viewMode]);
 
   const fetchCategories = async () => {
+    const fetchByHierarchy = viewMode === "hierarchy";
     try {
-      viewMode === "hierarchy"
+      fetchByHierarchy
         ? await getCategoryHierarchy()
         : await getAllCategories({
             page: currentPage,
@@ -233,12 +242,29 @@ const ManageCategories = () => {
     setShowFallbackModal(true);
   };
 
+  const handleMoveCategoryClick = (category) => {
+    setCategoryForMoving(category);
+    setShowMoveCategoryModal(true);
+  };
+
   const handleFallbackConfirm = async (fallbackId) => {
     try {
       await setFallbackCategory(categoryForFallback._id, fallbackId);
       toast.success("Fallback category set successfully");
       setShowFallbackModal(false);
       setCategoryForFallback(null);
+    } catch (err) {
+      toast.error(err.message || "Failed to set fallback category");
+    }
+  };
+  const handleMoveCategoryConfirm = async (category) => {
+    try {
+      await updateCategory(categoryForMoving._id, { parent: category._id });
+      toast.success(
+        `Successfully moved category "${categoryForMoving?.name}" to "${category.name}"`,
+      );
+      setShowMoveCategoryModal(false);
+      setCategoryForMoving(null);
     } catch (err) {
       toast.error(err.message || "Failed to set fallback category");
     }
@@ -365,18 +391,29 @@ const ManageCategories = () => {
       icon: FaRandom,
       onClick: (item) => handleFallbackClick(item),
     },
+    {
+      label: "Move to Category",
+      icon: FiMove,
+      onClick: (item) => handleMoveCategoryClick(item),
+    },
     { divider: true },
     {
       label: "Deactivate",
       icon: FaBan,
       onClick: (item) => handleToggleStatus(item._id, item.isActive),
       type: "warning",
+      loading: loadingStates.updateStatus,
+      loadingText: "Deactivating",
+      showIf: (item) => item?.isActive,
     },
     {
       label: "Activate",
       icon: FaCheck,
       onClick: (item) => handleToggleStatus(item._id, item.isActive),
       type: "success",
+      loading: loadingStates.updateStatus,
+      loadingText: "Activating",
+      showIf: (item) => !item?.isActive,
     },
     {
       label: "Delete",
@@ -409,149 +446,6 @@ const ManageCategories = () => {
         "whitespace-nowrap bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-400",
     },
   ];
-
-  // Render delete confirmation modal
-  const renderDeleteModal = () => (
-    <AnimatePresence>
-      {showDeleteModal && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowDeleteModal(false)}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white rounded-xl shadow-xl max-w-md w-full p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                <FaExclamationTriangle className="text-red-600 text-xl" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Delete Category
-                </h3>
-                <p className="text-sm text-gray-500">
-                  Are you sure you want to delete "{categoryToDelete?.name}"?
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-              <div className="flex items-start gap-3">
-                <FaInfoCircle className="text-yellow-600 mt-0.5" />
-                <div className="text-sm text-yellow-800">
-                  <p className="font-medium mb-1">
-                    Products will be reassigned
-                  </p>
-                  <p>
-                    All products in this category will be moved to the fallback
-                    category (if set) or the global fallback.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteConfirm}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                Delete
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-
-  // Render fallback modal
-  const renderFallbackModal = () => {
-    const availableFallbacks =
-      categories?.filter(
-        (cat) =>
-          cat._id !== categoryForFallback?._id &&
-          cat.isActive &&
-          !cat.isArchived,
-      ) || [];
-
-    return (
-      <AnimatePresence>
-        {showFallbackModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowFallbackModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-xl shadow-xl max-w-md w-full p-6"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                  <FaRandom className="text-purple-600 text-xl" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Set Fallback Category
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    Choose where to move products when "
-                    {categoryForFallback?.name}" is deleted
-                  </p>
-                </div>
-              </div>
-
-              <select
-                value={selectedFallback}
-                onChange={(e) => setSelectedFallback(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-6"
-              >
-                <option value="">Use global fallback</option>
-                {availableFallbacks.map((cat) => (
-                  <option key={cat._id} value={cat._id}>
-                    {cat.name} {!cat.isActive && "(Inactive)"}
-                  </option>
-                ))}
-              </select>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowFallbackModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleFallbackConfirm(selectedFallback)}
-                  className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  Save
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    );
-  };
 
   if (loadingStates.fetchCategories && !categories.length) {
     return (
@@ -853,6 +747,7 @@ const ManageCategories = () => {
           handleDeleteClick={handleDeleteClick}
           onReorder={handleReorder}
           handleFallbackClick={handleFallbackClick}
+          handleMoveCategoryClick={handleMoveCategoryClick}
         />
       )}
       {viewMode === "hierarchy" && (
@@ -1003,8 +898,31 @@ const ManageCategories = () => {
           </select>
         </div>
       )}
-      {renderDeleteModal()}
-      {renderFallbackModal()}
+      <DeleteModal
+        isOpen={showDeleteModal}
+        setIsOpen={setShowDeleteModal}
+        onConfirm={handleDeleteConfirm}
+        deletingItemName={categoryToDelete?.name}
+        loading={loadingStates.deleteCategory}
+      />
+      <FallbackModal
+        categories={categories}
+        categoryForFallback={categoryForFallback}
+        selectedFallback={selectedFallback}
+        showFallbackModal={showFallbackModal}
+        setShowFallbackModal={setShowFallbackModal}
+        handleFallbackConfirm={handleFallbackConfirm}
+        setSelectedFallback={setSelectedFallback}
+        loading={loadingStates.setFallback}
+      />
+      <MoveCategoryModal
+        open={showMoveCategoryModal}
+        onClose={() => setShowMoveCategoryModal(false)}
+        categories={categories}
+        categoryForMoving={categoryForMoving}
+        handleMoveCategoryConfirm={handleMoveCategoryConfirm}
+        loading={loadingStates.updateCategory}
+      />
     </motion.div>
   );
 };

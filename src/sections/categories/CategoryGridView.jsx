@@ -7,6 +7,7 @@ import {
   FiTrash,
   FiExternalLink,
   FiTag,
+  FiMove,
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import WrapperBody from "../../components/common/WrapperBody";
@@ -16,6 +17,7 @@ const CategoryGridView = ({
   handleDeleteClick,
   onReorder,
   handleFallbackClick,
+  handleMoveCategoryClick,
 }) => {
   const navigate = useNavigate();
 
@@ -134,7 +136,7 @@ const CategoryGridView = ({
                             Sub-categories
                           </p>
                           <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                            {category.subCategories?.length || 0}
+                            {category.children?.length || 0}
                           </p>
                         </div>
                         <div className="bg-gray-50 dark:bg-gray-900/50 p-2 rounded-lg border border-gray-100 dark:border-gray-800">
@@ -171,6 +173,12 @@ const CategoryGridView = ({
                             className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
                           >
                             <FiEdit size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleMoveCategoryClick(category)}
+                            className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                          >
+                            <FiMove size={14} />
                           </button>
                           <button
                             onClick={() => handleDeleteClick(category)}

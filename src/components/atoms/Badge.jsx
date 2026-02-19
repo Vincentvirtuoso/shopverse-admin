@@ -1,3 +1,5 @@
+import { LuX } from "react-icons/lu";
+
 const badgeVariants = {
   slate: "bg-slate-800 text-slate-400 border-slate-700",
   amber: "bg-amber-950/60 text-amber-400 border-amber-800/60",
