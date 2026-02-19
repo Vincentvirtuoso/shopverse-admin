@@ -397,7 +397,7 @@ const TableView = ({
                   {/* Image Cell */}
                   {columns.some((col) => col.type === "image") && (
                     <td className="px-6 py-4">
-                      <div className={"flex items-center"}>
+                      <div className={"flex items-center justify-center"}>
                         {item.icon || item.image ? (
                           <div>
                             <img

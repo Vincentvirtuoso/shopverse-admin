@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FiChevronDown, FiSearch, FiCheck, FiTag } from "react-icons/fi";
 import { useCategory } from "../../hooks/useCategory";
 import Spinner from "../../components/common/Spinner";
+import { LuFolder } from "react-icons/lu";
 
 const CategorySelector = ({ selectedCategory, onCategoryChange, errors }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -117,9 +118,26 @@ const CategorySelector = ({ selectedCategory, onCategoryChange, errors }) => {
                           onCategoryChange(cat);
                           setIsOpen(false);
                         }}
-                        className={`w-full p-3 text-left rounded-xl flex items-center justify-between group transition-colors
+                        className={`w-full p-3 text-left rounded-xl flex items-center gap-4 group transition-colors
                       ${selectedCategory?._id === cat?._id ? "bg-red-50 dark:bg-red-900/20" : "hover:bg-neutral-50 dark:hover:bg-neutral-800"}`}
                       >
+                        <div className={"flex items-center"}>
+                          {cat.icon || cat.image ? (
+                            <div>
+                              <img
+                                src={cat.icon || cat.image}
+                                alt={cat.name}
+                                className="w-10 h-10 rounded-lg object-contain shrink-0"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-10 h-10 bg-linear-to-br from-red-100 to-purple-100 dark:from-red-900/40 dark:to-purple-900/40 rounded-lg flex items-center justify-center ">
+                              {
+                                <LuFolder className="text-red-600 dark:text-red-400" />
+                              }
+                            </div>
+                          )}
+                        </div>
                         <div>
                           <div className="text-sm font-bold text-neutral-800 dark:text-neutral-200">
                             {cat.name}
